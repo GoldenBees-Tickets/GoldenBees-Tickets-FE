@@ -1,0 +1,91 @@
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+
+export const qrCodeApi = createApi({
+  reducerPath: "qrCodeApi",
+  baseQuery: fetchBaseQuery({ 
+    baseUrl: "http://localhost:3000/v1/api/qr",
+    prepareHeaders: (headers) => {
+      // Log thông tin request để debug
+      return headers;
+    },
+    credentials: 'include', // Thêm credentials nếu cần
+    timeout: 15000, // Timeout 15 giây
+    validateStatus: (response, result) => {
+      return response.status >= 200 && response.status < 300;
+    },
+  }),
+  tagTypes: ["QrCode"],
+
+  endpoints: (builder) => ({
+    // Tạo mã QR mới
+    generateQrCode: builder.mutation({
+      query: ({ data, email }) => {
+        return {
+          url: `/generate`,
+          method: "POST",
+          body: { data, email },
+        };
+      },
+      transformResponse: (response) => {
+        return response;
+      },
+      transformErrorResponse: (response) => {
+        console.error('Error response from server:', response);
+        return response;
+      },
+    }),
+    
+    // Quét mã QR
+    scanQrCode: builder.mutation({
+      query: (ticketId) => {        
+        // Kiểm tra kiểu dữ liệu của ticketId
+        let processedTicketId = ticketId;
+        
+        // Nếu là chuỗi số, chuyển đổi sang số
+        if (!isNaN(ticketId) && typeof ticketId === 'string') {
+          processedTicketId = parseInt(ticketId, 10);
+        }
+        
+        return {
+          url: '/scan',
+          method: 'POST',
+          body: { ticketId: processedTicketId },
+        };
+      },
+      transformResponse: (response) => {
+        return response;
+      },
+      transformErrorResponse: (response) => {
+        console.error('Error response from server for QR scan:', response);
+        if (response.status === 404) {
+          console.error('Ticket not found with ID', response.data?.ticketId);
+        }
+        return response;
+      },
+    }),
+    
+    // Gửi lại mã QR qua email
+    resendQrCodeEmail: builder.mutation({
+      query: ({ ticketId, email }) => {
+        return {
+          url: '/resend-email',
+          method: 'POST',
+          body: { ticketId, email },
+        };
+      },
+      transformResponse: (response) => {
+        return response;
+      },
+      transformErrorResponse: (response) => {
+        console.error('Error response from server for QR email resend:', response);
+        return response;
+      },
+    }),
+  }),
+});
+
+export const { 
+  useGenerateQrCodeMutation, 
+  useScanQrCodeMutation,
+  useResendQrCodeEmailMutation 
+} = qrCodeApi; 

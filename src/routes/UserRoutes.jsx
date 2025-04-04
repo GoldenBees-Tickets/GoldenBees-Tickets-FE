@@ -1,0 +1,62 @@
+import RootUser from "@/layouts/root/RootUser";
+import HomePage from "@/pages/user/HomePage";
+import Profile from "@/pages/user/Profile";
+import About from "@/pages/user/About";
+import Contacts from "@/pages/user/Contacts";
+import Blog from "@/pages/user/Blog";
+import Product from "@/pages/user/Product";
+import Detail from "@/pages/user/Detail";
+import ListChair from "@/pages/user/ListChair";
+import FilterHome from "@/pages/user/FilterHome";
+import HomePay from "@/pages/user/HomePay";
+import Actor from "@/pages/user/Actor";
+import Producer from "@/pages/user/Producer";
+import Director from "../pages/user/Director";
+import PaymentPage from "../pages/Payment/PaymentPage";
+import PaymentResult from "../pages/Payment/PaymentResult";
+import QrCodePage from "../pages/user/QrCodePage";
+import Booking from "@/pages/user/Booking";
+import Payment from "@/pages/user/Payment";
+import PaymentSuccess from "@/pages/user/PaymentSuccess";
+import TestVNPay from "../pages/Payment/TestVNPay";
+import VNPayResult from "../pages/Payment/VNPayResult";
+import VoiceConverterPage from "../pages/VoiceConverter/VoiceConverterPage";
+import Posts from "@/pages/user/Posts";
+import PostDetail from "@/pages/user/PostDetail";
+
+
+const UserRoutes = {
+  path: "/",
+  element: <RootUser />,
+  children: [
+    { path: "", element: <HomePage /> },
+    { path: "account", element: <Profile /> },
+    { path: "about", element: <About /> },
+    { path: "contact", element: <Contacts /> },
+    { path: "blog", element: <Blog /> },
+    { path: "product", element: <Product /> },
+    { path: "detail/:id", element: <Detail /> },
+    { path: "chair", element: <ListChair /> },
+    { path: "filterhome", element: <FilterHome /> },
+    { path: "homepay", element: <HomePay /> },
+    { path: "actor/:id", element: <Actor /> },
+    { path: "producer/:id", element: <Producer /> },
+    { path: "/director/:id", element: <Director /> },
+    { path: "/payment", element: <PaymentPage /> },
+    { path: "/payment-result", element: <PaymentResult /> },
+    { path: "/qr-code", element: <QrCodePage /> },
+    { path: "/booking/:showtime_id", element: <Booking /> },
+    { path: "/payment/:showtime_id", element: <Payment /> },
+    { path: "/payment-success", element: <PaymentSuccess /> },
+    // VNPay Test Routes
+    { path: "/test-vnpay", element: <TestVNPay /> },
+    { path: "/vnpay-result", element: <VNPayResult /> },
+    // Voice Converter Route
+    { path: "/voice-converter", element: <VoiceConverterPage /> },
+    // Posts Routes
+    { path: "/posts", element: <Posts /> },
+    { path: "/posts/:id", element: <PostDetail /> }
+  ]
+};
+
+export default UserRoutes;
