@@ -6,6 +6,7 @@ import { GiHoneycomb } from 'react-icons/gi';
 import { MdVolumeUp, MdVolumeOff } from 'react-icons/md';
 import { MdMic, MdMicOff } from 'react-icons/md';
 import { MdMessage, MdRecordVoiceOver } from 'react-icons/md';
+import { BiExpand, BiCollapse } from 'react-icons/bi';
 
 import axios from 'axios';
 
@@ -26,6 +27,7 @@ const ChatBox = () => {
   const [autoSpeakResponse, setAutoSpeakResponse] = useState(false);
   const [voiceOnlyMode, setVoiceOnlyMode] = useState(false);
   const [latestBotResponse, setLatestBotResponse] = useState('');
+  const [logoSize, setLogoSize] = useState('medium');
   
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -35,6 +37,40 @@ const ChatBox = () => {
   const SPEECH_API_URL = 'http://localhost:3000/api/voice-converter/text-to-speech';
   const [userId] = useState(1); // Tạm thời hardcode userId = 1
   const HISTORY_API_URL = 'http://localhost:3000/v1/api/chatbot/history';
+
+  // Hàm xử lý thay đổi kích thước
+  const toggleLogoSize = (e) => {
+    e.stopPropagation(); // Ngăn không cho sự kiện lan đến nút Mở chatbox
+    // Luân phiên giữa 3 kích thước: small -> medium -> large -> small
+    setLogoSize(prevSize => {
+      switch(prevSize) {
+        case 'small': return 'medium';
+        case 'medium': return 'large';
+        case 'large': return 'small';
+        default: return 'medium';
+      }
+    });
+  };
+
+  // Nhận kích thước thực tế dựa vào state logoSize
+  const getLogoSizeClass = () => {
+    switch(logoSize) {
+      case 'small': return 'w-[60px] h-[60px]';
+      case 'medium': return 'w-[90px] h-[90px]';
+      case 'large': return 'w-[120px] h-[120px]';
+      default: return 'w-[90px] h-[90px]';
+    }
+  };
+
+  // Nhận icon tương ứng cho nút thay đổi kích thước
+  const getLogoSizeIcon = () => {
+    switch(logoSize) {
+      case 'small': return <BiExpand className="text-lg" />;  // Icon phóng to
+      case 'medium': return <BiExpand className="text-lg" />; // Icon phóng to
+      case 'large': return <BiCollapse className="text-lg" />; // Icon thu nhỏ
+      default: return <BiExpand className="text-lg" />;
+    }
+  };
 
   // Khởi tạo Speech Recognition
   useEffect(() => {
@@ -505,17 +541,29 @@ const ChatBox = () => {
     <div className="fixed bottom-6 right-6 z-50">
       {/* Chat icon - Con ong vàng */}
       {!isOpen && (
-        <button
-          onClick={handleOpenChat}
-          className="relative border-none rounded-full bg-transparent cursor-pointer flex flex-col-reverse items-center gap-4 hover:scale-105"
-          aria-label="Mở chatbox trợ lý Ong Vàng"
-        >
-          <img 
-            src={logoOngVang}
-            alt="Ong Vàng" 
-            className="w-[90px] h-[90px] object-contain filter drop-shadow-lg transition-all duration-300 transform-gpu animate-[float_3s_ease-in-out_infinite]"
-          />
-        </button>
+        <div className="relative">
+          <button
+            onClick={handleOpenChat}
+            className="relative border-none rounded-full bg-transparent cursor-pointer flex items-center justify-center hover:scale-105"
+            aria-label="Mở chatbox trợ lý Ong Vàng"
+          >
+            <img 
+              src={logoOngVang}
+              alt="Ong Vàng" 
+              className={`${getLogoSizeClass()} object-contain filter drop-shadow-lg transition-all duration-300 transform-gpu animate-[float_3s_ease-in-out_infinite]`}
+            />
+          </button>
+          
+          {/* Nút điều chỉnh kích thước */}
+          <button 
+            onClick={toggleLogoSize}
+            className="absolute top-0 right-0 w-8 h-8 bg-amber-400 hover:bg-amber-500 rounded-full flex items-center justify-center shadow-md transition-all duration-200 hover:scale-110 text-white border-2 border-white"
+            title={logoSize === 'large' ? "Thu nhỏ logo" : "Phóng to logo"}
+            aria-label={logoSize === 'large' ? "Thu nhỏ logo" : "Phóng to logo"}
+          >
+            {getLogoSizeIcon()}
+          </button>
+        </div>
       )}
 
       {/* Chat box */}

@@ -9,11 +9,11 @@ export default function Detail() {
   }, []);
 
   return (
-    <div className="bg-gray-50 min-h-screen pt-6 pb-16">
+    <div className="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-8 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <DetailMovie />
         
-        <div className="mt-8">
+        <div className="mt-12">
           <FilterMovie />
         </div>
       </div>
