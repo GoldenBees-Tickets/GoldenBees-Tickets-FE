@@ -10,11 +10,7 @@ export default function ListUser() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  const { data: usersData, isLoading, error } = useGetUsersQuery();
-  console.log("UsersData:", usersData);
-  console.log("IsLoading:", isLoading);
-  console.log("Error:", error);
-  
+  const { data: usersData, isLoading, error } = useGetUsersQuery();  
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
 
   const users = useMemo(() => {
@@ -115,11 +111,6 @@ export default function ListUser() {
 
   return (
     <div>
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold">Danh sách khách hàng</h2>
-        <p className="text-sm text-gray-500">Quản lý tài khoản người dùng trong hệ thống</p>
-      </div>
-
       <Table
         columns={columns}
         dataSource={paginatedData}

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FiCheckCircle, FiXCircle, FiArrowLeft } from "react-icons/fi";
-import { toast } from "react-toastify";
 import { useCheckOrderQuery } from "../../api/orderApi";
 
 const PaymentResult = () => {

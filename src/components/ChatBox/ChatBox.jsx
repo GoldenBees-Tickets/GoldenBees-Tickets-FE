@@ -46,11 +46,7 @@ const ChatBox = () => {
       recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = 'vi-VN'; // Thiết lập ngôn ngữ tiếng Việt
       
-      // Log khi recognition được khởi tạo
-      console.log('Speech Recognition initialized');
-      
       recognitionRef.current.onresult = (event) => {
-        console.log('Got speech result', event.results);
         let interimTranscript = '';
         let finalTranscript = '';
         
@@ -64,26 +60,19 @@ const ChatBox = () => {
         }
         
         if (finalTranscript) {
-          console.log('Final transcript:', finalTranscript);
           setInputMessage(prevMessage => prevMessage + finalTranscript);
         }
         
-        if (interimTranscript) {
-          console.log('Interim transcript:', interimTranscript);
-        }
       };
       
       recognitionRef.current.onstart = () => {
-        console.log('Speech recognition started');
         setError('');
       };
       
       recognitionRef.current.onend = () => {
-        console.log('Speech recognition ended');
         
         // Nếu vẫn đang ở trạng thái listening, thử khởi động lại
         if (isListening) {
-          console.log('Restarting speech recognition');
           try {
             recognitionRef.current.start();
           } catch (err) {
@@ -144,7 +133,6 @@ const ChatBox = () => {
     }
     
     if (isListening) {
-      console.log('Stopping speech recognition');
       try {
         recognitionRef.current.stop();
         setIsListening(false);
@@ -153,7 +141,6 @@ const ChatBox = () => {
         setError('Không thể dừng nhận diện giọng nói. Vui lòng tải lại trang.');
       }
     } else {
-      console.log('Starting speech recognition');
       
       // Kiểm tra quyền truy cập microphone
       try {

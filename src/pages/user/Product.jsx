@@ -1,8 +1,7 @@
 import { useGetMoviesQuery } from "../../api/movieApi";
-import HomeItemMovie from "../../components/user/Home/HomeItemMovie";
+import HomeItemMovie from "@/components/user/Home/HomeItemMovie";
 import { useState, useEffect } from "react";
-const API_BASE_URL = import.meta.env.VITE_SOCKET_URL;
-
+import { formatImage } from "@/utils/formatImage";
 export default function Product() {
   const { data: List } = useGetMoviesQuery();
   const [ListMovie, setListMovie] = useState([]);
@@ -169,7 +168,7 @@ export default function Product() {
             key={movie.id}
             title={movie.name}
             year={movie.year}
-            imageSrc={movie.poster}
+            imageSrc={formatImage(movie.poster)}
             id={movie.id}
             genres={movie.MovieGenres?.map(mg => ({ id: mg.Genre?.id, name: mg.Genre?.name }))}
           />

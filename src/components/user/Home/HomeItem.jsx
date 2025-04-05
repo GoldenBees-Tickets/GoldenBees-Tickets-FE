@@ -1,7 +1,7 @@
-import { useGetMoviesQuery } from "../../../api/movieApi";
+import { useGetMoviesQuery } from "@/api/movieApi";
 import HomeItemMovie from "./HomeItemMovie";
 import { useState } from "react";
-
+import { formatImage } from "@/utils/formatImage";
 
 export default function HomeItem() {
   const [activeTab, setActiveTab] = useState("nowShowing"); // "nowShowing" or "comingSoon"
@@ -59,7 +59,7 @@ export default function HomeItem() {
             key={movie.id}
             title={movie.name}
             year={movie.year}
-            imageSrc={movie.poster}
+            imageSrc={formatImage(movie.poster)}
             id={movie.id}
             genres={movie.MovieGenres?.map(mg => ({ id: mg.Genre?.id, name: mg.Genre?.name }))}
           />

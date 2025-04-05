@@ -5,8 +5,7 @@ import EditCombo from "../../components/admin/AdminCombo/EditCombo";
 import { FiEdit2, FiTrash2, FiPlus, FiSearch, FiEye, FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
 
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
-const API_BASE_URL = import.meta.env.VITE_SOCKET_URL;
+import { formatImage } from "@/utils/formatImage";
 
 
 const Combo = () => {
@@ -129,16 +128,12 @@ const Combo = () => {
                   </td>
                 </tr>
               ) : (
-                filteredList.map((item) => (
+                filteredList?.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-150">
                     <td className="py-3 px-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <img
-                          src={
-                            item.profile_picture?.startsWith("http")
-                              ? item.profile_picture
-                              : `${IMAGE_BASE_URL}${item.profile_picture}`
-                          }
+                          src={formatImage(item.profile_picture)}
                           alt={item.name}
                           className="h-10 w-10 rounded-lg object-cover shadow-sm"
                         />
@@ -221,11 +216,7 @@ const Combo = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Hình Ảnh</label>
                   <img
-                    src={
-                      viewDetails?.profile_picture?.startsWith("http")
-                        ? viewDetails?.profile_picture
-                        : `${IMAGE_BASE_URL}${viewDetails?.profile_picture}`
-                    }
+                    src={formatImage(viewDetails?.profile_picture)}
                     alt={viewDetails?.name}
                     className="w-32 h-32 object-cover rounded-lg"
                   />

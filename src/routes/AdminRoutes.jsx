@@ -1,7 +1,6 @@
 import PrivateAdminRoute from "@/routes/PrivateAdminRoute";
 import RootAdmin from "@/layouts/root/RootAdmin";
 import Dashboard from "@/pages/admin/Dashboard";
-import ListUsers from "@/components/admin/AdminUser/ListUsers";
 import BranchAdmins from "@/pages/admin/BranchAdmins";
 import Branch from "@/pages/admin/Branch";
 import Movie from "@/pages/admin/Movie";
@@ -48,6 +47,7 @@ import AddPromotion from "../pages/admin/promotion/AddPromotion";
 import Posts from "@/pages/admin/Posts";
 import PostsCreate from "@/pages/admin/PostsCreate";
 import PostsEdit from "@/pages/admin/PostsEdit";
+import UserManagement from "@/pages/admin/UserManagement";
 
 
 const AdminRoutes = {
@@ -56,7 +56,7 @@ const AdminRoutes = {
   element: <PrivateAdminRoute element={<RootAdmin />} requiredRole={["admin", "branch_admin"]} />,
   children: [
     { path: "", element: <Dashboard /> },
-    { path: "users", element: <ListUsers /> },
+    { path: "users", element: <UserManagement /> },
     { path: "branch-admins", element: <BranchAdmins /> },
     { path: "branches", element: <Branch /> },
     { path: "movies", element: <Movie /> },

@@ -1,8 +1,7 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useGetMovieByIdQuery } from "../../../api/movieApi";
-const API_BASE_URL = import.meta.env.VITE_SOCKET_URL;
-
+import { formatImage } from "@/utils/formatImage";
 export default function MovieDetail() {
   const { id } = useParams();
   const { data: movie, error, isLoading } = useGetMovieByIdQuery(id);
@@ -34,7 +33,7 @@ export default function MovieDetail() {
           <div className="sticky top-20">
             <div className="relative group overflow-hidden rounded-xl">
               <img
-                src={`${API_BASE_URL}/${ListMovie?.poster}`}
+                src={formatImage(ListMovie?.poster)}
                 alt={ListMovie?.name}
                 className="w-full h-auto object-cover rounded-xl shadow-lg transform transition duration-300 group-hover:scale-105"
               />
@@ -55,7 +54,7 @@ export default function MovieDetail() {
               </div>
             </div>
           </div>
-        </div>
+
 
         <div className="flex-1">
           <div className="mb-6">
@@ -163,6 +162,7 @@ export default function MovieDetail() {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }
