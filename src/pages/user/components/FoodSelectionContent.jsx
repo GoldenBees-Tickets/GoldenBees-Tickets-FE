@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useGetCombosQuery } from "@/api/comboApi";
 
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
+import { formatImage } from "@/utils/formatImage";
 // Component hiển thị FoodItem
 function FoodItem({ item, onQuantityChange }) {
   return (
@@ -11,11 +11,7 @@ function FoodItem({ item, onQuantityChange }) {
         {/* Ảnh */}
         <div className="w-20 h-20 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
           <img
-            src={
-              item.profile_picture?.startsWith("http")
-                ? item.profile_picture
-                : `${IMAGE_BASE_URL}${item.profile_picture}`
-            }
+            src={formatImage(item.profile_picture)}
             alt={item.name}
             className="w-full h-full object-cover"
           />

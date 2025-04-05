@@ -4,6 +4,7 @@ import {
   Form,
   Input,
   InputNumber,
+  DatePicker,
   Select,
   Button,
   Upload,
@@ -26,6 +27,7 @@ import { useGetActorsQuery } from "@/api/actorApi";
 import { useGetDirectorsQuery } from "@/api/directorApi";
 import { useGetProducersQuery } from "@/api/producerApi";
 import { useGetGenresQuery } from "@/api/genreApi";
+import dayjs from 'dayjs';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -55,6 +57,7 @@ export default function EditMovies() {
 
   const [posterFile, setPosterFile] = useState(null);
   const [posterPreview, setPosterPreview] = useState("");
+  const [posterFileName, setPosterFileName] = useState("");
 
   useEffect(() => {
     if (movie) {
@@ -69,25 +72,31 @@ export default function EditMovies() {
         director_id: movie.Director?.id,
         actor_ids: movie.MovieActors?.map(ma => ma.Actor.id),
         producer_ids: movie.MovieProducers?.map(mp => mp.Producer.id),
-        genre_ids: movie.MovieGenres?.map(mg => mg.Genre.id)
+        genre_ids: movie.MovieGenres?.map(mg => mg.Genre.id),
+        release_date: movie.release_date ? dayjs(movie.release_date) : null,
       });
 
       if (movie.poster) {
         setPosterPreview(`${API_BASE_URL}/${movie.poster}`);
+        
+        const posterPathParts = movie.poster.split('/');
+        setPosterFileName(posterPathParts[posterPathParts.length - 1]);
       }
     }
   }, [movie, form]);
 
-  const handlePosterChange = (info) => {
-    if (info.file) {
-      setPosterFile(info.file.originFileObj);
+  const handlePosterChange = (info) => {    
+    if (info && info.file) {
+      const fileObj = info.file.originFileObj || info.file;
       
-      // Preview image
+      setPosterFile(fileObj);
+      setPosterFileName(fileObj.name);
+      
       const reader = new FileReader();
       reader.onload = () => {
         setPosterPreview(reader.result);
       };
-      reader.readAsDataURL(info.file.originFileObj);
+      reader.readAsDataURL(fileObj);
     }
   };
 
@@ -103,7 +112,10 @@ export default function EditMovies() {
       formData.append("duration", values.duration);
       formData.append("director_id", values.director_id);
       
-      // Append multiple actors, producers, and genres
+      if (values.release_date) {
+        formData.append("release_date", values.release_date.format('YYYY-MM-DD'));
+      }
+      
       if (values.actor_ids && values.actor_ids.length > 0) {
         values.actor_ids.forEach(actorId => {
           formData.append("actor_id", actorId);
@@ -209,6 +221,18 @@ export default function EditMovies() {
             </Form.Item>
 
             <Form.Item
+              name="release_date"
+              label="Ngày khởi chiếu"
+              rules={[{ required: true, message: "Vui lòng chọn ngày khởi chiếu" }]}
+            >
+              <DatePicker 
+                className="w-full" 
+                format="DD/MM/YYYY"
+                placeholder="Chọn ngày khởi chiếu"
+              />
+            </Form.Item>
+
+            <Form.Item
               name="country"
               label="Quốc gia"
             >
@@ -241,38 +265,38 @@ export default function EditMovies() {
             </Form.Item>
 
             <Form.Item
-              name="poster"
               label="Poster phim"
-              valuePropName="fileList"
-              getValueFromEvent={e => e && e.fileList}
             >
-              <Upload
-                listType="picture-card"
-                beforeUpload={() => false}
-                onChange={handlePosterChange}
-                maxCount={1}
-                showUploadList={false}
-              >
-                {posterPreview ? (
-                  <div className="relative w-full h-32">
-                    <img 
-                      src={posterPreview} 
-                      alt="Poster" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <UploadOutlined />
-                    <div className="mt-2">Tải poster</div>
+              <div>
+                <Upload
+                  listType="picture-card"
+                  beforeUpload={() => false}
+                  onChange={handlePosterChange}
+                  maxCount={1}
+                  showUploadList={false}
+                  accept="image/*"
+                >
+                  {posterPreview ? (
+                    <div className="relative w-full h-32">
+                      <img 
+                        src={posterPreview} 
+                        alt="Poster" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <UploadOutlined />
+                      <div className="mt-2">Tải poster</div>
+                    </div>
+                  )}
+                </Upload>
+                {posterFileName && (
+                  <div className="mt-2 text-sm text-gray-500 font-semibold">
+                    File đã chọn: {posterFileName}
                   </div>
                 )}
-              </Upload>
-              {posterFile && (
-                <div className="mt-2 text-sm text-gray-500">
-                  File đã chọn: {posterFile.name}
-                </div>
-              )}
+              </div>
             </Form.Item>
           </div>
 

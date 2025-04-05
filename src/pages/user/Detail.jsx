@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import DetailMovie from "../../components/user/Detail/DetailMovie";
 import FilterMovie from "../../components/user/Detail/FilterMovie";
-import DetailListMovie from "../../components/User/Detail/DetailListMovie";
 
 export default function Detail() {
   useEffect(() => {

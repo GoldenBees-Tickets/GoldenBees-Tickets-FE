@@ -1,9 +1,10 @@
+import { authEvents } from "../../utils/authEventBus";
 import axiosPublic from "./axiosPublic";
 import httpClient from "./httpClient";
 
 const axiosBaseQuery =
   (
-    { baseUrl, useHttpClient = false, navigate } = { baseUrl: "", useHttpClient: false }
+    { baseUrl, useHttpClient = false } = { baseUrl: "", useHttpClient: false }
   ) =>
   async ({ url, method, data, isFormData = false }) => {
     try {
@@ -28,16 +29,13 @@ const axiosBaseQuery =
       console.error("Error response:", error.response);
       
       if (error.response?.status == 403) {
-        window.location.href = "/permission-denied-page";
+        authEvents.onForbidden();
       }
-
-      if(error.response?.status == 401) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
-        localStorage.removeItem("role");
-        navigate("/login");
+      if (error.response?.status == 401) {
+        localStorage.clear();
+        authEvents.onUnauthorized();
       }
+      
 
       return {
         error: {

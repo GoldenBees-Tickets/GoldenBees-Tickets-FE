@@ -58,7 +58,6 @@ export default function ChangePassword({ setToggleUpdatePassword, userid }) {
     }
 
     const response = await updatePassword({ password, newPassword, id: userid });
-    console.log("response", response);
     
     if (response?.data?.user.status === 401) {
       setErrorPassword(response?.data?.user?.message || "Có lỗi xảy ra");
@@ -70,7 +69,6 @@ export default function ChangePassword({ setToggleUpdatePassword, userid }) {
 
   const handleForgotPassword = async () => {
     if (!email) return toast.error("Vui lòng nhập email để nhận link đặt lại mật khẩu");
-    console.log("email", email);
     setShowForgotPassword(false);
     setToggleUpdatePassword(false);
     toast.info("Đã gửi link đặt lại mật khẩu tới email của bạn");

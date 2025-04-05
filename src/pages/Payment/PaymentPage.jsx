@@ -49,6 +49,7 @@ const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats }) =>
   const dataApi = {
     user_id,
     total: dataTotal?.total_amount,
+    amount: dataTotal?.total_amount,
     seat_ids: seat_ids,
     showtime_id: dataPage?.showtime,
     combos: dataPage?.foodItems,

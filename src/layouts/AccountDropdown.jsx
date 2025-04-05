@@ -1,8 +1,8 @@
 import { useState, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useGetUserQuery } from "../api/userApi";
+import { formatImage } from "@/utils/formatImage";
 
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 export default function AccountDropdown() {
   const navigate = useNavigate();
@@ -58,11 +58,7 @@ export default function AccountDropdown() {
           >
             <img
               className="w-9 h-9 rounded-full"
-              src={
-                userData?.image?.startsWith("http")
-                  ? userData?.image
-                  : `${IMAGE_BASE_URL}${userData?.image}`
-              }
+              src={formatImage(userData?.image)}
               alt="Avatar"
             />
 

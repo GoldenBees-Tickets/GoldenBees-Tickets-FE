@@ -33,6 +33,7 @@ export default function AddMovies() {
   const [form] = Form.useForm();
   const [posterFile, setPosterFile] = useState(null);
   const [posterPreview, setPosterPreview] = useState("");
+  const [posterFileName, setPosterFileName] = useState("");
   
   const { data: directorData } = useGetDirectorsQuery();
   const directors = directorData?.directors || [];
@@ -48,16 +49,19 @@ export default function AddMovies() {
   
   const [createMovie, { isLoading }] = useCreateMovieMutation();
 
-  const handlePosterChange = (info) => {
-    if (info.file) {
-      setPosterFile(info.file.originFileObj);
+  const handlePosterChange = (info) => {    
+    if (info && info.file) {
+      const fileObj = info.file.originFileObj || info.file;
+      
+      setPosterFile(fileObj);
+      setPosterFileName(fileObj.name);
       
       // Preview image
       const reader = new FileReader();
       reader.onload = () => {
         setPosterPreview(reader.result);
       };
-      reader.readAsDataURL(info.file.originFileObj);
+      reader.readAsDataURL(fileObj);
     }
   };
 
@@ -88,6 +92,11 @@ export default function AddMovies() {
       formData.append("age_rating", values.age_rating || 0);
       formData.append("duration", values.duration);
       formData.append("director_id", values.director_id);
+      
+      // Thêm release_date nếu có
+      if (values.release_date) {
+        formData.append("release_date", values.release_date.format('YYYY-MM-DD'));
+      }
       
       // Append multiple actors, producers, and genres
       values.actor_ids.forEach(actorId => {
@@ -162,6 +171,18 @@ export default function AddMovies() {
             </Form.Item>
 
             <Form.Item
+              name="release_date"
+              label="Ngày khởi chiếu"
+              rules={[{ required: true, message: "Vui lòng chọn ngày khởi chiếu" }]}
+            >
+              <DatePicker 
+                className="w-full" 
+                format="DD/MM/YYYY"
+                placeholder="Chọn ngày khởi chiếu"
+              />
+            </Form.Item>
+
+            <Form.Item
               name="country"
               label="Quốc gia"
             >
@@ -194,38 +215,38 @@ export default function AddMovies() {
             </Form.Item>
 
             <Form.Item
-              name="poster"
               label="Poster phim"
-              valuePropName="fileList"
-              getValueFromEvent={e => e && e.fileList}
             >
-              <Upload
-                listType="picture-card"
-                beforeUpload={() => false}
-                onChange={handlePosterChange}
-                maxCount={1}
-                showUploadList={false}
-              >
-                {posterPreview ? (
-                  <div className="relative w-full h-32">
-                    <img 
-                      src={posterPreview} 
-                      alt="Poster" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <UploadOutlined />
-                    <div className="mt-2">Tải poster</div>
+              <div>
+                <Upload
+                  listType="picture-card"
+                  beforeUpload={() => false}
+                  onChange={handlePosterChange}
+                  maxCount={1}
+                  showUploadList={false}
+                  accept="image/*"
+                >
+                  {posterPreview ? (
+                    <div className="relative w-full h-32">
+                      <img 
+                        src={posterPreview} 
+                        alt="Poster" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <UploadOutlined />
+                      <div className="mt-2">Tải poster</div>
+                    </div>
+                  )}
+                </Upload>
+                {posterFileName && (
+                  <div className="mt-2 text-sm text-gray-500 font-semibold">
+                    File đã chọn: {posterFileName}
                   </div>
                 )}
-              </Upload>
-              {posterFile && (
-                <div className="mt-2 text-sm text-gray-500">
-                  File đã chọn: {posterFile.name}
-                </div>
-              )}
+              </div>
             </Form.Item>
           </div>
 
