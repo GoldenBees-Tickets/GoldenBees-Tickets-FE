@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import DetailMovie from "../../components/user/Detail/DetailMovie";
 import FilterMovie from "../../components/user/Detail/FilterMovie";
-import DetailListMovie from "../../components/User/Detail/DetailListMovie";
 
 export default function Detail() {
   useEffect(() => {
@@ -10,16 +9,14 @@ export default function Detail() {
   }, []);
 
   return (
-    <>
-      <div className="flex flex-col md:flex-row w-full gap-4">
-        <div className="flex-1 p-4">
-          <DetailMovie />
+    <div className="bg-gray-50 min-h-screen pt-6 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <DetailMovie />
+        
+        <div className="mt-8">
           <FilterMovie />
         </div>
-        <div className="w-full md:w-[35%] p-4">
-          {/* <DetailListMovie /> */}
-        </div>
       </div>
-    </>
+    </div>
   );
 }

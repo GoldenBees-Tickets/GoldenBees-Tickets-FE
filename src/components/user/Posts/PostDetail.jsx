@@ -6,12 +6,18 @@ export default function PostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  const { data: postData, isLoading, isError } = useGetPostByIdQuery(id);
+  const { data: postData, isLoading, isError } = useGetPostByIdQuery(id, {
+    skip: !id
+  });
   
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
-  }, []);
+    
+    if (!id) {
+      navigate('/posts');
+    }
+  }, [id, navigate]);
 
   if (isLoading) {
     return (
@@ -38,11 +44,26 @@ export default function PostDetail() {
   }
 
   const { post } = postData;
-  const formattedDate = new Date(post.createdAt).toLocaleDateString("vi-VN", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  
+  // Lấy một số từ đầu tiên từ nội dung bài viết (không có thẻ HTML)
+  const getContentPreview = (content) => {
+    if (!content) return "";
+    // Loại bỏ tất cả các thẻ HTML
+    const plainText = content.replace(/<[^>]*>/g, ' ');
+    // Lấy các từ đầu tiên
+    const words = plainText.trim().split(/\s+/);
+    return words.slice(0, 7).join(' ') + (words.length > 7 ? '...' : '');
+  };
+  
+  const contentPreview = getContentPreview(post.content);
+  
+  const formattedDate = post.createdAt 
+    ? new Date(post.createdAt).toLocaleDateString("vi-VN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "Không có thông tin ngày";
 
   return (
     <div className="bg-gray-50 py-16">
@@ -79,7 +100,7 @@ export default function PostDetail() {
                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                 </svg>
-                {post.author}
+                {post.author || "Admin"}
               </span>
               <span className="flex items-center">
                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -88,15 +109,37 @@ export default function PostDetail() {
                 {formattedDate}
               </span>
             </div>
+            
+            {/* Post summary */}
+            {contentPreview && (
+              <div className="text-gray-700 mb-4 italic">
+                {contentPreview}
+              </div>
+            )}
           </div>
+          
+          {/* Post banner image */}
+          {post.image && (
+            <div className="w-full">
+              <img 
+                src={post.image} 
+                alt={post.title} 
+                className="w-full h-auto object-cover max-h-[500px]"
+              />
+            </div>
+          )}
         </div>
 
         {/* Post content */}
         <div className="bg-white rounded-lg shadow-md p-6 md:p-8 mb-8">
-          <div 
-            className="prose prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          {post.content ? (
+            <div 
+              className="prose prose-lg max-w-none"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+          ) : (
+            <p className="text-gray-500 text-center py-8">Không có nội dung bài viết</p>
+          )}
         </div>
 
         {/* Navigation buttons */}

@@ -5,8 +5,8 @@ export default function HomeItemMovie({ title, year, imageSrc, id, genres = [] }
   const primaryGenre = genres && genres.length > 0 ? genres[0].name : "";
   
   return (
-    <Link to={`/detail/${id}`} className="block transform transition duration-300 hover:-translate-y-2">
-      <div className="relative h-full bg-gradient-to-br from-black/60 to-gray-800/60 rounded-xl overflow-hidden">
+    <Link to={`/detail/${id}`} className="block">
+      <div className="relative h-full bg-gray-800 rounded-xl overflow-hidden">
 
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
@@ -46,14 +46,14 @@ export default function HomeItemMovie({ title, year, imageSrc, id, genres = [] }
         <div className="absolute bottom-0 left-0 right-0 z-20 p-4 text-white">
           <h3 className="text-lg font-bold leading-tight">{title}</h3>
           <div className="flex items-center mt-2 space-x-2">
-            <span className="text-xs bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded">{year}</span>
-            <span className="text-xs bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded">HD</span>
+            <span className="text-xs bg-white/20 px-2 py-0.5 rounded">{year}</span>
+            <span className="text-xs bg-white/20 px-2 py-0.5 rounded">HD</span>
           </div>
           
           {/* Action buttons */}
           <div className="flex justify-between items-center mt-3">
             <button 
-              className="text-xs bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full transition"
+              className="text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full"
               title="Add to wishlist"
             >
               <span className="flex items-center">
@@ -64,7 +64,7 @@ export default function HomeItemMovie({ title, year, imageSrc, id, genres = [] }
               </span>
             </button>
             <button 
-              className="text-xs bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full transition"
+              className="text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full"
               title="Watch trailer"
             >
               <span className="flex items-center">

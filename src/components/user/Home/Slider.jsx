@@ -34,7 +34,7 @@ export default function Slider() {
   const videoRefs = useRef([]);
   const trailerRef = useRef(null);
   const timerRef = useRef(null);
-  const autoPlayInterval = 3000; // Changed from 15000 to 3000 (3 seconds)
+  const autoPlayInterval = 5000; // Changed from 3000 to 5000 (5 seconds)
 
   // Set up video refs
   // useEffect(() => {
@@ -159,7 +159,7 @@ export default function Slider() {
           opacity: index === currentSlide ? 1 : 0,
           zIndex: index === currentSlide ? 1 : 0,
           visibility: Math.abs(index - currentSlide) <= 1 ? 'visible' : 'hidden',
-          transition: 'opacity 1000ms ease-in-out', // Enhanced fade transition
+          transition: 'opacity 600ms ease', // Reduced transition time from 1000ms
         }}
       >
         <div className="relative w-full h-full overflow-hidden bg-black">
@@ -169,16 +169,15 @@ export default function Slider() {
                 ref={el => videoRefs.current[index] = el}
                 src={`${slide.video}?enablejsapi=1&autoplay=${index === 0 ? 1 : 0}&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${getVideoId(slide.video)}&modestbranding=1&disablekb=1&iv_load_policy=3&color=white&fs=0&playsinline=1&origin=${window.location.origin}`}
                 title={slide.title}
-                className="w-[100%] h-[100%] scale-[1.2] object-cover pointer-events-none absolute inset-0"
+                className="w-[100%] h-[100%] object-cover pointer-events-none absolute inset-0"
                 style={{ 
                   position: "absolute", 
                   top: "0", 
                   left: "0", 
                   width: "100%", 
-                  height: "115%", // Extra height to ensure full coverage
+                  height: "115%", 
                   maxWidth: "none",
                   maxHeight: "none",
-                  filter: "contrast(1.1) brightness(0.9)"
                 }}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -190,39 +189,36 @@ export default function Slider() {
                 src={slide.image}
                 alt={slide.title}
                 className="w-full h-full object-cover absolute inset-0"
-                style={{
-                  filter: "contrast(1.1) brightness(0.9)"
-                }}
                 loading="eager"
               />
             )}
           </div>
           
-          {/* Content overlay with enhanced animation */}
+          {/* Content overlay with simplified animation */}
           <div 
-            className="absolute inset-0 flex flex-col justify-end z-10 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none"
+            className="absolute inset-0 flex flex-col justify-end z-10 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"
           >
             <div className="container mx-auto px-6 pb-12 md:pb-16">
               <div 
-                className={`max-w-4xl transition-all duration-1000 ease-in-out transform ${
+                className={`max-w-4xl transition-opacity duration-500 ${
                   index === currentSlide 
-                    ? 'opacity-100 translate-y-0' 
-                    : 'opacity-0 translate-y-8'
+                    ? 'opacity-100' 
+                    : 'opacity-0'
                 }`}
               >
-                <h2 className="text-2xl md:text-4xl font-bold text-yellow-300 mb-3 drop-shadow-lg tracking-wide">
+                <h2 className="text-2xl md:text-4xl font-bold text-yellow-300 mb-3 tracking-wide">
                   {slide.title}
                 </h2>
-                <p className="text-sm md:text-base text-white mb-4 max-w-2xl drop-shadow-md">
+                <p className="text-sm md:text-base text-white mb-4 max-w-2xl">
                   {slide.description}
                 </p>
                 <div className="flex gap-3">
-                  <button className="bg-yellow-600 hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 text-white py-1.5 px-6 rounded text-xs md:text-sm font-medium transform transition duration-300 hover:scale-105 pointer-events-auto">
+                  <button className="bg-yellow-600 hover:bg-yellow-700 text-white py-1.5 px-6 rounded text-xs md:text-sm font-medium pointer-events-auto">
                     Mua Vé
                   </button>
                   <button 
                     onClick={toggleTrailer}
-                    className="bg-black/50 backdrop-blur-sm hover:bg-black/70 border border-yellow-500/40 text-white py-1.5 px-6 rounded text-xs md:text-sm font-medium transform transition duration-300 hover:scale-105 pointer-events-auto"
+                    className="bg-black/50 hover:bg-black/70 border border-yellow-500/40 text-white py-1.5 px-6 rounded text-xs md:text-sm font-medium pointer-events-auto"
                   >
                     {showTrailer ? 'Đóng Trailer' : 'Xem Trailer'}
                   </button>
@@ -260,8 +256,7 @@ export default function Slider() {
   return (
     <div className="w-full relative">
       {/* Cinematic fullscreen slider */}
-      <div 
-        className="relative w-full h-[550px] md:h-[650px] lg:h-[85vh] max-h-[900px]"
+      <div className="relative w-full h-[550px] md:h-[650px] lg:h-[85vh] max-h-[900px]"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => !showTrailer && setIsPaused(false)}
       >
@@ -272,13 +267,13 @@ export default function Slider() {
 
         {/* Movie poster with trailer */}
         <div 
-          className={`absolute right-6 top-6 z-30 w-64 md:w-72 lg:w-80 transition-all duration-500 transform ${
+          className={`absolute right-6 top-6 z-30 w-64 md:w-72 lg:w-80 ${
             showTrailer 
-              ? 'scale-100 opacity-100' 
-              : 'scale-95 opacity-0 pointer-events-none'
+              ? 'opacity-100' 
+              : 'opacity-0 pointer-events-none'
           }`}
         >
-          <div className="bg-black/80 backdrop-blur-md rounded-lg overflow-hidden shadow-2xl border border-yellow-500/30">
+          <div className="bg-black/80 rounded-lg overflow-hidden shadow-lg border border-yellow-500/30">
             {/* Trailer video */}
             <div className="aspect-video w-full bg-black relative">
               <iframe 
@@ -293,7 +288,7 @@ export default function Slider() {
               {/* Close button */}
               <button 
                 onClick={toggleTrailer} 
-                className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 rounded-full p-1 transition-all border border-yellow-500/30"
+                className="absolute top-2 right-2 bg-black/50 rounded-full p-1 border border-yellow-500/30"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -308,10 +303,10 @@ export default function Slider() {
           </div>
         </div>
 
-        {/* Navigation buttons with improved design */}
+        {/* Navigation buttons with simplified design */}
         <button
           onClick={prevSlide}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-yellow-300 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center z-20 backdrop-blur-sm border border-yellow-500/30 transition-all duration-300 hover:scale-110"
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 text-yellow-300 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center z-20 border border-yellow-500/30"
           disabled={isAnimating}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -320,7 +315,7 @@ export default function Slider() {
         </button>
         <button
           onClick={nextSlide}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-yellow-300 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center z-20 backdrop-blur-sm border border-yellow-500/30 transition-all duration-300 hover:scale-110"
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 text-yellow-300 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center z-20 border border-yellow-500/30"
           disabled={isAnimating}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -328,16 +323,16 @@ export default function Slider() {
           </svg>
         </button>
 
-        {/* Slide indicators with improved design */}
+        {/* Slide indicators with simplified design */}
         <div className="absolute bottom-4 md:bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
           {slides.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`transition-all duration-500 ease-out ${
+              className={`${
                 currentSlide === index 
                   ? "w-6 bg-yellow-600 rounded-md" 
-                  : "w-1.5 bg-white/50 hover:bg-yellow-300/80 rounded-full"
+                  : "w-1.5 bg-white/50 rounded-full"
               } h-1.5`}
               aria-label={`Go to slide ${index + 1}`}
             />

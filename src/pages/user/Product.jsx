@@ -12,6 +12,7 @@ export default function Product() {
   const [filterGenre, setFilterGenre] = useState("");
   const [uniqueYears, setUniqueYears] = useState([]);
   const [uniqueGenres, setUniqueGenres] = useState([]);
+  const [isFilterExpanded, setIsFilterExpanded] = useState(true);
 
   useEffect(() => {
     if (List?.movies) {
@@ -70,71 +71,96 @@ export default function Product() {
     setFilterGenre("");
   };
 
+  const toggleFilter = () => {
+    setIsFilterExpanded(!isFilterExpanded);
+  };
+
   return (
     <div className="font-[sans-serif] p-4 mx-auto max-w-[1400px]">
-      <h2
-        className="text-xl sm:text-3xl font-extrabold text-gray-800 mb-6 sm:mb-8 text-center 
-                  transition-transform transform hover:scale-110 duration-300"
-      >
-        Phim
-      </h2>
-
-      {/* Filter section */}
-      <div className="bg-white p-4 rounded-lg shadow-md mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tên phim</label>
-            <input
-              type="text"
-              placeholder="Tìm theo tên phim"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={searchTitle}
-              onChange={(e) => setSearchTitle(e.target.value)}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Năm sản xuất</label>
-            <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={filterYear}
-              onChange={(e) => setFilterYear(e.target.value)}
-            >
-              <option value="">Tất cả các năm</option>
-              {uniqueYears.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Thể loại</label>
-            <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={filterGenre}
-              onChange={(e) => setFilterGenre(e.target.value)}
-            >
-              <option value="">Tất cả thể loại</option>
-              {uniqueGenres.map(genre => (
-                <option key={genre.id} value={genre.id}>{genre.name}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="flex items-end">
-            <button
-              onClick={handleReset}
-              className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-            >
-              Đặt lại
-            </button>
-          </div>
-        </div>
+      <div className="mb-4 text-center">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+          Danh sách phim
+        </h1>
       </div>
 
-      {/* Results count */}
-      <div className="mb-4 text-gray-600">
-        Hiển thị {filteredMovies.length} phim {filteredMovies.length < ListMovie.length ? "(có áp dụng bộ lọc)" : ""}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Tên phim..."
+            className="w-full sm:w-48 pl-8 pr-2 py-1.5 text-sm border border-gray-200 rounded-full focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
+            value={searchTitle}
+            onChange={(e) => setSearchTitle(e.target.value)}
+          />
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        
+        <div className="relative">
+          <select
+            className="w-full sm:w-40 appearance-none pl-8 pr-8 py-1.5 text-sm border border-gray-200 rounded-full focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
+            value={filterYear}
+            onChange={(e) => setFilterYear(e.target.value)}
+          >
+            <option value="">Năm phát hành</option>
+            {uniqueYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <svg className="w-3 h-3 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+        
+        <div className="relative">
+          <select
+            className="w-full sm:w-40 appearance-none pl-8 pr-8 py-1.5 text-sm border border-gray-200 rounded-full focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
+            value={filterGenre}
+            onChange={(e) => setFilterGenre(e.target.value)}
+          >
+            <option value="">Thể loại</option>
+            {uniqueGenres.map(genre => (
+              <option key={genre.id} value={genre.id}>{genre.name}</option>
+            ))}
+          </select>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+          </svg>
+          <svg className="w-3 h-3 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+        
+        {(searchTitle || filterYear || filterGenre) && (
+          <button
+            onClick={handleReset}
+            className="py-1.5 px-3 text-xs text-white bg-orange-500 hover:bg-orange-600 rounded-full flex items-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Đặt lại
+          </button>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center text-xs text-gray-500">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1.5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+          </svg>
+          <span>
+            Hiển thị <span className="font-medium text-yellow-600">{filteredMovies.length}</span> phim 
+            {filteredMovies.length < ListMovie.length && <span className="text-xs text-orange-500 ml-1">(đã lọc)</span>}
+          </span>
+        </div>
+        <div className="text-xs text-gray-400">
+          Tổng cộng: {ListMovie.length} phim
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
