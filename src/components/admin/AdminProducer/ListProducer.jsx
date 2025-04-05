@@ -4,8 +4,8 @@ import { Table, Button, Modal, Spin, message } from "antd";
 import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
 import { useGetProducersQuery, useDeleteProducerMutation } from "@/api/producerApi";
 import PaginationDefault from "@/components/PaginationDefault";
+import { formatImage } from "@/utils/formatImage";
 
-const API_BASE_URL = import.meta.env.VITE_SOCKET_URL;
 
 export default function ListProducers() {
   const { data: producerData, isLoading } = useGetProducersQuery();
@@ -15,6 +15,7 @@ export default function ListProducers() {
   const [selectedProducer, setSelectedProducer] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  
 
   const handleEdit = (producer) => {
     // Link to edit page is handled in the column definition
@@ -51,11 +52,7 @@ export default function ListProducers() {
       render: (profile_picture, record) => (
         <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100">
           <img
-            src={
-              profile_picture?.startsWith("http")
-                ? profile_picture
-                : `${API_BASE_URL}/${profile_picture}`
-            }
+            src={formatImage(profile_picture)}
             alt={record.name}
             className="w-full h-full object-cover"
             onError={(e) => {

@@ -1,10 +1,10 @@
 import { IoGiftSharp } from "react-icons/io5";
 import { BiSolidMedal } from "react-icons/bi";
-import { useUpdateUserMutation } from "../../../api/userApi";
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
+import { useUpdateUserMutation } from "@/api/userApi";
 import { toast } from "react-toastify";
+import { formatImage } from "@/utils/formatImage";
 
-export default function LeftAccount({ user }) {
+export default function LeftAccount({ user }) {  
   const [changeImage] = useUpdateUserMutation();
   const spendingMilestones = [
     { label: "0 đ", value: 0 },
@@ -14,10 +14,7 @@ export default function LeftAccount({ user }) {
 
   const handleUpload = async (e) => {
     const image = e.target.files[0];
-    console.log("file", image);
-    const response = await changeImage({ id: user.id, image });
-    console.log("response", response);
-    
+    const response = await changeImage({ id: user.id, image });    
     if (response?.data.user.status === 200) {
       toast.success("Cập nhật ảnh thành công");
     } else {
@@ -35,11 +32,7 @@ export default function LeftAccount({ user }) {
           {user?.image ? (
             <img
               className="w-full h-full object-cover"
-              src={
-                user?.image?.startsWith("http")
-                  ? user?.image
-                  : `${IMAGE_BASE_URL}${user?.image}`
-              }
+              src={formatImage(user?.image)}
               alt="User avatar"
             />
           ) : (
@@ -72,7 +65,7 @@ export default function LeftAccount({ user }) {
         </h2>
         <div className="flex items-center justify-center mt-1 text-gray-800 text-sm">
           <IoGiftSharp className="text-orange-500 w-4 h-4" />
-          <span className="ml-2">8 stars</span>
+          <span className="ml-2">{user?.star} stars</span>
         </div>
       </div>
 

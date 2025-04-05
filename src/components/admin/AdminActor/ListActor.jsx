@@ -7,8 +7,8 @@ import {
   useDeleteActorMutation,
 } from "../../../api/actorApi";
 import PaginationDefault from "@/components/PaginationDefault";
+import { formatImage } from "@/utils/formatImage";
 
-const API_BASE_URL = import.meta.env.VITE_SOCKET_URL;
 
 export default function ListActors() {
   const { data: actorData, error, isLoading } = useGetActorsQuery();
@@ -41,11 +41,7 @@ export default function ListActors() {
       key: "profile_picture",
       render: (profile_picture) => (
         <Avatar 
-          src={
-            profile_picture?.startsWith("http")
-              ? profile_picture
-              : `${API_BASE_URL}/${profile_picture}`
-          }
+          src={formatImage(profile_picture)}
           size={40}
         />
       ),

@@ -1,8 +1,7 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useGetMovieByIdQuery } from "../../../api/movieApi";
-const API_BASE_URL = import.meta.env.VITE_SOCKET_URL;
-
+import { formatImage } from "@/utils/formatImage";
 export default function MovieDetail() {
   const { id } = useParams();
   const { data: movie, error, isLoading } = useGetMovieByIdQuery(id);
@@ -31,7 +30,7 @@ export default function MovieDetail() {
         {/* Movie Image */}
         <div className="lg:w-1/3 mb-6 lg:mb-0">
           <img
-            src={`${API_BASE_URL}/${ListMovie?.poster}`}
+            src={formatImage(ListMovie?.poster)}
             alt={ListMovie?.name}
             className="w-full h-auto object-cover rounded-xl shadow-2xl"
           />

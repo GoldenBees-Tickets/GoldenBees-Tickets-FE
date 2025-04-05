@@ -14,21 +14,14 @@ const MomoPayment = ({ data, onSuccess, onError }) => {
     setError(null);
 
     try {
-      const { user_id, total, seat_ids, showtime_id, combos, promotion_id, orderInfo } = data;
-      console.log("response", data);
+      const { user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo } = data;
       // Gọi API MOMO với unwrap() để lấy dữ liệu chuẩn
-      const response = await addOrder({ user_id, total, seat_ids, showtime_id, combos, promotion_id, orderInfo }).unwrap(); 
-
-      console.log("response", response);
+      const response = await addOrder({ user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo }).unwrap(); 
 
       if (response.payUrl) {
-        if (onSuccess) {
-          console.log("success momopayment");
-          
+        if (onSuccess) {          
           onSuccess(response.payUrl);
-        } else {
-          console.log("open new window");
-          
+        } else {          
           window.open(response.payUrl, '_blank');
         }
       } else {

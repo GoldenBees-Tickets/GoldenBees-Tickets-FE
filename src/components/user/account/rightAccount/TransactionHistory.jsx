@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { IoChevronForwardOutline } from "react-icons/io5";
 import TicketDetail from "./TicketDetail";
-import { useGetOrderByUserQuery } from "../../../../api/orderApi";
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
+import { useGetOrderByUserQuery } from "@/api/orderApi";
+import { formatImage } from "@/utils/formatImage";
 
 export default function TransactionHistory({ user }) {
   const [toggleShowTicket, setToggleShowTicket] = useState(false);
@@ -18,11 +18,7 @@ export default function TransactionHistory({ user }) {
         <div className="flex items-center bg-white shadow-md rounded-lg p-4 mb-4">
           <div className="w-16 h-22 overflow-hidden rounded-md flex-shrink-0">
             <img
-              src={
-                order?.Showtime?.Movie?.poster?.startsWith("http")
-                  ? order?.Showtime?.Movie?.poster
-                  : `${IMAGE_BASE_URL}${order?.Showtime?.Movie?.poster}`
-              }
+              src={formatImage(order?.Showtime?.Movie?.poster)}
               alt={order?.Showtime?.Movie?.name}
               className="w-full h-full object-cover"
             />

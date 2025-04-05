@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom"; 
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom"; 
 import PropTypes from 'prop-types';
 import {
   AiOutlineHome,
@@ -19,20 +19,22 @@ import {
   AiOutlineMessage
 } from "react-icons/ai";
 
-const MenuItem = ({ icon: Icon, text, to, isCollapsed }) => (
+const MenuItem = ({ icon: Icon, text, to, isCollapsed, isActive, onClick }) => (
   <Link 
     to={to} 
-    className="flex items-center py-3 px-4 rounded-lg hover:bg-white/10 group transition-all duration-200 relative"
+    className={`flex items-center py-3 px-4 rounded-lg hover:bg-white/10 group transition-all duration-200 relative 
+      ${isActive ? 'bg-white/15' : ''}`}
+    onClick={onClick}
   >
     <span className="flex items-center justify-center w-8">
-      <Icon className="text-xl text-white/80 group-hover:text-white transition-colors duration-200" />
+      <Icon className={`text-xl ${isActive ? 'text-white' : 'text-white/80 group-hover:text-white'} transition-colors duration-200`} />
     </span>
     {!isCollapsed && (
-      <span className="ml-3 text-sm font-medium text-white/90 group-hover:text-white tracking-wide">
+      <span className={`ml-3 text-sm font-medium ${isActive ? 'text-white' : 'text-white/90 group-hover:text-white'} tracking-wide`}>
         {text}
       </span>
     )}
-    <div className="absolute left-0 w-1 h-0 bg-white rounded-r-lg group-hover:h-full transition-all duration-200" />
+    <div className={`absolute left-0 w-1 ${isActive ? 'h-full' : 'h-0 group-hover:h-full'} bg-white rounded-r-lg transition-all duration-200`} />
   </Link>
 );
 
@@ -40,32 +42,45 @@ MenuItem.propTypes = {
   icon: PropTypes.elementType.isRequired,
   text: PropTypes.string.isRequired,
   to: PropTypes.string.isRequired,
-  isCollapsed: PropTypes.bool.isRequired
+  isCollapsed: PropTypes.bool.isRequired,
+  isActive: PropTypes.bool.isRequired,
+  onClick: PropTypes.func
 };
 
-const SubMenuItem = ({ icon: Icon, text, to }) => (
+const SubMenuItem = ({ icon: Icon, text, to, isActive, onClick }) => (
   <Link 
     to={to} 
-    className="flex items-center py-2.5 px-4 rounded-lg hover:bg-white/10 group transition-all duration-200 ml-8 relative"
+    className={`flex items-center py-2.5 px-4 rounded-lg hover:bg-white/10 group transition-all duration-200 ml-8 relative
+      ${isActive ? 'bg-white/15' : ''}`}
+    onClick={onClick}
   >
     <span className="flex items-center justify-center w-6">
-      <Icon className="text-lg text-white/70 group-hover:text-white transition-colors duration-200" />
+      <Icon className={`text-lg ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'} transition-colors duration-200`} />
     </span>
-    <span className="ml-3 text-sm font-medium text-white/70 group-hover:text-white">
+    <span className={`ml-3 text-sm font-medium ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
       {text}
     </span>
-    <div className="absolute left-0 w-1 h-0 bg-white/50 rounded-r-lg group-hover:h-full transition-all duration-200" />
+    <div className={`absolute left-0 w-1 ${isActive ? 'h-full' : 'h-0 group-hover:h-full'} bg-white/50 rounded-r-lg transition-all duration-200`} />
   </Link>
 );
 
 SubMenuItem.propTypes = {
   icon: PropTypes.elementType.isRequired,
   text: PropTypes.string.isRequired,
-  to: PropTypes.string.isRequired
+  to: PropTypes.string.isRequired,
+  isActive: PropTypes.bool.isRequired,
+  onClick: PropTypes.func
 };
 
-const MenuGroup = ({ id, icon: Icon, title, children, isCollapsed }) => {
+const MenuGroup = ({ id, icon: Icon, title, children, isCollapsed, isActive }) => {
   const [activeSubmenu, setActiveSubmenu] = useState(null);
+
+  useEffect(() => {
+    // Auto expand menu group if it contains the active route
+    if (isActive && !activeSubmenu) {
+      setActiveSubmenu(id);
+    }
+  }, [isActive, id, activeSubmenu]);
 
   const toggleSubmenu = (menu) => {
     setActiveSubmenu(activeSubmenu === menu ? null : menu);
@@ -75,14 +90,15 @@ const MenuGroup = ({ id, icon: Icon, title, children, isCollapsed }) => {
     <div className="group">
       <div
         onClick={() => toggleSubmenu(id)}
-        className="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 cursor-pointer group transition-all duration-200 relative"
+        className={`flex items-center justify-between py-3 px-4 rounded-lg hover:bg-white/10 cursor-pointer group transition-all duration-200 relative
+          ${isActive || activeSubmenu === id ? 'bg-white/15' : ''}`}
       >
         <div className="flex items-center">
           <span className="flex items-center justify-center w-8">
-            <Icon className="text-xl text-white/80 group-hover:text-white transition-colors duration-200" />
+            <Icon className={`text-xl ${isActive ? 'text-white' : 'text-white/80 group-hover:text-white'} transition-colors duration-200`} />
           </span>
           {!isCollapsed && (
-            <span className="ml-3 text-sm font-medium text-white/90 group-hover:text-white tracking-wide uppercase">
+            <span className={`ml-3 text-sm font-medium ${isActive ? 'text-white' : 'text-white/90 group-hover:text-white'} tracking-wide uppercase`}>
               {title}
             </span>
           )}
@@ -96,7 +112,7 @@ const MenuGroup = ({ id, icon: Icon, title, children, isCollapsed }) => {
             )}
           </span>
         )}
-        <div className="absolute left-0 w-1 h-0 bg-white rounded-r-lg group-hover:h-full transition-all duration-200" />
+        <div className={`absolute left-0 w-1 ${isActive || activeSubmenu === id ? 'h-full' : 'h-0 group-hover:h-full'} bg-white rounded-r-lg transition-all duration-200`} />
       </div>
       {!isCollapsed && (
         <div className={`overflow-hidden transition-all duration-300 ${
@@ -114,53 +130,218 @@ MenuGroup.propTypes = {
   icon: PropTypes.elementType.isRequired,
   title: PropTypes.string.isRequired,
   children: PropTypes.node.isRequired,
-  isCollapsed: PropTypes.bool.isRequired
+  isCollapsed: PropTypes.bool.isRequired,
+  isActive: PropTypes.bool.isRequired
 };
 
-export default function AdminNav1({ isCollapsed }) {  
+export default function AdminNav1({ isCollapsed, onNavLinkClick, userRole = "admin" }) {  
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  // Kiểm tra xem đường dẫn hiện tại có thuộc về nhóm menu này không
+  const isPathInGroup = (paths) => {
+    return paths.some(path => currentPath.includes(path));
+  };
+
+  // Kiểm tra role để hiển thị menu phù hợp
+  const isAdmin = userRole === "admin"; // Full quyền
+  const isBranchAdmin = userRole === "branch_admin";
+
   return (
     <nav className="py-4 text-white">
       <div className="space-y-2">
-        <MenuItem icon={AiOutlineHome} text="Dashboard" to="/admin" isCollapsed={isCollapsed} />
+        <MenuItem 
+          icon={AiOutlineHome} 
+          text="Dashboard" 
+          to="/admin" 
+          isCollapsed={isCollapsed} 
+          isActive={currentPath === "/admin"}
+          onClick={onNavLinkClick}
+        />
 
-        <MenuGroup id="users" icon={AiOutlineTeam} title="Người dùng" isCollapsed={isCollapsed}>
-          <SubMenuItem icon={AiOutlineUser} text="Quản trị viên" to="branch-admins" />
-          <SubMenuItem icon={AiOutlineUser} text="Khách hàng" to="users" />
+        {/* Chỉ admin mới thấy menu Người dùng */}
+        {isAdmin && (
+          <MenuGroup 
+            id="users" 
+            icon={AiOutlineTeam} 
+            title="Người dùng" 
+            isCollapsed={isCollapsed}
+            isActive={isPathInGroup(["users", "branch-admins"])}
+          >
+            <SubMenuItem 
+              icon={AiOutlineUser} 
+              text="Quản trị viên" 
+              to="/admin/branch-admins" 
+              isActive={currentPath.includes("branch-admins")}
+              onClick={onNavLinkClick}
+            />
+            <SubMenuItem 
+              icon={AiOutlineUser} 
+              text="Khách hàng" 
+              to="/admin/users" 
+              isActive={currentPath.includes("users")}
+              onClick={onNavLinkClick}
+            />
+          </MenuGroup>
+        )}
+
+        <MenuGroup 
+          id="movies" 
+          icon={AiOutlineVideoCamera} 
+          title="Phim" 
+          isCollapsed={isCollapsed}
+          isActive={isPathInGroup(["movies", "genre", "actors", "directors", "producers"])}
+        >
+          <SubMenuItem 
+            icon={AiOutlineFolder} 
+            text="Thể loại phim" 
+            to="/admin/genre" 
+            isActive={currentPath.includes("genre")}
+            onClick={onNavLinkClick}
+          />
+          <SubMenuItem 
+            icon={AiOutlineVideoCamera} 
+            text="Phim" 
+            to="/admin/movies" 
+            isActive={currentPath === "/admin/movies" || currentPath.includes("/admin/movies/")}
+            onClick={onNavLinkClick}
+          />
+          <SubMenuItem 
+            icon={AiOutlineStar} 
+            text="Diễn viên" 
+            to="/admin/actors" 
+            isActive={currentPath.includes("actors")}
+            onClick={onNavLinkClick}
+          />
+          <SubMenuItem 
+            icon={AiOutlineVideoCamera} 
+            text="Đạo diễn" 
+            to="/admin/directors" 
+            isActive={currentPath.includes("directors")}
+            onClick={onNavLinkClick}
+          />
+          <SubMenuItem 
+            icon={AiOutlineUser} 
+            text="Nhà sản xuất" 
+            to="/admin/producers" 
+            isActive={currentPath.includes("producers")}
+            onClick={onNavLinkClick}
+          />
         </MenuGroup>
 
-        <MenuGroup id="movies" icon={AiOutlineVideoCamera} title="Phim" isCollapsed={isCollapsed}>
-          <SubMenuItem icon={AiOutlineFolder} text="Thể loại phim" to="genre" />
-          <SubMenuItem icon={AiOutlineVideoCamera} text="Phim" to="movies" />
-          <SubMenuItem icon={AiOutlineStar} text="Diễn viên" to="actors" />
-          <SubMenuItem icon={AiOutlineVideoCamera} text="Đạo diễn" to="directors" />
-          <SubMenuItem icon={AiOutlineUser} text="Nhà sản xuất" to="/admin/producers" />
+        <MenuGroup 
+          id="branches" 
+          icon={AiOutlineShop} 
+          title="Chi nhánh" 
+          isCollapsed={isCollapsed}
+          isActive={isPathInGroup(["branches", "cinemas", "seat-types", "rooms", "showtimes"])}
+        >
+          {/* Chỉ admin mới thấy Chi nhánh */}
+          {isAdmin && (
+            <SubMenuItem 
+              icon={AiOutlineShop} 
+              text="Chi nhánh" 
+              to="/admin/branches" 
+              isActive={currentPath.includes("branches")}
+              onClick={onNavLinkClick}
+            />
+          )}
+          <SubMenuItem 
+            icon={AiOutlineVideoCamera} 
+            text="Rạp phim" 
+            to="/admin/cinemas" 
+            isActive={currentPath.includes("cinemas")}
+            onClick={onNavLinkClick}
+          />
+          {/* Chỉ admin mới thấy Loại ghế */}
+          {isAdmin && (
+            <SubMenuItem 
+              icon={AiOutlineStar} 
+              text="Loại ghế" 
+              to="/admin/seat-types" 
+              isActive={currentPath.includes("seat-types")}
+              onClick={onNavLinkClick}
+            />
+          )}
+          <SubMenuItem 
+            icon={AiOutlineVideoCamera} 
+            text="Phòng chiếu" 
+            to="/admin/rooms" 
+            isActive={currentPath.includes("rooms")}
+            onClick={onNavLinkClick}
+          />
+          <SubMenuItem 
+            icon={AiOutlineBarChart} 
+            text="Suất chiếu" 
+            to="/admin/showtimes" 
+            isActive={currentPath.includes("showtimes")}
+            onClick={onNavLinkClick}
+          />
         </MenuGroup>
 
-        <MenuGroup id="branches" icon={AiOutlineShop} title="Chi nhánh" isCollapsed={isCollapsed}>
-          <SubMenuItem icon={AiOutlineShop} text="Chi nhánh" to="branches" />
-          <SubMenuItem icon={AiOutlineVideoCamera} text="Rạp phim" to="cinemas" />
-          <SubMenuItem icon={AiOutlineStar} text="Loại ghế" to="seat-types" />
-          <SubMenuItem icon={AiOutlineVideoCamera} text="Phòng chiếu" to="rooms" />
-          <SubMenuItem icon={AiOutlineBarChart} text="Suất chiếu" to="showtimes" />
+        <MenuGroup 
+          id="food" 
+          icon={AiOutlineCoffee} 
+          title="Món ăn" 
+          isCollapsed={isCollapsed}
+          isActive={isPathInGroup(["food&drink", "combo"])}
+        >
+          <SubMenuItem 
+            icon={AiOutlineCoffee} 
+            text="Món ăn lẻ" 
+            to="/admin/food&drink" 
+            isActive={currentPath.includes("food&drink")}
+            onClick={onNavLinkClick}
+          />
+          <SubMenuItem 
+            icon={AiOutlineGift} 
+            text="Combo" 
+            to="/admin/combo" 
+            isActive={currentPath.includes("combo")}
+            onClick={onNavLinkClick}
+          />
         </MenuGroup>
 
-        <MenuGroup id="food" icon={AiOutlineCoffee} title="Món ăn" isCollapsed={isCollapsed}>
-          <SubMenuItem icon={AiOutlineCoffee} text="Món ăn lẻ" to="food&drink" />
-          <SubMenuItem icon={AiOutlineGift} text="Combo" to="combo" />
+        <MenuGroup 
+          id="promotions" 
+          icon={AiOutlinePercentage} 
+          title="Khuyến mãi" 
+          isCollapsed={isCollapsed}
+          isActive={isPathInGroup(["promotions"])}
+        >
+          <SubMenuItem 
+            icon={AiOutlinePercentage} 
+            text="Mã giảm giá" 
+            to="/admin/promotions" 
+            isActive={currentPath.includes("promotions")}
+            onClick={onNavLinkClick}
+          />
         </MenuGroup>
 
-        <MenuGroup id="promotions" icon={AiOutlinePercentage} title="Khuyến mãi" isCollapsed={isCollapsed}>
-          <SubMenuItem icon={AiOutlinePercentage} text="Mã giảm giá" to="promotions" />
-        </MenuGroup>
+        <MenuItem 
+          icon={AiOutlineMessage} 
+          text="Lịch sử Chat" 
+          to="/admin/chat-history" 
+          isCollapsed={isCollapsed} 
+          isActive={currentPath.includes("chat-history")}
+          onClick={onNavLinkClick}
+        />
 
-        <MenuItem icon={AiOutlineMessage} text="Lịch sử Chat" to="chat-history" isCollapsed={isCollapsed} />
-
-        <MenuItem icon={AiOutlineSetting} text="Cài đặt" to="settings" isCollapsed={isCollapsed} />
+        <MenuItem 
+          icon={AiOutlineSetting} 
+          text="Cài đặt" 
+          to="/admin/settings" 
+          isCollapsed={isCollapsed} 
+          isActive={currentPath.includes("settings")}
+          onClick={onNavLinkClick}
+        />
       </div>
     </nav>
   );
 }
 
 AdminNav1.propTypes = {
-  isCollapsed: PropTypes.bool.isRequired
+  isCollapsed: PropTypes.bool.isRequired,
+  onNavLinkClick: PropTypes.func,
+  userRole: PropTypes.string
 };
