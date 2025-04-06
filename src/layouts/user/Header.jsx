@@ -33,7 +33,7 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 ${
         scrolled ? "py-3 bg-white shadow-sm" : "py-4 bg-white"
       }`}
     >
@@ -44,7 +44,7 @@ export default function Header() {
           <img
             src={logoDesktop}
             alt="logo"
-            className="h-10 transition-all hover:opacity-90 duration-300"
+            className="h-10"
           />
         </Link>
 
@@ -53,21 +53,21 @@ export default function Header() {
           <img
             src={logoMobile}
             alt="logo"
-            className="h-9 transition-all hover:opacity-90 duration-300"
+            className="h-9"
           />
         </Link>
 
         {/* Menu Section */}
         <div
           id="collapseMenu"
-          className={`lg:!block max-lg:before:fixed max-lg:before:bg-white/95 max-lg:before:backdrop-blur-md max-lg:before:inset-0 max-lg:before:z-50 ${
+          className={`lg:!block max-lg:before:fixed max-lg:before:bg-white max-lg:before:inset-0 max-lg:before:z-50 ${
             isMenuOpen ? "block" : "hidden"
           }`}
         >
           <button
             id="toggleClose"
             onClick={handleClick}
-            className="lg:hidden fixed top-4 right-4 z-[100] rounded-full bg-white/90 backdrop-blur-md w-11 h-11 flex items-center justify-center shadow-sm hover:bg-white active:scale-95 transition-all duration-300"
+            className="lg:hidden fixed top-4 right-4 z-[100] rounded-full bg-white w-11 h-11 flex items-center justify-center shadow-sm"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -95,12 +95,12 @@ export default function Header() {
             <li className="max-lg:mb-7 lg:mr-5">
               <a
                 href="#"
-                className="hover:opacity-90 block transition-all duration-300"
+                className="block"
               >
                 <img
                   src={imgByTicket}
                   alt="Buy Ticket"
-                  className="h-9 hover:opacity-80 transition-all duration-300"
+                  className="h-9"
                 />
               </a>
             </li>
@@ -108,7 +108,7 @@ export default function Header() {
             <li>
               <Link
                 to="/product"
-                className={`block px-4 py-2.5 text-base transition-colors duration-200 ${
+                className={`block px-4 py-2.5 text-base ${
                   isActive("/product")
                     ? "text-gray-900 font-medium"
                     : "hover:text-gray-900"
@@ -117,18 +117,11 @@ export default function Header() {
                 Phim
               </Link>
             </li>
-            <li>
-              <Link
-                to="/posts"
-                className="hover:text-[#007bff] text-gray-600 font-bold block text-base"
-              >
-                Tin tức
-              </Link>
-            </li>
+            
             <li className="max-lg:border-b max-lg:py-3 px-3">
               <Link
                 to="/blog"
-                className={`block px-4 py-2.5 text-base transition-colors duration-200 ${
+                className={`block px-4 py-2.5 text-base ${
                   isActive("/blog")
                     ? "text-gray-900 font-medium"
                     : "hover:text-gray-900"
@@ -140,7 +133,7 @@ export default function Header() {
             <li>
               <Link
                 to="/about"
-                className={`block px-4 py-2.5 text-base transition-colors duration-200 ${
+                className={`block px-4 py-2.5 text-base ${
                   isActive("/about")
                     ? "text-gray-900 font-medium"
                     : "hover:text-gray-900"
@@ -152,7 +145,7 @@ export default function Header() {
             <li>
               <Link
                 to="/contact"
-                className={`block px-4 py-2.5 text-base transition-colors duration-200 ${
+                className={`block px-4 py-2.5 text-base ${
                   isActive("/contact")
                     ? "text-gray-900 font-medium"
                     : "hover:text-gray-900"
@@ -161,83 +154,17 @@ export default function Header() {
                 Liên Hệ
               </Link>
             </li>
-            <li className="max-lg:border-b max-lg:py-3 px-3 group">
-              <div className="relative">
-                <a
-                  href="#"
-                  className="hover:text-[#007bff] text-gray-600 pr-6 font-bold text-base flex items-center"
-                >
-                  More
-                  <svg
-                    className="ml-2 w-[10px] h-[10px]"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M7.99982 10.6667C7.91625 10.6667 7.83268 10.6453 7.75768 10.6027C7.68268 10.56 7.61625 10.5 7.55839 10.4253L4.22506 7.092C4.07506 6.942 4.00006 6.75067 4.00006 6.55067C4.00006 6.15133 4.31839 5.83333 4.71839 5.83333C4.91839 5.83333 5.10973 5.90867 5.26039 6.05867L7.99982 8.798L10.7392 6.05867C10.8892 5.90867 11.0812 5.83333 11.2812 5.83333C11.6812 5.83333 11.9998 6.15133 11.9998 6.55067C11.9998 6.75067 11.9248 6.942 11.7748 7.092L8.44149 10.4253C8.38363 10.5 8.31696 10.56 8.24196 10.6027C8.16696 10.6453 8.08339 10.6667 7.99982 10.6667Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </a>
-              </div>
-              <ul className="absolute shadow-lg bg-white space-y-3 lg:top-5 max-lg:top-8 -left-6 min-w-[250px] z-50 max-h-0 overflow-hidden group-hover:opacity-100 group-hover:max-h-[700px] px-6 group-hover:pb-4 group-hover:pt-6 transition-all duration-500">
-                <li className="relative group">
-                  <button
-                    className={`flex items-center px-4 py-2.5 text-base transition-colors duration-200 text-gray-500 hover:text-gray-900 w-full`}
-                  >
-                    <span className="flex items-center">
-                      Góc điện ảnh
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="w-4 h-4 ml-1.5 transition-transform duration-300 group-hover:rotate-180"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </span>
-                  </button>
-                  <ul className="lg:absolute lg:right-0 lg:mt-1 lg:min-w-[220px] bg-white/95 backdrop-blur-md border border-gray-100 rounded-md shadow-sm p-1.5 max-lg:mt-1 max-lg:ml-4 max-lg:border-l border-gray-100 hidden group-hover:block z-50">
-                    <li>
-                      <Link
-                        to="/filterhome"
-                        className="block px-5 py-2.5 text-sm text-gray-500 hover:text-gray-900 rounded-sm"
-                      >
-                        Thể loại phim
-                      </Link>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="block px-5 py-2.5 text-sm text-gray-500 hover:text-gray-900 rounded-sm"
-                      >
-                        Diễn viên
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="block px-5 py-2.5 text-sm text-gray-500 hover:text-gray-900 rounded-sm"
-                      >
-                        Đạo diễn
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="block px-5 py-2.5 text-sm text-gray-500 hover:text-gray-900 rounded-sm"
-                      >
-                        Bình luận phim
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-              </ul>
+            <li>
+              <Link
+                to="/filterhome"
+                className={`block px-4 py-2.5 text-base ${
+                  isActive("/filterhome")
+                    ? "text-gray-900 font-medium"
+                    : "hover:text-gray-900"
+                }`}
+              >
+                Thể loại phim
+              </Link>
             </li>
           </ul>
         </div>
@@ -246,7 +173,7 @@ export default function Header() {
           <button
             id="toggleOpen"
             onClick={handleClick}
-            className="lg:hidden w-11 h-11 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-md shadow-sm hover:bg-white text-gray-600 active:scale-95 transition-all duration-300"
+            className="lg:hidden w-11 h-11 flex items-center justify-center rounded-full bg-white shadow-sm text-gray-600"
           >
             <svg
               className="w-5 h-5"

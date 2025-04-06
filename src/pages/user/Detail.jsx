@@ -9,16 +9,14 @@ export default function Detail() {
   }, []);
 
   return (
-    <>
-      <div className="flex flex-col md:flex-row w-full gap-4">
-        <div className="flex-1 p-4">
-          <DetailMovie />
+    <div className="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-8 pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <DetailMovie />
+        
+        <div className="mt-12">
           <FilterMovie />
         </div>
-        <div className="w-full md:w-[35%] p-4">
-          {/* <DetailListMovie /> */}
-        </div>
       </div>
-    </>
+    </div>
   );
 }

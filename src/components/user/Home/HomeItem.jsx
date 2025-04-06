@@ -32,20 +32,20 @@ export default function HomeItem() {
         <div className="flex">
           <button
             onClick={() => setActiveTab("nowShowing")}
-            className={`py-2 px-4 font-medium text-lg transition-colors duration-300 ${
+            className={`py-2 px-4 font-medium text-lg ${
               activeTab === "nowShowing" 
                 ? "text-yellow-500 border-b-2 border-yellow-500" 
-                : "text-gray-400 hover:text-yellow-400"
+                : "text-gray-400"
             }`}
           >
             Đang chiếu
           </button>
           <button
             onClick={() => setActiveTab("comingSoon")}
-            className={`py-2 px-4 font-medium text-lg transition-colors duration-300 ${
+            className={`py-2 px-4 font-medium text-lg ${
               activeTab === "comingSoon" 
                 ? "text-yellow-500 border-b-2 border-yellow-500" 
-                : "text-gray-400 hover:text-yellow-400"
+                : "text-gray-400"
             }`}
           >
             Sắp chiếu
