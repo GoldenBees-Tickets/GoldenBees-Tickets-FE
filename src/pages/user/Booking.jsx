@@ -188,13 +188,6 @@ export default function Booking() {
       return;
     }
 
-    // Kiểm tra ghế bị bỏ lẻ
-    if (checkForIsolatedSeats(allSeats, selectedSeats)) {
-      toast.error(
-        "Không được để trống một ghế giữa hai ghế đã chọn hoặc giữa hai nhóm ghế đã đặt!"
-      );
-      return;
-    }
 
     setIsLoading(true);
 
@@ -225,115 +218,6 @@ export default function Booking() {
   ]);
 
   // Hàm Kiểm tra xem có ghế bị bỏ lẻ không
-  const checkForIsolatedSeats = (allSeats, selectedSeats) => {
-    if (!selectedSeats.length) return false;
-
-    // Lấy danh sách số ghế đã chọn (sắp xếp tăng dần)
-    const seatNumbers = selectedSeats
-      .map((seat) => parseInt(seat.seat_number))
-      .filter((num) => !isNaN(num))
-      .sort((a, b) => a - b);
-
-    // Lấy danh sách ghế đã bị đặt trước
-    const occupiedSeats = allSeats
-      .filter((seat) => seat.status !== "Available") // Chỉ lấy ghế đã đặt trước
-      .map((seat) => parseInt(seat.seat_number))
-      .filter((num) => !isNaN(num))
-      .sort((a, b) => a - b);
-
-    for (let i = 0; i < seatNumbers.length; i++) {
-      const currentSeat = seatNumbers[i];
-
-      // Kiểm tra ghế bị bỏ trống giữa (A3, A5 -> bỏ trống A4 lỗi)
-      if (i < seatNumbers.length - 1) {
-        const nextSeat = seatNumbers[i + 1];
-        for (
-          let missingSeat = currentSeat + 1;
-          missingSeat < nextSeat;
-          missingSeat++
-        ) {
-          const isMissingSeatSelected = seatNumbers.includes(missingSeat);
-          const isMissingSeatOccupied = occupiedSeats.includes(missingSeat);
-
-          if (!isMissingSeatSelected && !isMissingSeatOccupied) {
-            return true; // Bỏ trống 1 hoặc nhiều ghế giữa
-          }
-        }
-      }
-
-      // Kiểm tra ghế bên trái
-      const leftSeat = currentSeat - 1;
-      const isLeftOccupied = occupiedSeats.includes(leftSeat);
-      const isLeftSelected = seatNumbers.includes(leftSeat);
-      const isLeftAvailable = allSeats.some(
-        (s) => parseInt(s.seat_number) === leftSeat && s.status === "Available"
-      );
-
-      if (isLeftAvailable && !isLeftSelected && !isLeftOccupied) {
-        // Kiểm tra nếu bên trái nữa (leftSeat2) cũng trống => không lỗi
-        const leftSeat2 = leftSeat - 1;
-        const isLeft2Occupied = occupiedSeats.includes(leftSeat2);
-        const isLeft2Available = allSeats.some(
-          (s) =>
-            parseInt(s.seat_number) === leftSeat2 && s.status === "Available"
-        );
-
-        if (!isLeft2Occupied && isLeft2Available) {
-          console.log(`Không lỗi vì A${leftSeat} và A${leftSeat2} cùng trống`);
-        } else {
-          console.log(`Lỗi ghế trống bên trái: ${leftSeat}`);
-          return true;
-        }
-      }
-
-      // Kiểm tra ghế bên phải
-      const rightSeat = currentSeat + 1;
-      const isRightOccupied = occupiedSeats.includes(rightSeat);
-      const isRightSelected = seatNumbers.includes(rightSeat);
-      const isRightAvailable = allSeats.some(
-        (s) => parseInt(s.seat_number) === rightSeat && s.status === "Available"
-      );
-
-      if (isRightAvailable && !isRightSelected && !isRightOccupied) {
-        const rightSeat2 = rightSeat + 1;
-        const isRight2Occupied = occupiedSeats.includes(rightSeat2);
-        const isRight2Available = allSeats.some(
-          (s) =>
-            parseInt(s.seat_number) === rightSeat2 && s.status === "Available"
-        );
-
-        if (!isRight2Occupied && isRight2Available) {
-          console.log(
-            `Không lỗi vì A${rightSeat} và A${rightSeat2} cùng trống`
-          );
-        } else {
-          console.log(`Lỗi ghế trống bên phải: ${rightSeat}`);
-          return true;
-        }
-      }
-
-      // Nếu có 2 ghế bỏ trống hai bên thì không lỗi
-      const leftSeat2 = leftSeat - 1;
-      const rightSeat2 = rightSeat + 1;
-      const isLeft2Occupied = occupiedSeats.includes(leftSeat2);
-      const isRight2Occupied = occupiedSeats.includes(rightSeat2);
-
-      if (
-        isLeftAvailable &&
-        isRightAvailable &&
-        !isLeftSelected &&
-        !isRightSelected &&
-        !isLeftOccupied &&
-        !isRightOccupied
-      ) {
-        if (!(isLeft2Occupied || isRight2Occupied)) {
-          return false; // Nếu có đủ 2 ghế trống hai bên thì không lỗi
-        }
-      }
-    }
-
-    return false; // Không phát hiện lỗi cô lập ghế
-  };
 
   // Tạo đơn đặt vé mới
   const createNewReservation = useCallback(

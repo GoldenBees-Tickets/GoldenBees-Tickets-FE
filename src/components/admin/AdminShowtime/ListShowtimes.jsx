@@ -3,7 +3,8 @@ import { useGetShowtimesQuery } from "@/api/showtimeApi";
 import { Table, Button, Modal, Spin, Tag, message } from "antd";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import PaginationDefault from "@/components/PaginationDefault";
-import dayjs from "dayjs";
+import { formatImage } from "@/utils/formatImage";
+import { formatDate, isDateBefore, formatTime } from "@/utils/format";
 
 export default function ListShowtimes({ branch_id }) {
   const [selectedShowtime, setSelectedShowtime] = useState(null);
@@ -13,9 +14,7 @@ export default function ListShowtimes({ branch_id }) {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const { data: showtimesData, isLoading, error } = useGetShowtimesQuery(branch_id, {
-    skip: !branch_id
-  });
+  const { data: showtimesData, isLoading, error } = useGetShowtimesQuery(branch_id);
 
   const showtimes = useMemo(() => 
     showtimesData?.showtimes || showtimesData?.data || [], 
@@ -46,7 +45,7 @@ export default function ListShowtimes({ branch_id }) {
       render: (title, record) => (
         <div className="flex items-center">
           <img 
-            src={record.Movie?.poster || "https://placehold.co/100x150"} 
+            src={formatImage(record.Movie?.poster)} 
             alt={title || record.Movie?.name}
             className="w-10 h-14 object-cover rounded mr-2"
           />
@@ -70,9 +69,8 @@ export default function ListShowtimes({ branch_id }) {
       key: "time",
       render: (_, record) => (
         <div>
-          <div>{dayjs(record.show_date).format("DD/MM/YYYY")}</div>
           <div className="text-xs text-gray-500">
-            {record.start_time} - {record.end_time}
+            {formatTime(record.start_time)}  {formatDate(record.start_time)} - {formatTime(record.end_time)} {formatDate(record.end_time)}
           </div>
         </div>
       )
@@ -89,9 +87,7 @@ export default function ListShowtimes({ branch_id }) {
       title: "Trạng thái",
       key: "status",
       render: (_, record) => {
-        const showDate = dayjs(record.show_date);
-        const now = dayjs();
-        const isPast = showDate.isBefore(now, "day");
+        const isPast = isDateBefore(record.start_time);
 
         return isPast ? (
           <Tag color="default">Đã chiếu</Tag>
@@ -118,7 +114,7 @@ export default function ListShowtimes({ branch_id }) {
 
   if (isLoading) return <Spin className="flex justify-center mt-10" size="large" />;
   if (error) return <div className="text-red-500">Lỗi khi tải dữ liệu lịch chiếu!</div>;
-
+  
   // Calculate pagination for client-side pagination if needed
   const paginatedData = showtimesData?.data?.showtimes || 
     showtimes.slice((currentPage - 1) * pageSize, currentPage * pageSize);

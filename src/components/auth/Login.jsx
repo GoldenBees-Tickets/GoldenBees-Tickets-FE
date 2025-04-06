@@ -1,7 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { useLoginMutation, useVerifyGoogleTokenMutation } from "../../api/authApi";
+import {
+  useLoginMutation,
+  useVerifyGoogleTokenMutation,
+} from "../../api/authApi";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "react-toastify";
@@ -38,51 +41,51 @@ export default function Login() {
       return;
     }
 
-    const data = await login({email, password});   
-     
-    if(data.data.status === 200) {
+    const data = await login({ email, password });
+
+    if (data.data.status === 200) {
       localStorage.setItem("accessToken", data.data.data.accessToken);
-      localStorage.setItem("refreshToken", data.data.data.refreshToken); 
+      localStorage.setItem("refreshToken", data.data.data.refreshToken);
       const user = {
         role: data.data.data.role,
-        id: data.data.data.id
+        id: data.data.data.id,
       };
-      localStorage.setItem("user", JSON.stringify(user));  
-     
+      localStorage.setItem("user", JSON.stringify(user));
+
       toast.success("Đăng nhập thành công!");
 
-      if(data.data.data.role === "admin") {
+      if (data.data.data.role === "admin") {
         navigate("/admin");
       } else {
         navigate("/");
       }
     } else {
-      setErrorEmail("Sai tài khoản hoặc mật khẩu!")
+      setErrorEmail("Sai tài khoản hoặc mật khẩu!");
     }
   };
 
   const handleGoogleLogin = async (response) => {
     const token = response.credential;
     const data = await loginByGoogle(token);
-    
-    if(data.data.status === 200) {
+
+    if (data.data.status === 200) {
       localStorage.setItem("accessToken", data.data.data.accessToken);
       localStorage.setItem("refreshToken", data.data.data.refreshToken);
       const user = {
         role: data.data.data.role,
-        id: data.data.data.id
+        id: data.data.data.id,
       };
       localStorage.setItem("user", JSON.stringify(user));
-      
+
       toast.success("Đăng nhập thành công!");
-      
-      if(data.data.data.role === "admin") {
+
+      if (data.data.data.role === "admin") {
         navigate("/admin");
       } else {
         navigate("/");
       }
     } else {
-      setErrorEmail("Sai tài khoản hoặc mật khẩu!")
+      setErrorEmail("Sai tài khoản hoặc mật khẩu!");
     }
   };
   return (
@@ -94,19 +97,25 @@ export default function Login() {
             <div className="absolute w-full h-full top-0 left-0 bg-pattern opacity-10"></div>
             <div className="relative z-10">
               <div className="w-40 h-40 mx-auto animate-float">
-                <Link to="/"><img 
-                  src="/src/public/LogoHeader.png" 
-                  alt="logo" 
-                  className="w-full h-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] transform transition-transform duration-700 hover:rotate-12 animate-pulse"
-                /></Link>
+                <Link to="/">
+                  <img
+                    src="/src/public/LogoHeader.png"
+                    alt="logo"
+                    className="w-full h-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] transform transition-transform duration-700 hover:rotate-12 animate-pulse"
+                  />
+                </Link>
               </div>
-              <h2 className="text-white text-2xl font-bold text-center mt-6 animate-typing overflow-hidden whitespace-nowrap">Bees-Cinema</h2>
-              <p className="text-orange-100 text-center mt-2 animate-fadeIn opacity-0">Hệ thống đặt vé xem phim trực tuyến</p>
+              <h2 className="text-white text-2xl font-bold text-center mt-6 animate-typing overflow-hidden whitespace-nowrap">
+                Bees-Cinema
+              </h2>
+              <p className="text-orange-100 text-center mt-2 animate-fadeIn opacity-0">
+                Hệ thống đặt vé xem phim trực tuyến
+              </p>
             </div>
             <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-orange-300 rounded-full opacity-20"></div>
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-orange-300 rounded-full opacity-20"></div>
           </div>
-          
+
           {/* Form Section - Right */}
           <div className="md:w-3/5 p-8">
             <div className="max-w-md mx-auto">
@@ -114,7 +123,10 @@ export default function Login() {
                 Đăng nhập
               </h2>
               <form onSubmit={handleLogin} className="space-y-4">
-                <div className="animate-slideIn" style={{animationDelay: "0.2s"}}>
+                <div
+                  className="animate-slideIn"
+                  style={{ animationDelay: "0.2s" }}
+                >
                   <label className="text-gray-800 text-sm block mb-2">
                     Email
                   </label>
@@ -159,7 +171,10 @@ export default function Login() {
                   </div>
                   <small className="text-red-500">{errorEmail}</small>
                 </div>
-                <div className="animate-slideIn" style={{animationDelay: "0.4s"}}>
+                <div
+                  className="animate-slideIn"
+                  style={{ animationDelay: "0.4s" }}
+                >
                   <label className="text-gray-800 text-sm mb-2 block">
                     Mật khẩu
                   </label>
@@ -186,10 +201,11 @@ export default function Login() {
                   </div>
                   <small className="text-red-500">{errorPassword}</small>
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-4 animate-slideIn" style={{animationDelay: "0.6s"}}>
-                  <div className="flex items-center">
-                    
-                  </div>
+                <div
+                  className="flex flex-wrap items-center justify-between gap-4 animate-slideIn"
+                  style={{ animationDelay: "0.6s" }}
+                >
+                  <div className="flex items-center"></div>
                   <div className="text-sm">
                     <Link
                       to="/resetPass"
@@ -199,7 +215,10 @@ export default function Login() {
                     </Link>
                   </div>
                 </div>
-                <div className="!mt-8 animate-slideIn" style={{animationDelay: "0.8s"}}>
+                <div
+                  className="!mt-8 animate-slideIn"
+                  style={{ animationDelay: "0.8s" }}
+                >
                   <button
                     type="submit"
                     className="w-full py-3 px-4 text-sm tracking-wide rounded-lg text-white bg-orange-500 hover:bg-orange-600 focus:outline-none transform transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
@@ -207,7 +226,10 @@ export default function Login() {
                     Đăng nhập
                   </button>
                 </div>
-                <p className="text-gray-800 text-sm !mt-8 text-center animate-slideIn" style={{animationDelay: "1s"}}>
+                <p
+                  className="text-gray-800 text-sm !mt-8 text-center animate-slideIn"
+                  style={{ animationDelay: "1s" }}
+                >
                   Chưa có tài khoản?{" "}
                   <Link
                     to="/register"
@@ -216,19 +238,27 @@ export default function Login() {
                     Đăng ký ngay
                   </Link>
                 </p>
-                <div className="my-6 flex items-center gap-4 animate-slideIn" style={{animationDelay: "1.2s"}}>
+                <div
+                  className="my-6 flex items-center gap-4 animate-slideIn"
+                  style={{ animationDelay: "1.2s" }}
+                >
                   <hr className="w-full border-orange-200" />
                   <p className="text-sm text-gray-800 text-center">hoặc</p>
                   <hr className="w-full border-orange-200" />
                 </div>
-                <div className="flex justify-center animate-slideIn" style={{animationDelay: "1.4s"}}>
-                  <GoogleLogin
-                    onSuccess={handleGoogleLogin}
-                    onError={(error) =>
-                      console.error("Google login error:", error)
-                    }
-                    useOneTap
-                  />
+                <div
+                  className="flex w-full justify-center animate-slideIn"
+                  style={{ animationDelay: "1.4s" }}
+                >
+                  <div className="w-full google-login-wrapper">
+                    <GoogleLogin
+                      onSuccess={handleGoogleLogin}
+                      onError={(error) =>
+                        console.error("Google login error:", error)
+                      }
+                      useOneTap
+                    />
+                  </div>
                 </div>
               </form>
             </div>
@@ -240,7 +270,7 @@ export default function Login() {
 }
 
 /* Thêm style keyframes để tạo hiệu ứng float cho logo và typing cho chữ */
-const style = document.createElement('style');
+const style = document.createElement("style");
 style.textContent = `
   @keyframes float {
     0% {

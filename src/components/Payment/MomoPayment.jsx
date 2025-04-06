@@ -16,9 +16,13 @@ const MomoPayment = ({ data, onSuccess, onError }) => {
     try {
       const { user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo } = data;
       // Gọi API MOMO với unwrap() để lấy dữ liệu chuẩn
+      
       const response = await addOrder({ user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo }).unwrap(); 
 
       if (response.payUrl) {
+        localStorage.removeItem("payment_info");
+        localStorage.removeItem("reservation");
+        sessionStorage.clear();
         if (onSuccess) {          
           onSuccess(response.payUrl);
         } else {          
