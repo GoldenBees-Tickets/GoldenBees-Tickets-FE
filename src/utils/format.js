@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 /**
  * Định dạng số thành chuỗi tiền tệ VND
  * @param {number} amount - Số tiền cần định dạng
@@ -36,4 +38,37 @@ export const truncateText = (text, maxLength) => {
   if (!text) return '';
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength) + '...';
+};
+
+/**
+ * Định dạng ngày tháng theo định dạng cụ thể
+ * @param {string|Date} date - Ngày cần định dạng
+ * @param {string} [format='DD/MM/YYYY'] - Định dạng đầu ra
+ * @returns {string} Chuỗi ngày đã định dạng
+ */
+export const formatDate = (date, format = 'DD/MM/YYYY') => {
+  if (!date) return '';
+  return dayjs(date).format(format);
+};
+
+/**
+ * Kiểm tra một ngày có phải là quá khứ so với hiện tại
+ * @param {string|Date} date - Ngày cần kiểm tra
+ * @param {string} [unit='day'] - Đơn vị so sánh (day, month, year, etc.)
+ * @returns {boolean} true nếu là quá khứ, false nếu không
+ */
+export const isDateBefore = (date, unit = 'day') => {
+  if (!date) return false;
+  return dayjs(date).isBefore(dayjs(), unit);
+};
+
+/**
+ * Định dạng thời gian theo định dạng giờ phút
+ * @param {string} time - Thời gian cần định dạng (ISO date string)
+ * @param {string} [format='HH:mm'] - Định dạng đầu ra
+ * @returns {string} Chuỗi thời gian đã định dạng
+ */
+export const formatTime = (time, format = 'HH:mm') => {
+  if (!time) return '';
+  return dayjs(time).format(format);
 }; 

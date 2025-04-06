@@ -10,6 +10,7 @@ export default function SeatGrid({
   activeReservationInfo, 
   onSeatClick 
 }) {
+  
   // Hiển thị danh sách ghế
   const renderSeats = useMemo(
     () =>
@@ -18,7 +19,7 @@ export default function SeatGrid({
         const isSelected = selectedSeats.find((s) => s.id === seat.id);
         
         // Ghế bị block bởi người khác (trừ ghế mình đã chọn)
-        const isBlocked = seat.status === "Blocked" && !isSelected; 
+        const isBlocked = (seat.status === "Blocked" || seat.status === "Booked") && !isSelected; 
         
         // Xác định loại ghế
         const seatType = listSeatTypes?.seat_types?.find(type => type.id === seat.type_id);

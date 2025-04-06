@@ -1,19 +1,14 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import axiosBaseQuery from "./authQuery/axiosBaseQuery";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const qrCodeApi = createApi({
   reducerPath: "qrCodeApi",
-  baseQuery: fetchBaseQuery({ 
-    baseUrl: "http://localhost:3000/v1/api/qr",
-    prepareHeaders: (headers) => {
-      // Log thông tin request để debug
-      return headers;
-    },
-    credentials: 'include', // Thêm credentials nếu cần
-    timeout: 15000, // Timeout 15 giây
-    validateStatus: (response, result) => {
-      return response.status >= 200 && response.status < 300;
-    },
-  }),
+  baseQuery: axiosBaseQuery({
+      baseUrl: `${API_BASE_URL}qr`,
+      useHttpClient: true,
+      timeout: 15000,
+    }),
   tagTypes: ["QrCode"],
 
   endpoints: (builder) => ({
