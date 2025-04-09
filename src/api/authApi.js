@@ -40,6 +40,20 @@ export const authApi = createApi({
                 body: {token, password, email},
             })
         }), 
+        activeAccount: builder.mutation({
+            query: ({email, token}) => ({
+                url: "/active-account",
+                method: "POST",
+                body: {email, token},
+            })
+        }), 
+        ResendActiveAccount: builder.mutation({
+            query: ({email}) => ({
+                url: "/resend-active",
+                method: "POST",
+                body: {email},
+            })
+        }), 
     })
 });
 
@@ -49,4 +63,6 @@ export const {
     useRegiterMutation,
     useResetPassMutation,
     useNewPassMutation,
+    useActiveAccountMutation,
+    useResendActiveAccountMutation,
 } = authApi;

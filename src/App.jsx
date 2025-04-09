@@ -4,7 +4,6 @@ import UserRoutes from "@/routes/UserRoutes";
 import AuthRoutes from "@/routes/AuthRoutes";
 import StaffRoutes from "@/routes/StaffRoutes";
 import PageNotFound from "@/pages/PageNotFound";
-import ChatBox from "./components/ChatBox/ChatBox";
 
 function App() {
 
@@ -19,7 +18,6 @@ function App() {
   return (
     <>
       <RouterProvider router={router} />
-      <ChatBox />
     </>
   );
 }

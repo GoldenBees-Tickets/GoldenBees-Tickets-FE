@@ -1,63 +1,91 @@
 import { useGetRoomsQuery, useDeleteRoomMutation } from "@/api/roomApi";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Table, Button, Modal, Spin, message } from "antd";
-import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { Table, Button, Modal, Spin, message, Tooltip, Input, Space } from "antd";
+import { FiEdit2, FiEye } from "react-icons/fi";
+import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import PaginationDefault from "../../PaginationDefault";
+import ViewRoomSeats from "./ViewRoomSeats";
+
+const { Search } = Input;
 
 export default function ListRooms() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [viewRoomId, setViewRoomId] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
 
-  const { data: listRooms, isLoading, error } = useGetRoomsQuery({ 
+  const { data: roomData, isLoading, error } = useGetRoomsQuery({ 
     page: currentPage, 
-    pageSize 
+    limit: pageSize,
+    search: searchValue,
+    sort_order: sortOrder
   });
-  const [deleteRoom] = useDeleteRoomMutation();
 
-  const [rooms, setRooms] = useState([]);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-
-  useEffect(() => {
-    if (listRooms?.data) {
-      setRooms(listRooms?.data.rooms || []);
-      setTotalItems(listRooms?.data.totalItems || 0);
-      setTotalPages(listRooms?.data.totalPages || 0);
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+      setPageSize(newPageSize);
     }
-  }, [listRooms]);
-
-  const handlePageChange = (page, size = pageSize) => {
     setCurrentPage(page);
-    setPageSize(size);
   };
 
-  const handleDelete = (room) => {
-    setSelectedRoom(room);
-    setIsDeleteModalOpen(true);
+  const handleViewSeats = (roomId) => {
+    setViewRoomId(roomId);
+    setIsViewModalOpen(true);
   };
 
-  const confirmDelete = async () => {
-    try {
-      await deleteRoom(selectedRoom.id);
-      message.success("Xóa phòng thành công!");
-      setIsDeleteModalOpen(false);
-    } catch (error) {
-      message.error("Xóa phòng thất bại. Vui lòng thử lại!");
-    }
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false);
+    setViewRoomId(null);
+  };
+
+  const handleSearch = (value) => {
+    setSearchValue(value);
+    setCurrentPage(1);
+  };
+
+  const handleReset = () => {
+    setSearchText("");
+    setSearchValue("");
+    setSortOrder("desc");
+    setCurrentPage(1);
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
   };
 
   const columns = [
     {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
-      width: 80
+      title: "STT",
+      key: "index",
+      width: 80,
+      render: (_, __, index) => {
+        return (currentPage - 1) * pageSize + index + 1;
+      }
     },
     {
-      title: "Tên phòng",
+      title: (
+        <div 
+          className="flex items-center cursor-pointer select-none" 
+          onClick={toggleSortOrder}
+        >
+          Tên phòng
+          <div className="flex flex-col ml-1">
+            <CaretUpOutlined 
+              className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
+              style={{ marginBottom: -2 }}
+            />
+            <CaretDownOutlined 
+              className={`text-[10px] ${sortOrder === "desc" ? "text-blue-500" : "text-gray-400"}`}
+            />
+          </div>
+        </div>
+      ),
       dataIndex: "name",
       key: "name",
     },
@@ -77,14 +105,17 @@ export default function ListRooms() {
       width: 150,
       render: (_, record) => (
         <div className="flex space-x-2">
-          <Link to={`${record.id}`}>
-            <Button icon={<FiEdit2 />} />
-          </Link>
-          <Button
-            danger
-            icon={<FiTrash2 />}
-            onClick={() => handleDelete(record)}
-          />
+          <Tooltip title="Xem sơ đồ ghế">
+            <Button 
+              icon={<FiEye />} 
+              onClick={() => handleViewSeats(record.id)}
+            />
+          </Tooltip>
+          <Tooltip title="Chỉnh sửa">
+            <Link to={`${record.id}`}>
+              <Button icon={<FiEdit2 />} />
+            </Link>
+          </Tooltip>
         </div>
       ),
     },
@@ -95,9 +126,26 @@ export default function ListRooms() {
 
   return (
     <>
+      <div className="mb-4">
+        <Space size="middle">
+          <Search
+            placeholder="Tìm kiếm phòng..."
+            allowClear
+            onSearch={handleSearch}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 250 }}
+            prefix={<SearchOutlined className="text-gray-400" />}
+          />
+          {(searchValue || sortOrder !== "desc") && (
+            <Button onClick={handleReset}>Xóa bộ lọc</Button>
+          )}
+        </Space>
+      </div>
+
       <Table
         columns={columns}
-        dataSource={rooms}
+        dataSource={roomData?.rooms || []}
         rowKey="id"
         pagination={false}
         locale={{
@@ -105,24 +153,23 @@ export default function ListRooms() {
         }}
       />
 
-      <PaginationDefault
-        totalItems={totalItems}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        onPageChange={handlePageChange}
-      />
+      <div className="mt-4">
+        <PaginationDefault
+          current={roomData?.pagination?.currentPage || 1}
+          total={roomData?.pagination?.total || 0}
+          pageSize={pageSize}
+          onChange={handlePageChange}
+          showSizeChanger={false}
+          pageSizeOptions={[5, 10, 15]}
+        />
+      </div>
 
-      {/* Modal xác nhận xóa */}
-      <Modal
-        open={isDeleteModalOpen}
-        onCancel={() => setIsDeleteModalOpen(false)}
-        onOk={confirmDelete}
-        okText="Xóa"
-        okButtonProps={{ danger: true }}
-        title="Xác nhận xóa"
-      >
-        Bạn có chắc chắn muốn xóa phòng "{selectedRoom?.name}" không?
-      </Modal>
+      {/* Seat layout modal */}
+      <ViewRoomSeats
+        roomId={viewRoomId}
+        visible={isViewModalOpen}
+        onClose={handleCloseViewModal}
+      />
     </>
   );
 }

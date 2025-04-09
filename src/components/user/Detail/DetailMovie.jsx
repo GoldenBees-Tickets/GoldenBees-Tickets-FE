@@ -200,7 +200,7 @@ export default function MovieDetail() {
         </div>
       )}
       
-      <style jsx>{`
+      <style>{`
         .shadow-text {
           text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }

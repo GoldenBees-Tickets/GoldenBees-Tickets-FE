@@ -11,15 +11,15 @@ export const usePaymentCalculation = (
 ) => {
   // Tính giá vé dựa trên loại ghế
   const calculateTicketPrice = useMemo(() => {
-    if (!showtimeData?.showtime?.base_price || !listSeatTypes?.seat_types) {
+    if (!showtimeData?.base_price || !listSeatTypes?.seat_types) {            
       return {
         getSeatPrice: () => 0,
         calculateTotal: () => 0,
       };
     }
 
-    const basePrice = Number(showtimeData?.showtime?.base_price || 0);
-
+    const basePrice = Number(showtimeData?.base_price || 0);
+    
     // Hàm tính giá cho một ghế
     const getSeatPrice = (seat) => {
       if (!seat) return basePrice;
@@ -59,7 +59,7 @@ export const usePaymentCalculation = (
     const seats = hasActiveReservation
       ? activeReservationInfo?.seats
       : selectedSeats;
-
+    
     const ticketPrice = calculateTicketPrice.calculateTotal(seats) || 0;
     const foodPrice = selectedFoodItems.reduce(
       (total, item) => total + item.price * item.quantity,

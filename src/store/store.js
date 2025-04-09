@@ -11,6 +11,7 @@ import { branchApi } from "@/api/branchApi";
 import { cinemaApi } from "@/api/cinemaApi";
 import { qrCodeApi } from "@/api/qrCodeApi";
 import { chatHistoryApi } from "@/api/chatHistoryApi";
+import { countryApi } from "@/api/countryApi";
 
 import notificationReducer from "@/store/notificationSlice"; 
 import { movieApi } from "@/api/movieApi";
@@ -40,6 +41,7 @@ const store = configureStore({
     [seatApi.reducerPath]: seatApi.reducer,
     [qrCodeApi.reducerPath]: qrCodeApi.reducer,
     [chatHistoryApi.reducerPath]: chatHistoryApi.reducer,
+    [countryApi.reducerPath]: countryApi.reducer,
   
     [movieApi.reducerPath]: movieApi.reducer,
     [genreApi.reducerPath]: genreApi.reducer,
@@ -73,6 +75,7 @@ const store = configureStore({
       .concat(seatApi.middleware)
       .concat(qrCodeApi.middleware)
       .concat(chatHistoryApi.middleware)
+      .concat(countryApi.middleware)
       .concat(movieApi.middleware)
       .concat(genreApi.middleware)
       .concat(userApi.middleware)

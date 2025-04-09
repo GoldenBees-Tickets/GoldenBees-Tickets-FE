@@ -1,58 +1,55 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import axiosBaseQuery from "./authQuery/axiosBaseQuery";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const genreApi = createApi({
   reducerPath: "genreApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:3000/v1/api/genre" }),
-  tagTypes: ["Genre"], // Định nghĩa tagType
-
+  baseQuery: axiosBaseQuery({ baseUrl: `${API_BASE_URL}genre`, useHttpClient: true }),
+  tagTypes: ["Genre"],
   endpoints: (builder) => ({
-    // Thêm thể loại mới
+    getGenres: builder.query({
+      query: ({ page = 1, limit = 5, search = '' }) => ({
+        url: `/?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`,
+        method: "GET",
+      }),
+      providesTags: () => [{ type: "Genre", id: "LIST" }],
+    }),
+    getGenre: builder.query({
+      query: (id) => ({
+        url: `/${id}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: "Genre", id }],
+    }),
     createGenre: builder.mutation({
-      query: ({ name }) => ({
+      query: (data) => ({
         url: `/`,
         method: "POST",
-        body: { name },
+        data,
       }),
-      invalidatesTags: ["Genre"], // Cập nhật danh sách thể loại
+      invalidatesTags: () => [{ type: "Genre", id: "LIST" }],
     }),
-
-    // Cập nhật thể loại
     updateGenre: builder.mutation({
-      query: ({ id, name }) => ({
+      query: ({ id, ...data }) => ({
         url: `/${id}`,
         method: "PUT",
-        body: { name },
+        data,
       }),
-      invalidatesTags: ["Genre"], // Cập nhật danh sách thể loại
-    }),
-
-    // Xóa thể loại
+      invalidatesTags: () => [{ type: "Genre", id: "LIST" }]}),
     deleteGenre: builder.mutation({
       query: (id) => ({
         url: `/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Genre"], // Cập nhật danh sách thể loại
-    }),
-
-    // Lấy danh sách thể loại
-    getGenres: builder.query({
-      query: () => `/`,
-      providesTags: ["Genre"], // Gán tag để RTK Query biết khi nào cần cập nhật
-    }),
-
-    // Lấy thể loại theo ID
-    getGenreById: builder.query({
-      query: (id) => `/${id}`,
-      providesTags: (result, error, id) => [{ type: "Genre", id }],
+      invalidatesTags: () => [{ type: "Genre", id: "LIST" }],
     }),
   }),
 });
 
 export const {
+  useGetGenresQuery,
+  useGetGenreQuery,
   useCreateGenreMutation,
   useUpdateGenreMutation,
   useDeleteGenreMutation,
-  useGetGenresQuery,
-  useGetGenreByIdQuery,
 } = genreApi;

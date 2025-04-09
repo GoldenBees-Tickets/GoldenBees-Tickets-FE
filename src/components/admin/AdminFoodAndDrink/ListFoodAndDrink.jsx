@@ -4,38 +4,179 @@ import { toast } from "react-toastify";
 import AddFoodAndDrink from "./AddFoodAndDrink";
 import EditFoodAndDrink from "./EditFoodAndDrink";
 import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
-const API_BASE_URL = import.meta.env.VITE_SOCKET_URL;
+import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
+import { Input, Button, Space, Spin, Select, Table, Modal } from "antd";
+import PaginationDefault from "../../PaginationDefault";
+import { formatImage } from "@/utils/formatImage";
+
+const { Search } = Input;
+const { Option } = Select;
 
 const ListFoodAndDrink = () => {
-  const { data: foodAndDrinks, isLoading, error } = useGetFoodAndDrinksQuery();
-  const [deleteFoodAndDrink] = useDeleteFoodAndDrinkMutation();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [typeFilter, setTypeFilter] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  
+  // Gọi API với các tham số
+  const { data: foodAndDrinkData, isLoading, error } = useGetFoodAndDrinksQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: searchValue,
+    sort_order: sortOrder,
+    type: typeFilter
+  });
+  
+  const [deleteFoodAndDrink] = useDeleteFoodAndDrinkMutation();
+
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+      setPageSize(newPageSize);
+    }
+    setCurrentPage(page);
+  };
 
   const handleEdit = (item) => {
     setSelectedItem(item);
     setShowEditForm(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (item) => {
+    setItemToDelete(item);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      await deleteFoodAndDrink(id).unwrap();
+      await deleteFoodAndDrink(itemToDelete.id).unwrap();
       toast.success("Xóa món thành công!");
-      setShowDeleteConfirm(false);
+      setIsDeleteModalOpen(false);
       setItemToDelete(null);
     } catch (err) {
       console.error("Lỗi khi xóa món:", err);
       toast.error("Xóa món thất bại. Vui lòng thử lại.");
     }
   };
+  
+  const handleSearch = (value) => {
+    setSearchValue(value);
+    setCurrentPage(1);
+  };
+  
+  const handleTypeChange = (value) => {
+    setTypeFilter(value);
+    setCurrentPage(1);
+  };
+  
+  const handleReset = () => {
+    setSearchText("");
+    setSearchValue("");
+    setSortOrder("desc");
+    setTypeFilter("");
+    setCurrentPage(1);
+  };
+  
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
+  };
+
+  const columns = [
+    {
+      title: "STT",
+      key: "index",
+      width: 70,
+      render: (_, __, index) => (currentPage - 1) * pageSize + index + 1
+    },
+    {
+      title: "Hình Ảnh",
+      key: "image",
+      width: 100,
+      render: (_, record) => (
+        <div className="flex items-center">
+          <img
+            src={formatImage(record.profile_picture)}
+            alt={record.name}
+            className="h-10 w-10 rounded-lg object-cover shadow-sm"
+          />
+        </div>
+      )
+    },
+    {
+      title: (
+        <div 
+          className="flex items-center cursor-pointer select-none" 
+          onClick={toggleSortOrder}
+        >
+          Tên Món
+          <div className="flex flex-col ml-1">
+            <CaretUpOutlined 
+              className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
+              style={{ marginBottom: -2 }}
+            />
+            <CaretDownOutlined 
+              className={`text-[10px] ${sortOrder === "desc" ? "text-blue-500" : "text-gray-400"}`}
+            />
+          </div>
+        </div>
+      ),
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Loại",
+      key: "type",
+      render: (_, record) => (
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          record.type === "food" 
+            ? "bg-green-100 text-green-800" 
+            : "bg-blue-100 text-blue-800"
+        }`}>
+          {record.type === "food" ? "Đồ ăn" : "Đồ uống"}
+        </span>
+      )
+    },
+    {
+      title: "Giá",
+      key: "price",
+      render: (_, record) => (
+        <div className="text-sm font-medium text-gray-900">
+          {record.price.toLocaleString()}đ
+        </div>
+      )
+    },
+    {
+      title: "Thao Tác",
+      key: "actions",
+      width: 100,
+      align: "right",
+      render: (_, record) => (
+        <Space>
+          <Button 
+            icon={<FiEdit2 />} 
+            onClick={() => handleEdit(record)} 
+          />
+          <Button
+            danger
+            icon={<FiTrash2 />}
+            onClick={() => handleDelete(record)}
+          />
+        </Space>
+      )
+    }
+  ];
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[300px]">
-        <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-200 border-t-blue-600"></div>
+        <Spin size="large" />
       </div>
     );
   }
@@ -50,6 +191,13 @@ const ListFoodAndDrink = () => {
       </div>
     );
   }
+  
+  const foodAndDrinks = foodAndDrinkData?.items || [];
+  const pagination = foodAndDrinkData?.pagination || {
+    total: 0,
+    totalPages: 0,
+    currentPage: 1
+  };
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-6">
@@ -58,143 +206,118 @@ const ListFoodAndDrink = () => {
           <h2 className="text-2xl font-bold text-gray-800">Quản Lý Đồ Ăn & Đồ Uống</h2>
           <p className="text-sm text-gray-600 mt-1">Quản lý danh sách món ăn và đồ uống của rạp</p>
         </div>
-        <button
+        <Button
+          type="primary"
+          icon={<FiPlus />}
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-sm"
+          className="bg-blue-600 hover:bg-blue-700"
         >
-          <FiPlus className="w-5 h-5" />
-          <span>Thêm Món Mới</span>
-        </button>
+          Thêm Món Mới
+        </Button>
+      </div>
+      
+      {/* Thanh tìm kiếm và bộ lọc */}
+      <div className="mb-4 flex flex-wrap gap-3">
+        <Search
+          placeholder="Tìm kiếm món..."
+          allowClear
+          onSearch={handleSearch}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ width: 250 }}
+          prefix={<SearchOutlined className="text-gray-400" />}
+        />
+        
+        <Select
+          placeholder="Loại món"
+          allowClear
+          style={{ width: 120 }}
+          onChange={handleTypeChange}
+          value={typeFilter}
+        >
+          <Option value="">Tất cả</Option>
+          <Option value="food">Đồ ăn</Option>
+          <Option value="drink">Đồ uống</Option>
+        </Select>
+        
+        {(searchValue || sortOrder !== "desc" || typeFilter) && (
+          <Button onClick={handleReset}>Xóa bộ lọc</Button>
+        )}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Hình Ảnh
-                </th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tên Món
-                </th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Loại
-                </th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Giá
-                </th>
-                <th className="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Thao Tác
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {!foodAndDrinks?.length ? (
-                <tr>
-                  <td colSpan="5" className="px-4 py-8 text-center">
-                    <p className="text-gray-500 text-base">Chưa có món ăn hoặc đồ uống nào</p>
-                    <button
-                      onClick={() => setShowAddForm(true)}
-                      className="mt-3 text-blue-600 hover:text-blue-700 font-medium text-sm"
-                    >
-                      Thêm món mới ngay
-                    </button>
-                  </td>
-                </tr>
-              ) : (
-                foodAndDrinks.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-150">
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <img
-                          src={`${API_BASE_URL}/${item.profile_picture}`}
-                          alt={item.name}
-                          className="h-10 w-10 rounded-lg object-cover shadow-sm"
-                        />
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        item.type === "food" 
-                          ? "bg-green-100 text-green-800" 
-                          : "bg-blue-100 text-blue-800"
-                      }`}>
-                        {item.type === "food" ? "Đồ ăn" : "Đồ uống"}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {item.price.toLocaleString()}đ
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="p-1.5 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-lg transition-colors duration-150"
-                          title="Sửa"
-                        >
-                          <FiEdit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setItemToDelete(item);
-                            setShowDeleteConfirm(true);
-                          }}
-                          className="p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-150"
-                          title="Xóa"
-                        >
-                          <FiTrash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <Table
+          columns={columns}
+          dataSource={foodAndDrinks}
+          rowKey="id"
+          pagination={false}
+          locale={{
+            emptyText: (
+              <div className="py-5">
+                <p className="text-gray-500 text-base">Chưa có món ăn hoặc đồ uống nào</p>
+                <Button
+                  type="link"
+                  onClick={() => setShowAddForm(true)}
+                  className="mt-2 text-blue-600 hover:text-blue-700"
+                >
+                  Thêm món mới ngay
+                </Button>
+              </div>
+            )
+          }}
+        />
       </div>
-
-      {showAddForm && <AddFoodAndDrink setAddForm={setShowAddForm} />}
-      {showEditForm && <EditFoodAndDrink setEditForm={setShowEditForm} editItem={selectedItem} />}
-
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full mx-4 overflow-hidden">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Xác nhận xóa món
-              </h3>
-              <p className="text-sm text-gray-500">
-                Bạn có chắc chắn muốn xóa món &ldquo;{itemToDelete?.name}&rdquo; không?
-                Hành động này không thể hoàn tác.
-              </p>
-            </div>
-            <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowDeleteConfirm(false);
-                  setItemToDelete(null);
-                }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-150"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={() => handleDelete(itemToDelete.id)}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-150"
-              >
-                Xóa
-              </button>
-            </div>
-          </div>
+      
+      {/* Phân trang */}
+      {foodAndDrinks.length > 0 && (
+        <div className="mt-4">
+          <PaginationDefault
+            current={pagination.currentPage}
+            total={pagination.total}
+            pageSize={pageSize}
+            onChange={handlePageChange}
+            showSizeChanger={true}
+            pageSizeOptions={[5, 10, 20]}
+          />
         </div>
       )}
+
+      {/* Modal Xác nhận xóa */}
+      <Modal
+        open={isDeleteModalOpen}
+        onCancel={() => setIsDeleteModalOpen(false)}
+        onOk={confirmDelete}
+        okText="Xóa"
+        okButtonProps={{ danger: true }}
+        cancelText="Cancel"
+        title="Xác nhận xóa"
+      >
+        Bạn có chắc chắn muốn xóa món "{itemToDelete?.name}" không?
+      </Modal>
+
+      {/* Modal Thêm Món mới */}
+      <Modal
+        title="Thêm Món Mới"
+        open={showAddForm}
+        onCancel={() => setShowAddForm(false)}
+        footer={null}
+        width={600}
+        destroyOnClose
+      >
+        {showAddForm && <AddFoodAndDrink setAddForm={setShowAddForm} />}
+      </Modal>
+
+      {/* Modal Chỉnh sửa */}
+      <Modal
+        title="Chỉnh Sửa Món"
+        open={showEditForm}
+        onCancel={() => setShowEditForm(false)}
+        footer={null}
+        width={600}
+        destroyOnClose
+      >
+        {showEditForm && <EditFoodAndDrink setEditForm={setShowEditForm} editItem={selectedItem} />}
+      </Modal>
     </div>
   );
 };

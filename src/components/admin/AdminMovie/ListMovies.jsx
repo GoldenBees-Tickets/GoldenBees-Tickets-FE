@@ -1,39 +1,90 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Table, Button, Modal, Spin, message } from "antd";
-import { FiEdit2, FiTrash2, FiEye } from "react-icons/fi";
+import { Table, Button, Spin, message, Tag, Input, Select, Space } from "antd";
+import { FiEdit2, FiEye } from "react-icons/fi";
+import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import {
   useGetMoviesQuery,
-  useDeleteMovieMutation,
-} from "../../../api/movieApi";
+  useUpdateStatusMutation
+} from "@/api/movieApi";
 import PaginationDefault from "@/components/PaginationDefault";
+import { formatDate } from "@/utils/format";
+
+const { Search } = Input;
+const { Option } = Select;
 
 export default function ListMovies() {
-  const { data, error, isLoading } = useGetMoviesQuery();
-  const [deleteMovie] = useDeleteMovieMutation();
-  
-  const [selectedMovie, setSelectedMovie] = useState(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
 
-  const handleDelete = (movie) => {
-    setSelectedMovie(movie);
-    setIsDeleteModalOpen(true);
-  };
+  // Gọi API với các tham số phân trang và lọc
+  const { data: movieData, error, isLoading } = useGetMoviesQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: searchValue,
+    status: statusFilter,
+    sort_order: sortOrder
+  });
+  
+  const [updateStatus, { isLoading: isUpdating }] = useUpdateStatusMutation();
 
-  const confirmDelete = async () => {
+  const handleUpdateAllStatus = async () => {
     try {
-      await deleteMovie(selectedMovie.id).unwrap();
-      message.success("Xóa phim thành công!");
-      setIsDeleteModalOpen(false);
+      await updateStatus().unwrap();
+      message.success("Cập nhật trạng thái tất cả phim thành công!");
     } catch (error) {
-      message.error("Không thể xóa phim!");
+      message.error("Không thể cập nhật trạng thái phim!");
     }
   };
 
-  // Đảm bảo data là một mảng trước khi render
-  const movies = Array.isArray(data) ? data : data?.movies || [];
+  const handleSearch = (value) => {
+    setSearchValue(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (value) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleReset = () => {
+    setSearchText("");
+    setSearchValue("");
+    setStatusFilter("");
+    setSortOrder("desc");
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+        setPageSize(newPageSize);
+    }
+    setCurrentPage(page);
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
+  };
+
+  const getStatusTag = (status) => {
+    switch (status) {
+      case "coming_soon":
+        return <Tag color="blue">Sắp ra mắt</Tag>;
+      case "opening_soon":
+        return <Tag color="orange">Sắp chiếu</Tag>;
+      case "now_showing":
+        return <Tag color="green">Đang chiếu</Tag>;
+      case "ended":
+        return <Tag color="red">Đã kết thúc</Tag>;
+      default:
+        return <Tag color="default">{status}</Tag>;
+    }
+  };
 
   const columns = [
     {
@@ -46,6 +97,34 @@ export default function ListMovies() {
       dataIndex: "duration",
       key: "duration",
       render: (duration) => `${duration} phút`,
+    },
+    {
+      title: (
+        <div 
+          className="flex items-center cursor-pointer select-none" 
+          onClick={toggleSortOrder}
+        >
+          Ngày phát hành
+          <div className="flex flex-col ml-1">
+            <CaretUpOutlined 
+              className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
+              style={{ marginBottom: -2 }}
+            />
+            <CaretDownOutlined 
+              className={`text-[10px] ${sortOrder === "desc" ? "text-blue-500" : "text-gray-400"}`}
+            />
+          </div>
+        </div>
+      ),
+      dataIndex: "release_date",
+      key: "release_date",
+      render: (release_date) => `${formatDate(release_date)}`,
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => getStatusTag(status),
     },
     {
       title: "Năm sản xuất",
@@ -64,11 +143,6 @@ export default function ListMovies() {
           <Link to={`/admin/movies/edit/${record.id}`}>
             <Button icon={<FiEdit2 />} />
           </Link>
-          <Button
-            danger
-            icon={<FiTrash2 />}
-            onClick={() => handleDelete(record)}
-          />
         </div>
       ),
     },
@@ -79,39 +153,64 @@ export default function ListMovies() {
 
   return (
     <>
-      <Table
-        columns={columns}
-        dataSource={movies}
-        rowKey="id"
-        pagination={false}
-        locale={{
-          emptyText: "Chưa có phim nào trong danh sách",
-        }}
-      />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <Space size="middle">
+          <Search
+            placeholder="Tìm kiếm phim..."
+            onSearch={handleSearch}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 250 }}
+            prefix={<SearchOutlined className="text-gray-400" />}
+            allowClear
+          />
+          <Select
+            placeholder="Lọc theo trạng thái"
+            style={{ width: 180 }}
+            onChange={handleStatusFilterChange}
+            value={statusFilter}
+            allowClear
+          >
+            <Option value="now_showing">Đang chiếu</Option>
+            <Option value="opening_soon">Sắp chiếu</Option>
+            <Option value="coming_soon">Sắp ra mắt</Option>
+            <Option value="ended">Đã kết thúc</Option>
+          </Select>
+          {(searchValue || statusFilter || sortOrder !== "desc") && (
+            <Button onClick={handleReset}>Xóa bộ lọc</Button>
+          )}
+        </Space>
+        <Button 
+          type="primary" 
+          onClick={handleUpdateAllStatus}
+          loading={isUpdating}
+        >
+          Cập nhật trạng thái tất cả phim
+        </Button>
+      </div>
 
-      <PaginationDefault
-        totalItems={movies?.length || 0}
-        totalPages={Math.ceil(
-          (movies?.length || 0) / pageSize
-        )}
-        currentPage={currentPage}
-        onPageChange={(page, newSize) => {
-          setCurrentPage(page);
-          if (newSize) setPageSize(newSize);
-        }}
-      />
+      <div className="bg-white rounded-md shadow">
+        <Table
+          columns={columns}
+          dataSource={movieData?.movies || []}
+          rowKey="id"
+          pagination={false}
+          locale={{
+            emptyText: "Chưa có phim nào trong danh sách",
+          }}
+        />
 
-      {/* Modal xác nhận xóa */}
-      <Modal
-        open={isDeleteModalOpen}
-        onCancel={() => setIsDeleteModalOpen(false)}
-        onOk={confirmDelete}
-        okText="Xóa"
-        okButtonProps={{ danger: true }}
-        title="Xác nhận xóa"
-      >
-        Bạn có chắc chắn muốn xóa phim "{selectedMovie?.name}" không?
-      </Modal>
+        <div className="p-4 border-t">
+          <PaginationDefault
+            current={movieData?.pagination?.currentPage || 1}
+            total={movieData?.pagination?.total || 0}
+            pageSize={pageSize}
+            onChange={handlePageChange}
+            showSizeChanger={false}
+            pageSizeOptions={[5, 10, 15]}
+          />
+        </div>
+      </div>
     </>
   );
 }

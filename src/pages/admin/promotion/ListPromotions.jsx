@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Table, Tag, Button, Modal, Spin, message } from "antd";
+import { Table, Tag, Button, Modal, Spin, message, Space, Input } from "antd";
 import { FiEdit2, FiTrash2, FiEye } from "react-icons/fi";
+import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import {
   useGetPromotionsQuery,
   useDeletePromotionMutation,
@@ -9,17 +10,31 @@ import { useNavigate } from "react-router-dom";
 import PaginationDefault from "@/components/PaginationDefault";
 import EditPromotionModal from "./EditPromotion";
 
-export default function ListPromotions() {
-  const { data: promotionData, error, isLoading } = useGetPromotionsQuery();
-  const [deletePromotion] = useDeletePromotionMutation();
-  const navigate = useNavigate();
+const { Search } = Input;
 
+export default function ListPromotions() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
+  
   const [selectedPromotion, setSelectedPromotion] = useState(null);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDetailModalOpen, setDetailModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  
+  const navigate = useNavigate();
+
+  // Gọi API với các tham số
+  const { data: promotionData, isLoading, error } = useGetPromotionsQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: searchValue,
+    sort_order: sortOrder
+  });
+  
+  const [deletePromotion] = useDeletePromotionMutation();
 
   const handleViewDetail = (promotion) => {
     setSelectedPromotion(promotion);
@@ -35,10 +50,10 @@ export default function ListPromotions() {
     try {
       await deletePromotion(selectedPromotion.id).unwrap();
       message.success("Xóa khuyến mãi thành công!");
+      setDeleteModalOpen(false);
     } catch {
       message.error("Xóa khuyến mãi thất bại. Vui lòng thử lại!");
     }
-    setDeleteModalOpen(false);
   };
 
   const handleEdit = (promotion) => {
@@ -49,19 +64,66 @@ export default function ListPromotions() {
     setSelectedPromotion(promotion);
     setEditModalOpen(true);
   };
+  
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+      setPageSize(newPageSize);
+    }
+    setCurrentPage(page);
+  };
+  
+  const handleSearch = (value) => {
+    setSearchValue(value);
+    setCurrentPage(1);
+  };
+  
+  const handleReset = () => {
+    setSearchText("");
+    setSearchValue("");
+    setSortOrder("desc");
+    setCurrentPage(1);
+  };
+  
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
+  };
+  
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString("vi-VN");
 
   const columns = [
     {
+      title: "STT",
+      key: "index",
+      width: 70,
+      render: (_, __, index) => (currentPage - 1) * pageSize + index + 1
+    },
+    {
       title: "Mã giảm giá",
       dataIndex: "code",
       key: "code",
       render: (code) => <Tag color="blue">{code}</Tag>,
-      width: 120, // Giới hạn độ rộng
+      width: 120,
     },
     {
-      title: "Tên",
+      title: (
+        <div 
+          className="flex items-center cursor-pointer select-none" 
+          onClick={toggleSortOrder}
+        >
+          Tên
+          <div className="flex flex-col ml-1">
+            <CaretUpOutlined 
+              className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
+              style={{ marginBottom: -2 }}
+            />
+            <CaretDownOutlined 
+              className={`text-[10px] ${sortOrder === "desc" ? "text-blue-500" : "text-gray-400"}`}
+            />
+          </div>
+        </div>
+      ),
       dataIndex: "name",
       key: "name",
     },
@@ -94,16 +156,24 @@ export default function ListPromotions() {
     {
       title: "Thao tác",
       key: "actions",
+      width: 150,
+      align: "right",
       render: (_, record) => (
-        <div className="flex space-x-2">
-          <Button icon={<FiEye />} onClick={() => handleViewDetail(record)} />
-          <Button icon={<FiEdit2 />} onClick={() => handleEdit(record)} />
+        <Space>
+          <Button 
+            icon={<FiEye />} 
+            onClick={() => handleViewDetail(record)} 
+          />
+          <Button 
+            icon={<FiEdit2 />} 
+            onClick={() => handleEdit(record)} 
+          />
           <Button
             danger
             icon={<FiTrash2 />}
             onClick={() => handleDelete(record)}
           />
-        </div>
+        </Space>
       ),
     },
   ];
@@ -112,26 +182,68 @@ export default function ListPromotions() {
     return <Spin className="flex justify-center mt-10" size="large" />;
   if (error) return <div className="text-red-500">Lỗi khi tải dữ liệu!</div>;
 
-  return (
-    <div>
-      <Table
-        columns={columns}
-        dataSource={promotionData?.promotions}
-        rowKey="id"
-        pagination={false}
-      />
+  const promotions = promotionData?.items || [];
+  const pagination = promotionData?.pagination || {
+    total: 0,
+    totalPages: 0,
+    currentPage: 1
+  };
 
-      <PaginationDefault
-        totalItems={promotionData?.promotions?.length || 0}
-        totalPages={Math.ceil(
-          (promotionData?.promotions?.length || 0) / pageSize
+  return (
+    <div className="max-w-[1400px] mx-auto px-4 py-6">
+      {/* Thanh tìm kiếm và bộ lọc */}
+      <div className="mb-4 flex flex-wrap gap-3">
+        <Search
+          placeholder="Tìm kiếm khuyến mãi..."
+          allowClear
+          onSearch={handleSearch}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ width: 250 }}
+          prefix={<SearchOutlined className="text-gray-400" />}
+        />
+        
+        {(searchValue || sortOrder !== "desc") && (
+          <Button onClick={handleReset}>Xóa bộ lọc</Button>
         )}
-        currentPage={currentPage}
-        onPageChange={(page, newSize) => {
-          setCurrentPage(page);
-          if (newSize) setPageSize(newSize);
-        }}
-      />
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <Table
+          columns={columns}
+          dataSource={promotions}
+          rowKey="id"
+          pagination={false}
+          locale={{
+            emptyText: (
+              <div className="py-5">
+                <p className="text-gray-500 text-base">Chưa có khuyến mãi nào</p>
+                <Button
+                  type="link"
+                  onClick={() => navigate('/admin/promotion/create')}
+                  className="mt-2 text-blue-600 hover:text-blue-700"
+                >
+                  Thêm khuyến mãi mới ngay
+                </Button>
+              </div>
+            )
+          }}
+        />
+      </div>
+      
+      {/* Phân trang */}
+      {promotions.length > 0 && (
+        <div className="mt-4">
+          <PaginationDefault
+            current={pagination.currentPage}
+            total={pagination.total}
+            pageSize={pageSize}
+            onChange={handlePageChange}
+            showSizeChanger={true}
+            pageSizeOptions={[5, 10, 20]}
+          />
+        </div>
+      )}
 
       {/* Modal xem chi tiết */}
       <Modal
@@ -174,6 +286,7 @@ export default function ListPromotions() {
         onOk={confirmDelete}
         okText="Xóa"
         okButtonProps={{ danger: true }}
+        cancelText="Cancel"
         title="Xác nhận xóa"
       >
         Bạn có chắc chắn muốn xóa mã giảm giá "{selectedPromotion?.name}" không?

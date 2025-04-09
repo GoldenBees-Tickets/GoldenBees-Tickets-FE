@@ -8,8 +8,8 @@ export const userApi = createApi({
   tagTypes: ["User"],
   endpoints: (builder) => ({
     getUsers: builder.query({
-      query: () => ({
-        url: `/`,
+      query: ({ page = 1, limit = 5, search = '' }) => ({
+        url: `/?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`,
         method: "GET",
       }),
       providesTags: () => [{ type: "User", id: "LIST" }],
@@ -30,8 +30,9 @@ export const userApi = createApi({
       providesTags: () => [{ type: "User", id: "LIST" }],
     }),
     getAdminBranches: builder.query({
-      query: () => ({
-        url: `/admin_branches`,
+      query: ({ page = 1, limit = 5, search = '' }) => ({
+        url: `/admin_branches?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`,
+        method: "GET",
       }),
       providesTags: () => [{ type: "User", id: "LIST" }],
     }),

@@ -11,7 +11,8 @@ import {
   message,
   Typography,
   Divider,
-  Space
+  Space,
+  Spin
 } from "antd";
 import { 
   UploadOutlined, 
@@ -23,6 +24,7 @@ import { useGetActorsQuery } from "@/api/actorApi";
 import { useGetDirectorsQuery } from "@/api/directorApi";
 import { useGetProducersQuery } from "@/api/producerApi";
 import { useGetGenresQuery } from "@/api/genreApi";
+import { useGetCountriesQuery } from "@/api/countryApi";
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -47,7 +49,8 @@ export default function AddMovies() {
   const { data: genreData } = useGetGenresQuery();
   const genres = genreData?.genres || [];
   
-  const [createMovie, { isLoading }] = useCreateMovieMutation();
+  const [createMovie, { isLoading: isSubmitting }] = useCreateMovieMutation();
+  const [isFormSubmitting, setIsFormSubmitting] = useState(false);
 
   const handlePosterChange = (info) => {    
     if (info && info.file) {
@@ -67,19 +70,24 @@ export default function AddMovies() {
 
   const handleSubmit = async (values) => {
     try {
+      setIsFormSubmitting(true);
+      
       // Validate the essential data
       if (!values.director_id) {
         message.error("Vui lòng chọn đạo diễn");
+        setIsFormSubmitting(false);
         return;
       }
       
       if (!values.actor_ids || values.actor_ids.length === 0) {
         message.error("Vui lòng chọn ít nhất một diễn viên");
+        setIsFormSubmitting(false);
         return;
       }
       
       if (!values.producer_ids || values.producer_ids.length === 0) {
         message.error("Vui lòng chọn ít nhất một nhà sản xuất");
+        setIsFormSubmitting(false);
         return;
       }
 
@@ -116,13 +124,15 @@ export default function AddMovies() {
       if (posterFile) {
         formData.append("poster", posterFile);
       }
-
+      
       await createMovie(formData).unwrap();
       message.success("Thêm phim mới thành công!");
       navigate("/admin/movies");
     } catch (error) {
       console.error("Lỗi khi tạo phim:", error);
       message.error("Thêm phim thất bại: " + (error.data?.message || "Đã xảy ra lỗi"));
+    } finally {
+      setIsFormSubmitting(false);
     }
   };
 
@@ -185,8 +195,9 @@ export default function AddMovies() {
             <Form.Item
               name="country"
               label="Quốc gia"
+              rules={[{ required: true, message: "Vui lòng chọn quốc gia sản xuất" }]}
             >
-              <Input placeholder="Nhập quốc gia sản xuất" />
+              <CountrySelect />
             </Form.Item>
 
             <Form.Item
@@ -326,15 +337,17 @@ export default function AddMovies() {
               <Button
                 type="primary"
                 htmlType="submit"
-                loading={isLoading}
+                loading={isSubmitting || isFormSubmitting}
+                disabled={isSubmitting || isFormSubmitting}
                 icon={<PlusOutlined />}
                 className="bg-blue-500"
               >
-                Thêm phim
+                {(isSubmitting || isFormSubmitting) ? "Đang xử lý..." : "Thêm phim"}
               </Button>
               <Button 
                 icon={<RollbackOutlined />}
                 onClick={() => navigate("/admin/movies")}
+                disabled={isSubmitting || isFormSubmitting}
               >
                 Quay lại
               </Button>
@@ -343,5 +356,38 @@ export default function AddMovies() {
         </Form>
       </div>
     </div>
+  );
+}
+
+// Component cho Select quốc gia
+function CountrySelect({ value, onChange }) {
+  const { data: countriesData, isLoading, error } = useGetCountriesQuery();
+  
+  if (isLoading) return <Spin size="small" />;
+  
+  if (error) {
+    console.error("Lỗi khi tải danh sách quốc gia:", error);
+    return <Input placeholder="Nhập quốc gia sản xuất" value={value} onChange={onChange} />;
+  }
+
+  const countries = countriesData || [];
+
+  return (
+    <Select 
+      showSearch
+      placeholder="Chọn quốc gia sản xuất"
+      optionFilterProp="children"
+      filterOption={(input, option) =>
+        option.children.toLowerCase().includes(input.toLowerCase())
+      }
+      value={value}
+      onChange={onChange}
+    >
+      {countries.map(country => (
+        <Option key={country.code} value={country.name}>
+          {country.name}
+        </Option>
+      ))}
+    </Select>
   );
 }

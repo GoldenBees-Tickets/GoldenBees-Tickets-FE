@@ -1,21 +1,32 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Table, Button, Modal, Spin, message } from "antd";
+import { Table, Button, Modal, Spin, message, Input, Space } from "antd";
 import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
+import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import { useGetProducersQuery, useDeleteProducerMutation } from "@/api/producerApi";
 import PaginationDefault from "@/components/PaginationDefault";
 import { formatImage } from "@/utils/formatImage";
 
+const { Search } = Input;
 
 export default function ListProducers() {
-  const { data: producerData, isLoading } = useGetProducersQuery();
-  const [deleteProducer] = useDeleteProducerMutation();
-
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProducer, setSelectedProducer] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
+
+  // Gọi API với các tham số phân trang và lọc
+  const { data: producerData, error, isLoading } = useGetProducersQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: searchValue,
+    sort_order: sortOrder
+  });
   
+  const [deleteProducer] = useDeleteProducerMutation();
 
   const handleEdit = (producer) => {
     // Link to edit page is handled in the column definition
@@ -35,6 +46,30 @@ export default function ListProducers() {
       message.error("Xoá nhà sản xuất thất bại. Vui lòng thử lại.");
     }
     setIsDeleteModalOpen(false);
+  };
+
+  const handleSearch = (value) => {
+    setSearchValue(value);
+    setCurrentPage(1);
+  };
+
+  const handleReset = () => {
+    setSearchText("");
+    setSearchValue("");
+    setSortOrder("desc");
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+        setPageSize(newPageSize);
+    }
+    setCurrentPage(page);
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
   };
 
   const columns = [
@@ -63,7 +98,23 @@ export default function ListProducers() {
       ),
     },
     {
-      title: "Tên nhà sản xuất",
+      title: (
+        <div 
+          className="flex items-center cursor-pointer select-none" 
+          onClick={toggleSortOrder}
+        >
+          Tên nhà sản xuất
+          <div className="flex flex-col ml-1">
+            <CaretUpOutlined 
+              className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
+              style={{ marginBottom: -2 }}
+            />
+            <CaretDownOutlined 
+              className={`text-[10px] ${sortOrder === "desc" ? "text-blue-500" : "text-gray-400"}`}
+            />
+          </div>
+        </div>
+      ),
       dataIndex: "name",
       key: "name",
     },
@@ -89,6 +140,7 @@ export default function ListProducers() {
   ];
 
   if (isLoading) return <Spin className="flex justify-center mt-10" size="large" />;
+  if (error) return <div className="text-red-500">Lỗi khi tải dữ liệu!</div>;
 
   return (
     <div className="space-y-4">
@@ -108,24 +160,43 @@ export default function ListProducers() {
         </Link>
       </div>
 
+      <div className="mb-4">
+        <Space size="middle">
+          <Search
+            placeholder="Tìm kiếm nhà sản xuất..."
+            allowClear
+            onSearch={handleSearch}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 250 }}
+            prefix={<SearchOutlined className="text-gray-400" />}
+          />
+          {(searchValue || sortOrder !== "desc") && (
+            <Button onClick={handleReset}>Xóa bộ lọc</Button>
+          )}
+        </Space>
+      </div>
+
       <Table
         columns={columns}
-        dataSource={producerData?.producers}
+        dataSource={producerData?.producers || []}
         rowKey="id"
         pagination={false}
-      />
-
-      <PaginationDefault
-        totalItems={producerData?.producers?.length || 0}
-        totalPages={Math.ceil(
-          (producerData?.producers?.length || 0) / pageSize
-        )}
-        currentPage={currentPage}
-        onPageChange={(page, newSize) => {
-          setCurrentPage(page);
-          if (newSize) setPageSize(newSize);
+        locale={{
+          emptyText: "Chưa có nhà sản xuất nào",
         }}
       />
+
+      <div className="mt-4">
+        <PaginationDefault
+          current={producerData?.pagination?.currentPage || 1}
+          total={producerData?.pagination?.total || 0}
+          pageSize={pageSize}
+          onChange={handlePageChange}
+          showSizeChanger={false}
+          pageSizeOptions={[5, 10, 15]}
+        />
+      </div>
 
       {/* Modal xác nhận xóa */}
       <Modal

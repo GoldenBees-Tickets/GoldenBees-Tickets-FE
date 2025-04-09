@@ -11,9 +11,24 @@ export const foodAndDrinkApi = createApi({
   tagTypes: ["FoodAndDrink"],
   endpoints: (builder) => ({
     getFoodAndDrinks: builder.query({
-      query: () => ({
-        url: "/",
-      }),
+      query: (params) => {
+        const { page = 1, limit = 10, search = "", sort_order = "desc", type = "" } = params || {};
+        
+        // Xây dựng query params
+        const queryParams = [];
+        if (page) queryParams.push(`page=${page}`);
+        if (limit) queryParams.push(`limit=${limit}`);
+        if (search) queryParams.push(`search=${encodeURIComponent(search)}`);
+        if (sort_order) queryParams.push(`sort_order=${sort_order}`);
+        if (type) queryParams.push(`type=${type}`);
+        
+        let url = '/';
+        if (queryParams.length > 0) {
+          url += `?${queryParams.join('&')}`;
+        }
+        
+        return { url };
+      },
       providesTags: ["FoodAndDrink"],
     }),
     addFoodAndDrink: builder.mutation({

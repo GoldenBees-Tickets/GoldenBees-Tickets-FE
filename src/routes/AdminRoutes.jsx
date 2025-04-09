@@ -8,7 +8,6 @@ import AddMovies from "@/components/admin/AdminMovie/AddMovies";
 import EditMovies from "@/components/admin/AdminMovie/EditMovies";
 import EditBranch from "@/components/Admin/AdminBranches/editBranch";
 import AddBranch from "@/components/Admin/AdminBranches/AddBranch";
-import ListCinemas from "@/components/Admin/AdminCinemas/ListCinemas";
 import AddCinemas from "@/components/Admin/AdminCinemas/AddCinemas";
 import EditCinemas from "@/components/Admin/AdminCinemas/EditCinemas";
 import Genre from "@/pages/admin/Genre";
@@ -48,6 +47,7 @@ import Posts from "@/pages/admin/Posts";
 import PostsCreate from "@/pages/admin/PostsCreate";
 import PostsEdit from "@/pages/admin/PostsEdit";
 import UserManagement from "@/pages/admin/UserManagement";
+import Cinema from "@/pages/admin/cinema";
 
 
 const AdminRoutes = {
@@ -65,7 +65,7 @@ const AdminRoutes = {
     { path: "movies/:id", element: <MovieDetail /> },
     { path: "editBranch/:id", element: <EditBranch /> },
     { path: "branches/add-branch", element: <AddBranch /> },
-    { path: "cinemas", element: <ListCinemas /> },
+    { path: "cinemas", element: <Cinema /> },
     { path: "addcinemas", element: <AddCinemas /> },
     { path: "editcinemas", element: <EditCinemas /> },
     { path: "genre", element: <Genre /> },

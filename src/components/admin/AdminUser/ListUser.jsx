@@ -1,31 +1,40 @@
-import { useState, useMemo } from "react";
-import { useDeleteUserMutation, useGetUsersQuery } from "@/api/userApi";
-import { Table, Button, Avatar, Modal, Spin, Tag, message } from "antd";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { useState } from "react";
+import { useGetUsersQuery } from "@/api/userApi";
+import { Table, Button, Avatar, Modal, Spin, Tag, message, Input, Space } from "antd";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import PaginationDefault from "@/components/PaginationDefault";
+import { formatDate } from "@/utils/format";
+
+const { Search } = Input;
 
 export default function ListUser() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [pageSize, setPageSize] = useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
 
-  const { data: usersData, isLoading, error } = useGetUsersQuery();  
-  const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
+  const { data: usersData, isLoading, error } = useGetUsersQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: searchText
+  });
 
-  const users = useMemo(() => {
-    const allUsers = usersData?.users || [];
-    return allUsers.filter(user => user.role === "user");
-  }, [usersData]);
-
-  const handleDeleteConfirm = async () => {
-    try {
-      await deleteUser(selectedUser.id).unwrap();
-      message.success("Xóa người dùng thành công!");
-      setIsDeleteModalOpen(false);
-    } catch (error) {
-      message.error("Lỗi khi xóa người dùng: " + (error.data?.message || error.message));
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+      setPageSize(newPageSize);
+      setCurrentPage(1);
+    } else {
+      setCurrentPage(page);
     }
+  };
+
+  const handleSearch = (value) => {
+    setSearchText(value);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchValue(e.target.value);
   };
 
   const columns = [
@@ -55,9 +64,9 @@ export default function ListUser() {
     },
     {
       title: "Điểm thưởng",
-      dataIndex: "point",
-      key: "point",
-      render: (point) => point || 0
+      dataIndex: "star",
+      key: "star",
+      render: (star) => star || 0
     },
     {
       title: "Trạng thái",
@@ -72,30 +81,17 @@ export default function ListUser() {
       title: "Ngày đăng ký",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (date) => new Date(date).toLocaleDateString("vi-VN")
+      render: (date) => <span>{formatDate(date)}</span>
     },
     {
       title: "Hành động",
       key: "action",
       render: (_, record) => (
-        <div className="flex space-x-2">
+        <Space>
           <Button 
-            type="primary" 
-            icon={<FiEdit />} 
-            size="small"
-            className="flex items-center"
+            icon={<FiEdit2 />}
           />
-          <Button 
-            danger
-            icon={<FiTrash2 />} 
-            size="small"
-            className="flex items-center"
-            onClick={() => {
-              setSelectedUser(record);
-              setIsDeleteModalOpen(true);
-            }}
-          />
-        </div>
+        </Space>
       )
     }
   ];
@@ -103,17 +99,22 @@ export default function ListUser() {
   if (isLoading) return <Spin className="flex justify-center mt-10" size="large" />;
   if (error) return <div className="text-red-500">Lỗi khi tải dữ liệu người dùng!</div>;
 
-  // Calculate pagination
-  const paginatedData = users.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
-
   return (
     <div>
+      <div className="mb-4 flex flex-wrap gap-4 items-center justify-between">
+        <Search
+          placeholder="Tìm kiếm theo tên hoặc email"
+          allowClear
+          value={searchValue}
+          onChange={handleSearchChange}
+          onSearch={handleSearch}
+          style={{ width: 300 }}
+        />
+      </div>
+
       <Table
         columns={columns}
-        dataSource={paginatedData}
+        dataSource={usersData?.users || []}
         rowKey="id"
         pagination={false}
         locale={{
@@ -121,42 +122,16 @@ export default function ListUser() {
         }}
       />
 
-      <PaginationDefault
-        totalItems={users.length}
-        totalPages={Math.ceil(users.length / pageSize)}
-        currentPage={currentPage}
-        onPageChange={(page, newSize) => {
-          setCurrentPage(page);
-          if (newSize) setPageSize(newSize);
-        }}
-      />
-
-      <Modal
-        title="Xác nhận xóa người dùng"
-        open={isDeleteModalOpen}
-        onCancel={() => setIsDeleteModalOpen(false)}
-        footer={[
-          <Button key="cancel" onClick={() => setIsDeleteModalOpen(false)}>
-            Hủy
-          </Button>,
-          <Button 
-            key="delete" 
-            danger 
-            loading={isDeleting} 
-            onClick={handleDeleteConfirm}
-          >
-            Xóa
-          </Button>,
-        ]}
-      >
-        <p>Bạn có chắc chắn muốn xóa người dùng này?</p>
-        {selectedUser && (
-          <div className="mt-2">
-            <p><strong>Tên người dùng:</strong> {selectedUser.username}</p>
-            <p><strong>Email:</strong> {selectedUser.email}</p>
-          </div>
-        )}
-      </Modal>
+      <div className="mt-4">
+        <PaginationDefault
+          current={usersData?.pagination?.page || 1}
+          total={usersData?.pagination?.total || 0}
+          pageSize={pageSize}
+          onChange={handlePageChange}
+          showSizeChanger={false}
+          pageSizeOptions={[5, 10, 15]}
+        />
+      </div>
     </div>
   );
 } 

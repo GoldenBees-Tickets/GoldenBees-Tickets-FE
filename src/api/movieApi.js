@@ -50,10 +50,27 @@ export const movieApi = createApi({
 
 
     getMovies: builder.query({
-      query: () => ({
-        url: `/`,
-        useHttpClient: false,
-      }),
+      query: (params) => {
+        const { page = 1, limit = 5, search = "", status = "", sort_order = "desc" } = params || {};
+        
+        // Thêm query params 
+        const queryParams = [];
+        if (page) queryParams.push(`page=${page}`);
+        if (limit) queryParams.push(`limit=${limit}`);
+        if (search) queryParams.push(`search=${search}`);
+        if (status) queryParams.push(`status=${status}`);
+        if (sort_order) queryParams.push(`sort_order=${sort_order}`);
+        
+        let url = '/';
+        if (queryParams.length > 0) {
+          url += `?${queryParams.join('&')}`;
+        }
+        
+        return {
+          url: url,
+          useHttpClient: false,
+        };
+      },
       providesTags: [{ type: "Movie", id: "LISTMOVIE" }],
     }),
 
@@ -63,6 +80,14 @@ export const movieApi = createApi({
         url: `/${id}`,
       }),
       providesTags: (result, error, id) => [{ type: "Movie", id }],
+    }),
+
+    updateStatus: builder.mutation({
+      query: () => ({
+        url: `/update-status`,
+        method: "POST",
+      }),
+      invalidatesTags: [{ type: "Movie", id: "LISTMOVIE" }],
     }),
   }),
 });
@@ -74,4 +99,5 @@ export const {
   useDeleteMovieMutation,
   useGetMoviesQuery,
   useGetMovieByIdQuery,
+  useUpdateStatusMutation
 } = movieApi;

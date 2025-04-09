@@ -70,5 +70,12 @@ export const isDateBefore = (date, unit = 'day') => {
  */
 export const formatTime = (time, format = 'HH:mm') => {
   if (!time) return '';
-  return dayjs(time).format(format);
-}; 
+  
+  // Thêm ngày giả vào chuỗi time để đảm bảo dayjs nhận diện đúng
+  const validTime = dayjs('2025-01-01 ' + time);
+  
+  if (!validTime.isValid()) return '';  // Nếu không hợp lệ, trả về chuỗi rỗng.
+
+  return validTime.format(format);  // Trả về thời gian đã định dạng.
+};
+

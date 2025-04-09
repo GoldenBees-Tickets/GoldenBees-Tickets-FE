@@ -16,7 +16,7 @@ function FoodItem({ item, onQuantityChange }) {
             className="w-full h-full object-cover"
           />
         </div>
-  
+
         {/* Thông tin */}
         <div>
           <h3 className="text-lg font-semibold">{item.name}</h3>
@@ -25,7 +25,7 @@ function FoodItem({ item, onQuantityChange }) {
           </p>
         </div>
       </div>
-  
+
       {/* Bên phải: Tăng/Giảm số lượng */}
       <div className="flex items-center space-x-3">
         <button
@@ -75,13 +75,14 @@ export default function FoodSelectionContent({
   // Data fetching
   const { data: foodItems, isLoading, error } = useGetCombosQuery();
   const [localFoodItems, setLocalFoodItems] = useState([]);
-
   // Khởi tạo danh sách món ăn local từ API và các món đã chọn
   useEffect(() => {
-    if (foodItems?.data) {
-      const initialItems = foodItems.data.map((item) => ({
+    if (foodItems?.items) {
+      const initialItems = foodItems.items.map((item) => ({
         ...item,
-        quantity: selectedFoodItems.find((selected) => selected.id === item.id)?.quantity || 0,
+        quantity:
+          selectedFoodItems.find((selected) => selected.id === item.id)
+            ?.quantity || 0,
       }));
       setLocalFoodItems(initialItems);
     }
@@ -105,9 +106,9 @@ export default function FoodSelectionContent({
             name,
             price,
             quantity,
-            image: profile_picture
+            image: profile_picture,
           }));
-        
+
         onUpdateFoodItems(selectedItems);
         return updatedItems;
       });

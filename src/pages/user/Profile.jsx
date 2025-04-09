@@ -26,11 +26,14 @@ export default function UserProfile() {
     skip: !userid,
   });
 
-  if(!userData) {    
-    message.info("Please login to continue");
-    localStorage.clear();
-    return navigate("/login");
-  }
+  useEffect(() => {
+    if (userid && !userData) {
+      message.info("Please login to continue");
+      localStorage.clear();
+      navigate("/login");
+    }
+  }, [userid, userData, navigate]);
+  
   const user = useMemo(() => {
     if (userData && userData.user) {
       return {

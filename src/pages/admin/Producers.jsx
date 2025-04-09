@@ -1,6 +1,6 @@
 
 import { useGetProducersQuery } from "../../api/producerApi"; // Hook lấy danh sách nhà sản xuất
-import ListProducer from "../../components/Admin/AdminProducer/ListProducer"; // Component hiển thị danh sách nhà sản xuất
+import ListProducer from "@/components/admin/AdminProducer/ListProducer"; // Component hiển thị danh sách nhà sản xuất
 
 export default function Producers() {
   // Gọi API để lấy danh sách nhà sản xuất
@@ -14,7 +14,7 @@ export default function Producers() {
       
 
       {/* Danh sách nhà sản xuất */}
-      <div className="mt-0 overflow-x-auto">
+      <div className="p-4">
         <ListProducer producers={producers} /> {/* Truyền danh sách nhà sản xuất vào component */}
       </div>
     </div>

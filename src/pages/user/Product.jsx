@@ -1,70 +1,84 @@
 import { useGetMoviesQuery } from "../../api/movieApi";
 import HomeItemMovie from "@/components/user/Home/HomeItemMovie";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { formatImage } from "@/utils/formatImage";
+
 export default function Product() {
   const { data: List } = useGetMoviesQuery();
-  const [ListMovie, setListMovie] = useState([]);
-  const [filteredMovies, setFilteredMovies] = useState([]);
+  const [activeTab, setActiveTab] = useState("now_showing"); // Default to "now_showing" instead of "all"
   const [searchTitle, setSearchTitle] = useState("");
   const [filterYear, setFilterYear] = useState("");
   const [filterGenre, setFilterGenre] = useState("");
-  const [uniqueYears, setUniqueYears] = useState([]);
-  const [uniqueGenres, setUniqueGenres] = useState([]);
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
 
-  useEffect(() => {
-    if (List?.movies) {
-      setListMovie(List.movies);
-      setFilteredMovies(List.movies);
-      
-      // Extract unique years
-      const years = [...new Set(List.movies.map(movie => movie.year))].sort((a, b) => b - a);
-      setUniqueYears(years);
-      
-      // Extract unique genres
-      const genres = [];
-      List.movies.forEach(movie => {
-        movie.MovieGenres?.forEach(mg => {
-          if (mg.Genre && !genres.some(g => g.id === mg.Genre.id)) {
-            genres.push({ id: mg.Genre.id, name: mg.Genre.name });
-          }
-        });
-      });
-      setUniqueGenres(genres);
+  // Use useMemo to process movies data only when List changes
+  const { movies, uniqueYears, uniqueGenres } = useMemo(() => {
+    if (!List?.movies) {
+      return { movies: [], uniqueYears: [], uniqueGenres: [] };
     }
+
+    // Only include active movies (filter out "ended" movies)
+    const activeMovies = List.movies.filter(movie => 
+      movie.status === "now_showing" || 
+      movie.status === "opening_soon" || 
+      movie.status === "coming_soon"
+    );
+
+    // Extract unique years
+    const years = [...new Set(activeMovies.map(movie => movie.year))]
+      .filter(Boolean)
+      .sort((a, b) => b - a);
+    
+    // Extract unique genres
+    const genres = [];
+    activeMovies.forEach(movie => {
+      movie.MovieGenres?.forEach(mg => {
+        if (mg.Genre && !genres.some(g => g.id === mg.Genre.id)) {
+          genres.push({ id: mg.Genre.id, name: mg.Genre.name });
+        }
+      });
+    });
+
+    return {
+      movies: activeMovies,
+      uniqueYears: years,
+      uniqueGenres: genres,
+    };
   }, [List]);
 
-  useEffect(() => {
-    filterMovies();
-  }, [searchTitle, filterYear, filterGenre, ListMovie]);
-
-  const filterMovies = () => {
-    let filtered = [...ListMovie];
+  // Use useMemo to filter movies only when dependencies change
+  const filteredMovies = useMemo(() => {
+    if (!movies.length) return [];
     
-    // Filter by title
-    if (searchTitle) {
-      filtered = filtered.filter(movie => 
-        movie.name.toLowerCase().includes(searchTitle.toLowerCase())
-      );
-    }
-    
-    // Filter by year
-    if (filterYear) {
-      filtered = filtered.filter(movie => movie.year === parseInt(filterYear));
-    }
-    
-    // Filter by genre
-    if (filterGenre) {
-      filtered = filtered.filter(movie => 
-        movie.MovieGenres?.some(mg => mg.Genre?.id === parseInt(filterGenre))
-      );
-    }
-    
-    setFilteredMovies(filtered);
-  };
+    return movies.filter(movie => {
+      // Filter by status
+      if (activeTab !== "all" && movie.status !== activeTab) {
+        return false;
+      }
+      
+      // Filter by title
+      if (searchTitle && !movie.name.toLowerCase().includes(searchTitle.toLowerCase())) {
+        return false;
+      }
+      
+      // Filter by year
+      if (filterYear && movie.year !== parseInt(filterYear)) {
+        return false;
+      }
+      
+      // Filter by genre
+      if (filterGenre && !movie.MovieGenres?.some(mg => 
+        mg.Genre?.id === parseInt(filterGenre)
+      )) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [movies, activeTab, searchTitle, filterYear, filterGenre]);
 
   const handleReset = () => {
+    setActiveTab("now_showing"); // Reset to now_showing instead of all
     setSearchTitle("");
     setFilterYear("");
     setFilterGenre("");
@@ -74,12 +88,71 @@ export default function Product() {
     setIsFilterExpanded(!isFilterExpanded);
   };
 
+  const getStatusCountText = useMemo(() => {
+    if (!movies.length) return {};
+    
+    const nowShowing = movies.filter(m => m.status === "now_showing").length;
+    const openingSoon = movies.filter(m => m.status === "opening_soon").length;
+    const comingSoon = movies.filter(m => m.status === "coming_soon").length;
+    
+    return {
+      now_showing: `Đang chiếu (${nowShowing})`,
+      opening_soon: `Sắp chiếu (${openingSoon})`,
+      coming_soon: `Sắp ra mắt (${comingSoon})`,
+      all: `Tất cả (${movies.length})`
+    };
+  }, [movies]);
+
   return (
     <div className="font-[sans-serif] p-4 mx-auto max-w-[1400px]">
-      <div className="mb-4 text-center">
+      <div className="mb-6 text-center">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
           Danh sách phim
         </h1>
+      </div>
+
+      {/* Status Tabs */}
+      <div className="flex mb-6 border-b border-gray-200">
+        <button 
+          onClick={() => setActiveTab("now_showing")}
+          className={`mr-4 py-2 px-4 text-sm font-medium ${
+            activeTab === "now_showing"
+              ? "text-yellow-600 border-b-2 border-yellow-500"
+              : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
+          }`}
+        >
+          {getStatusCountText.now_showing}
+        </button>
+        <button 
+          onClick={() => setActiveTab("opening_soon")}
+          className={`mr-4 py-2 px-4 text-sm font-medium ${
+            activeTab === "opening_soon"
+              ? "text-yellow-600 border-b-2 border-yellow-500"
+              : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
+          }`}
+        >
+          {getStatusCountText.opening_soon}
+        </button>
+        <button 
+          onClick={() => setActiveTab("coming_soon")}
+          className={`mr-4 py-2 px-4 text-sm font-medium ${
+            activeTab === "coming_soon"
+              ? "text-yellow-600 border-b-2 border-yellow-500"
+              : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
+          }`}
+        >
+          {getStatusCountText.coming_soon}
+        </button>
+        <button 
+          onClick={() => setActiveTab("all")}
+          className={`mr-4 py-2 px-4 text-sm font-medium ${
+            activeTab === "all"
+              ? "text-yellow-600 border-b-2 border-yellow-500"
+              : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
+          }`}
+        >
+          {getStatusCountText.all}
+        </button>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -134,7 +207,7 @@ export default function Product() {
           </svg>
         </div>
         
-        {(searchTitle || filterYear || filterGenre) && (
+        {(searchTitle || filterYear || filterGenre || activeTab !== "now_showing") && (
           <button
             onClick={handleReset}
             className="py-1.5 px-3 text-xs text-white bg-orange-500 hover:bg-orange-600 rounded-full flex items-center"
@@ -154,26 +227,33 @@ export default function Product() {
           </svg>
           <span>
             Hiển thị <span className="font-medium text-yellow-600">{filteredMovies.length}</span> phim 
-            {filteredMovies.length < ListMovie.length && <span className="text-xs text-orange-500 ml-1">(đã lọc)</span>}
+            {filteredMovies.length < movies.length && <span className="text-xs text-orange-500 ml-1">(đã lọc)</span>}
           </span>
         </div>
         <div className="text-xs text-gray-400">
-          Tổng cộng: {ListMovie.length} phim
+          Tổng cộng: {movies.length} phim
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        {filteredMovies?.map((movie) => (
-          <HomeItemMovie
-            key={movie.id}
-            title={movie.name}
-            year={movie.year}
-            imageSrc={formatImage(movie.poster)}
-            id={movie.id}
-            genres={movie.MovieGenres?.map(mg => ({ id: mg.Genre?.id, name: mg.Genre?.name }))}
-          />
-        ))}
-      </div>
+      {filteredMovies.length > 0 ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          {filteredMovies.map((movie) => (
+            <HomeItemMovie
+              key={movie.id}
+              title={movie.name}
+              year={movie.year}
+              imageSrc={formatImage(movie.poster)}
+              id={movie.id}
+              status={movie.status}
+              genres={movie.MovieGenres?.map(mg => ({ id: mg.Genre?.id, name: mg.Genre?.name }))}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <p className="text-gray-500">Không tìm thấy phim phù hợp với tiêu chí tìm kiếm.</p>
+        </div>
+      )}
     </div>
   );
 }
