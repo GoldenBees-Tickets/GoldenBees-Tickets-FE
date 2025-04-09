@@ -1,80 +1,114 @@
-import { useGetAdminBranchesQuery } from "@/api/userApi";
-import { useState, useMemo } from "react";
-import { Table, Tag, Switch, Avatar, Spin } from "antd";
+import { useState } from "react";
+import { Table, Button, Modal, Spin, Input, Space } from "antd";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import PaginationDefault from "@/components/PaginationDefault";
+import { formatDate } from "@/utils/format";
+import { useGetAdminBranchesQuery } from "@/api/userApi";
+
+const { Search } = Input;
 
 export default function ListAdmin() {
-  const { data: listAdmins, isLoading, error } = useGetAdminBranchesQuery();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
 
-  const listData = useMemo(
-    () => listAdmins?.admin_branches || [],
-    [listAdmins]
-  );
+  const { data: adminsData, isLoading, error } = useGetAdminBranchesQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: searchText
+  });
+
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+      setPageSize(newPageSize);
+      setCurrentPage(1);
+    } else {
+      setCurrentPage(page);
+    }
+  };
+
+  const handleSearch = (value) => {
+    setSearchText(value);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchValue(e.target.value);
+  };
 
   const columns = [
     {
-      title: "Người dùng",
+      title: "Họ tên",
       dataIndex: "username",
-      key: "username",
-      render: (username, record) => (
-        <div className="flex items-center">
-          <Avatar 
-            src="https://png.pngtree.com/png-vector/20191125/ourmid/pngtree-beautiful-admin-roles-line-vector-icon-png-image_2035379.jpg" 
-            size={40} 
-            alt={username}
-          />
-          <div className="ml-2">
-            <p className="text-sm font-medium">{username}</p>
-            <p className="text-xs text-gray-500">{record.email}</p>
-          </div>
-        </div>
-      )
+      key: "username"
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      key: "email"
     },
     {
       title: "Chi nhánh",
-      dataIndex: ["Branch", "name"],
-      key: "branch",
-    },
-    {
-      title: "Trạng thái",
-      key: "status",
-      render: () => <Switch disabled />,
+      dataIndex: "Branch",
+      key: "Branch",
+      render: (Branch) => <span>{Branch?.name}</span>
     },
     {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
+      render: (date) => <span>{formatDate(date)}</span>
     },
+    {
+      title: "Hành động",
+      key: "action",
+      render: (_, record) => (
+        <Space>
+          <Button
+            icon={<FiEdit2 />}
+          />
+        </Space>
+      )
+    }
   ];
 
   if (isLoading) return <Spin className="flex justify-center mt-10" size="large" />;
-  if (error) return <div className="text-red-500">Lỗi khi tải dữ liệu!</div>;
+  if (error) return <div className="text-red-500">Lỗi khi tải dữ liệu quản trị viên!</div>;
 
   return (
-    <>
+    <div>
+      <div className="mb-4 flex flex-wrap gap-4 items-center justify-between">
+        <Search
+          placeholder="Tìm kiếm theo tên hoặc email"
+          allowClear
+          value={searchValue}
+          onChange={handleSearchChange}
+          onSearch={handleSearch}
+          style={{ width: 300 }}
+        />
+      </div>
+
       <Table
         columns={columns}
-        dataSource={listData}
+        dataSource={adminsData?.adminBranches || []}
         rowKey="id"
         pagination={false}
         locale={{
-          emptyText: "Chưa có quản trị viên nào",
+          emptyText: "Không có quản trị viên nào",
         }}
       />
 
-      <PaginationDefault
-        totalItems={listData?.length || 0}
-        totalPages={Math.ceil(
-          (listData?.length || 0) / pageSize
-        )}
-        currentPage={currentPage}
-        onPageChange={(page, newSize) => {
-          setCurrentPage(page);
-          if (newSize) setPageSize(newSize);
-        }}
-      />
-    </>
+      <div className="mt-4">
+        <PaginationDefault
+          current={adminsData?.pagination?.page || 1}
+          total={adminsData?.pagination?.total || 0}
+          pageSize={pageSize}
+          onChange={handlePageChange}
+          showSizeChanger={false}
+          pageSizeOptions={[5, 10, 15]}
+        />
+      </div>
+    </div>
   );
 }

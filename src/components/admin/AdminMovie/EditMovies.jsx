@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Form,
@@ -28,40 +28,172 @@ import { useGetDirectorsQuery } from "@/api/directorApi";
 import { useGetProducersQuery } from "@/api/producerApi";
 import { useGetGenresQuery } from "@/api/genreApi";
 import dayjs from 'dayjs';
+import { formatImage } from "@/utils/formatImage";
 
 const { Title } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
-const API_BASE_URL = import.meta.env.VITE_SOCKET_URL;
 
 export default function EditMovies() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [form] = Form.useForm();
 
-  const { data: movieData, error, isLoading } = useGetMovieByIdQuery(id);
+  const { data: movieData, error, isLoading } = useGetMovieByIdQuery(id, {
+    skip: !id,
+    refetchOnMountOrArgChange: true,
+    refetchOnReconnect: false,
+    refetchOnFocus: false
+  });
   const movie = movieData?.movie;
   const [updateMovie, { isLoading: isUpdating }] = useUpdateMovieMutation();
 
-  const { data: actorsData } = useGetActorsQuery();
-  const actors = actorsData?.actors || [];
+  const { data: actorsData } = useGetActorsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnReconnect: false,
+    refetchOnFocus: false
+  });
+  const actors = actorsData?.actors || [];  
 
-  const { data: directorsData } = useGetDirectorsQuery();
+  const { data: directorsData } = useGetDirectorsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnReconnect: false,
+    refetchOnFocus: false
+  });
   const directors = directorsData?.directors || [];
 
-  const { data: producersData } = useGetProducersQuery();
+  const { data: producersData } = useGetProducersQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnReconnect: false,
+    refetchOnFocus: false
+  });
   const producers = producersData?.producers || [];
 
-  const { data: genresData } = useGetGenresQuery();
+  const { data: genresData } = useGetGenresQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnReconnect: false,
+    refetchOnFocus: false
+  });
   const genres = genresData?.genres || [];
 
   const [posterFile, setPosterFile] = useState(null);
   const [posterPreview, setPosterPreview] = useState("");
   const [posterFileName, setPosterFileName] = useState("");
+  const [formInitialized, setFormInitialized] = useState(false);
+
+  const { actorIds, producerIds, genreIds } = useMemo(() => {
+    if (!movie) return { actorIds: [], producerIds: [], genreIds: [] };
+    
+    let extractedActorIds = [];
+    if (Array.isArray(movie.MovieActors) && movie.MovieActors.length > 0) {
+      extractedActorIds = movie.MovieActors.map(ma => {
+        if (ma.Actor && ma.Actor.id) return ma.Actor.id;
+        if (ma.actor_id) return ma.actor_id;
+        if (typeof ma === 'object' && ma !== null) {
+          for (const key of Object.keys(ma)) {
+            if (key.toLowerCase().includes('actor') || key.toLowerCase().includes('diễn viên')) {
+              if (typeof ma[key] === 'number') return ma[key];
+              if (typeof ma[key] === 'object' && ma[key]?.id) return ma[key].id;
+            }
+          }
+        }
+        return null;
+      }).filter(id => id !== null);
+    } else if (Array.isArray(movie.Actors) && movie.Actors.length > 0) {
+      extractedActorIds = movie.Actors.map(actor => actor.id);
+    }
+    
+    let extractedProducerIds = [];
+    if (Array.isArray(movie.MovieProducers) && movie.MovieProducers.length > 0) {
+      extractedProducerIds = movie.MovieProducers.map(mp => {
+        if (mp.Producer && mp.Producer.id) return mp.Producer.id;
+        if (mp.producer_id) return mp.producer_id;
+        if (typeof mp === 'object' && mp !== null) {
+          for (const key of Object.keys(mp)) {
+            if (key.toLowerCase().includes('producer') || key.toLowerCase().includes('sản xuất')) {
+              if (typeof mp[key] === 'number') return mp[key];
+              if (typeof mp[key] === 'object' && mp[key]?.id) return mp[key].id;
+            }
+          }
+        }
+        return null;
+      }).filter(id => id !== null);
+    } else if (Array.isArray(movie.Producers) && movie.Producers.length > 0) {
+      extractedProducerIds = movie.Producers.map(producer => producer.id);
+    }
+    
+    let extractedGenreIds = [];
+    if (Array.isArray(movie.MovieGenres) && movie.MovieGenres.length > 0) {
+      extractedGenreIds = movie.MovieGenres.map(mg => {
+        if (mg.Genre && mg.Genre.id) return mg.Genre.id;
+        if (mg.genre_id) return mg.genre_id;
+        if (typeof mg === 'object' && mg !== null) {
+          for (const key of Object.keys(mg)) {
+            if (key.toLowerCase().includes('genre') || key.toLowerCase().includes('thể loại')) {
+              if (typeof mp[key] === 'number') return mp[key];
+              if (typeof mp[key] === 'object' && mp[key]?.id) return mp[key].id;
+            }
+          }
+        }
+        return null;
+      }).filter(id => id !== null);
+    } else if (Array.isArray(movie.Genres) && movie.Genres.length > 0) {
+      extractedGenreIds = movie.Genres.map(genre => genre.id);
+    }
+    
+    if (movie.actor_ids && typeof movie.actor_ids === 'string') {
+      try {
+        const parsedIds = JSON.parse(movie.actor_ids);
+        if (Array.isArray(parsedIds) && parsedIds.length > 0) {
+          extractedActorIds = parsedIds;
+        }
+      } catch (e) {
+        console.error("Failed to parse actor_ids string:", e);
+      }
+    }
+    
+    if (movie.producer_ids && typeof movie.producer_ids === 'string') {
+      try {
+        const parsedIds = JSON.parse(movie.producer_ids);
+        if (Array.isArray(parsedIds) && parsedIds.length > 0) {
+          extractedProducerIds = parsedIds;
+        }
+      } catch (e) {
+        console.error("Failed to parse producer_ids string:", e);
+      }
+    }
+    
+    if (movie.genre_ids && typeof movie.genre_ids === 'string') {
+      try {
+        const parsedIds = JSON.parse(movie.genre_ids);
+        if (Array.isArray(parsedIds) && parsedIds.length > 0) {
+          extractedGenreIds = parsedIds;
+        }
+      } catch (e) {
+        console.error("Failed to parse genre_ids string:", e);
+      }
+    }
+    
+    return { 
+      actorIds: extractedActorIds, 
+      producerIds: extractedProducerIds, 
+      genreIds: extractedGenreIds 
+    };
+  }, [movie]);
 
   useEffect(() => {
-    if (movie) {
-      form.setFieldsValue({
+    if (movie?.poster && !posterPreview) {
+      const posterUrl = formatImage(movie.poster);
+      setPosterPreview(posterUrl);
+      
+      const posterPathParts = movie.poster.split('/');
+      setPosterFileName(posterPathParts[posterPathParts.length - 1]);
+    }
+  }, [movie, posterPreview]);
+
+  useEffect(() => {
+    if (movie && !formInitialized) {
+      const formValues = {
         name: movie.name,
         year: movie.year,
         country: movie.country,
@@ -69,21 +201,17 @@ export default function EditMovies() {
         trailer: movie.trailer,
         age_rating: movie.age_rating || 0,
         duration: movie.duration,
-        director_id: movie.Director?.id,
-        actor_ids: movie.MovieActors?.map(ma => ma.Actor.id),
-        producer_ids: movie.MovieProducers?.map(mp => mp.Producer.id),
-        genre_ids: movie.MovieGenres?.map(mg => mg.Genre.id),
+        director_id: movie.Director?.id || movie.director_id || null,
+        actor_ids: actorIds.length > 0 ? actorIds : undefined,
+        producer_ids: producerIds.length > 0 ? producerIds : undefined,
+        genre_ids: genreIds.length > 0 ? genreIds : undefined,
         release_date: movie.release_date ? dayjs(movie.release_date) : null,
-      });
-
-      if (movie.poster) {
-        setPosterPreview(`${API_BASE_URL}/${movie.poster}`);
-        
-        const posterPathParts = movie.poster.split('/');
-        setPosterFileName(posterPathParts[posterPathParts.length - 1]);
-      }
+      };
+      
+      form.setFieldsValue(formValues);
+      setFormInitialized(true);
     }
-  }, [movie, form]);
+  }, [movie, form, actorIds, producerIds, genreIds, formInitialized]);
 
   const handlePosterChange = (info) => {    
     if (info && info.file) {
@@ -104,13 +232,13 @@ export default function EditMovies() {
     try {
       const formData = new FormData();
       formData.append("name", values.name);
-      formData.append("year", values.year);
+      formData.append("year", values.year || "");
       formData.append("country", values.country || "");
       formData.append("description", values.description || "");
       formData.append("trailer", values.trailer || "");
       formData.append("age_rating", values.age_rating || 0);
       formData.append("duration", values.duration);
-      formData.append("director_id", values.director_id);
+      formData.append("director_id", values.director_id || "");
       
       if (values.release_date) {
         formData.append("release_date", values.release_date.format('YYYY-MM-DD'));
@@ -204,20 +332,9 @@ export default function EditMovies() {
             <Form.Item
               name="year"
               label="Năm sản xuất"
-              rules={[
-                { required: true, message: "Vui lòng nhập năm sản xuất" },
-                {
-                  validator: (_, value) => {
-                    const currentYear = new Date().getFullYear();
-                    if (value && (value < 1900 || value > currentYear)) {
-                      return Promise.reject(`Năm sản xuất phải từ 1900 đến ${currentYear}`);
-                    }
-                    return Promise.resolve();
-                  }
-                }
-              ]}
+              tooltip="Năm sản xuất không được phép chỉnh sửa"
             >
-              <InputNumber min={1900} max={new Date().getFullYear()} className="w-full" />
+              <InputNumber min={1900} max={new Date().getFullYear()} className="w-full" disabled />
             </Form.Item>
 
             <Form.Item
@@ -235,8 +352,9 @@ export default function EditMovies() {
             <Form.Item
               name="country"
               label="Quốc gia"
+              tooltip="Quốc gia không được phép chỉnh sửa"
             >
-              <Input placeholder="Nhập quốc gia sản xuất" />
+              <Input placeholder="Nhập quốc gia sản xuất" disabled />
             </Form.Item>
 
             <Form.Item
@@ -253,15 +371,17 @@ export default function EditMovies() {
             <Form.Item
               name="age_rating"
               label="Giới hạn tuổi"
+              tooltip="Giới hạn tuổi không được phép chỉnh sửa"
             >
-              <InputNumber min={0} className="w-full" />
+              <InputNumber min={0} className="w-full" disabled />
             </Form.Item>
 
             <Form.Item
               name="trailer"
               label="Trailer"
+              tooltip="Trailer không được phép chỉnh sửa"
             >
-              <Input placeholder="Nhập đường dẫn trailer (YouTube)" />
+              <Input placeholder="Nhập đường dẫn trailer (YouTube)" disabled />
             </Form.Item>
 
             <Form.Item
@@ -314,9 +434,9 @@ export default function EditMovies() {
             <Form.Item
               name="director_id"
               label="Đạo diễn"
-              rules={[{ required: true, message: "Vui lòng chọn đạo diễn" }]}
+              tooltip="Đạo diễn không được phép chỉnh sửa"
             >
-              <Select placeholder="Chọn đạo diễn">
+              <Select placeholder="Chọn đạo diễn" disabled>
                 {directors.map(director => (
                   <Option key={director.id} value={director.id}>{director.name}</Option>
                 ))}
@@ -326,12 +446,13 @@ export default function EditMovies() {
             <Form.Item
               name="actor_ids"
               label="Diễn viên"
-              rules={[{ required: true, message: "Vui lòng chọn ít nhất một diễn viên" }]}
+              tooltip="Diễn viên không được phép chỉnh sửa"
             >
               <Select 
                 mode="multiple" 
                 placeholder="Chọn diễn viên"
                 optionFilterProp="children"
+                disabled
               >
                 {actors.map(actor => (
                   <Option key={actor.id} value={actor.id}>{actor.name}</Option>
@@ -342,12 +463,13 @@ export default function EditMovies() {
             <Form.Item
               name="producer_ids"
               label="Nhà sản xuất"
-              rules={[{ required: true, message: "Vui lòng chọn ít nhất một nhà sản xuất" }]}
+              tooltip="Nhà sản xuất không được phép chỉnh sửa"
             >
               <Select 
                 mode="multiple" 
                 placeholder="Chọn nhà sản xuất"
                 optionFilterProp="children"
+                disabled
               >
                 {producers.map(producer => (
                   <Option key={producer.id} value={producer.id}>{producer.name}</Option>

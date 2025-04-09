@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "../user/Header";
 import Footer from "../user/Footer";
+import ChatBox from "@/components/ChatBox/ChatBox";
 
 export default function RootUser() {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -52,7 +53,7 @@ export default function RootUser() {
   return (
     <>
       <Header onDarkModeToggle={handleDarkModeToggle} isDarkMode={isDarkMode} />
-      
+      <ChatBox />
       <main className="min-h-screen mt-[75px]">
         <Outlet />
       </main>

@@ -15,72 +15,72 @@ const SeatSelectionStep = ({
   handleSeatClick,
   setSearchParams
 }) => {
-  // State để lưu thời gian còn lại
-  const [remainingTime, setRemainingTime] = useState('');
-  const [isAlmostExpired, setIsAlmostExpired] = useState(false);
-  const [isExpiring, setIsExpiring] = useState(false);
-  const [seconds, setSeconds] = useState(0);
+  // // State để lưu thời gian còn lại
+  // const [remainingTime, setRemainingTime] = useState('');
+  // const [isAlmostExpired, setIsAlmostExpired] = useState(false);
+  // const [isExpiring, setIsExpiring] = useState(false);
+  // const [seconds, setSeconds] = useState(0);
 
-  // Tính toán thời gian còn lại
-  const calculateTimeRemaining = useCallback(() => {
-    if (!activeReservationInfo || !activeReservationInfo.expires_at) return;
+  // // Tính toán thời gian còn lại
+  // const calculateTimeRemaining = useCallback(() => {
+  //   if (!activeReservationInfo || !activeReservationInfo.expires_at) return;
 
-    const expiresAt = new Date(activeReservationInfo.expires_at).getTime();
-    const now = new Date().getTime();
-    const diffSeconds = Math.max(0, Math.floor((expiresAt - now) / 1000));
+  //   const expiresAt = new Date(activeReservationInfo.expires_at).getTime();
+  //   const now = new Date().getTime();
+  //   const diffSeconds = Math.max(0, Math.floor((expiresAt - now) / 1000));
     
-    setSeconds(diffSeconds);
+  //   setSeconds(diffSeconds);
     
-    if (diffSeconds <= 0) {
-      setRemainingTime('00:00');
-      return;
-    }
+  //   if (diffSeconds <= 0) {
+  //     setRemainingTime('00:00');
+  //     return;
+  //   }
     
-    // Cập nhật trạng thái sắp hết hạn
-    setIsAlmostExpired(diffSeconds < 180); // Dưới 3 phút
-    setIsExpiring(diffSeconds < 60); // Dưới 1 phút
+  //   // Cập nhật trạng thái sắp hết hạn
+  //   setIsAlmostExpired(diffSeconds < 180); // Dưới 3 phút
+  //   setIsExpiring(diffSeconds < 60); // Dưới 1 phút
     
-    const minutes = Math.floor(diffSeconds / 60);
-    const seconds = diffSeconds % 60;
+  //   const minutes = Math.floor(diffSeconds / 60);
+  //   const seconds = diffSeconds % 60;
     
-    setRemainingTime(`${minutes}:${seconds < 10 ? '0' : ''}${seconds}`);
-  }, [activeReservationInfo]);
+  //   setRemainingTime(`${minutes}:${seconds < 10 ? '0' : ''}${seconds}`);
+  // }, [activeReservationInfo]);
 
-  // useEffect để tính toán thời gian còn lại
-  useEffect(() => {
-    // Tính thời gian ngay khi component render
-    calculateTimeRemaining();
+  // // useEffect để tính toán thời gian còn lại
+  // useEffect(() => {
+  //   // Tính thời gian ngay khi component render
+  //   calculateTimeRemaining();
     
-    // Cập nhật mỗi giây
-    const interval = setInterval(calculateTimeRemaining, 1000);
+  //   // Cập nhật mỗi giây
+  //   const interval = setInterval(calculateTimeRemaining, 1000);
     
-    return () => clearInterval(interval);
-  }, [calculateTimeRemaining, activeReservationInfo]);
+  //   return () => clearInterval(interval);
+  // }, [calculateTimeRemaining, activeReservationInfo]);
 
-  // Render thời gian còn lại với màu sắc phù hợp
-  const renderRemainingTime = () => {
-    let timerClass = "font-bold text-lg";
+  // // Render thời gian còn lại với màu sắc phù hợp
+  // const renderRemainingTime = () => {
+  //   let timerClass = "font-bold text-lg";
     
-    if (isExpiring) {
-      timerClass += " text-red-600 animate-pulse";
-    } else if (isAlmostExpired) {
-      timerClass += " text-orange-600";
-    } else {
-      timerClass += " text-yellow-800";
-    }
+  //   if (isExpiring) {
+  //     timerClass += " text-red-600 animate-pulse";
+  //   } else if (isAlmostExpired) {
+  //     timerClass += " text-orange-600";
+  //   } else {
+  //     timerClass += " text-yellow-800";
+  //   }
     
-    return (
-      <div className="flex flex-col items-center">
-        <span className={timerClass}>{remainingTime}</span>
-        <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
-          <div 
-            className={`h-2.5 rounded-full ${isExpiring ? 'bg-red-600' : isAlmostExpired ? 'bg-orange-500' : 'bg-green-600'}`} 
-            style={{ width: `${Math.min(100, (seconds / 600) * 100)}%` }}
-          ></div>
-        </div>
-      </div>
-    );
-  };
+  //   return (
+  //     <div className="flex flex-col items-center">
+  //       <span className={timerClass}>{remainingTime}</span>
+  //       <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+  //         <div 
+  //           className={`h-2.5 rounded-full ${isExpiring ? 'bg-red-600' : isAlmostExpired ? 'bg-orange-500' : 'bg-green-600'}`} 
+  //           style={{ width: `${Math.min(100, (seconds / 600) * 100)}%` }}
+  //         ></div>
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   return (
     <>

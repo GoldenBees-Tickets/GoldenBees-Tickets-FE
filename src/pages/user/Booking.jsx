@@ -40,13 +40,14 @@ export default function Booking() {
 
   // API queries
   const { data: listSeats, refetch: refetchSeats } = useGetRoomByIdQuery(
-    room_id,
+    {room_id, showtime_id},
     { skip: !room_id }
   );
 
   const { data: showtimeData } = useGetShowtimeByIdQuery(showtime_id, {
     skip: !showtime_id,
   });
+  
 
   const { data: listSeatTypes } = useGetListSeatTypesQuery();
 
@@ -232,7 +233,6 @@ export default function Booking() {
         },
         (response) => {
           setIsLoading(false);
-          console.log("Phản hồi từ server:", response);
 
           if (response.success) {
             // Lưu thông tin vào localStorage

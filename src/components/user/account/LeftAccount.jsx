@@ -5,7 +5,6 @@ import { toast } from "react-toastify";
 import { formatImage } from "@/utils/formatImage";
 
 export default function LeftAccount({ user }) {  
-  console.log("user?.image", user);
   
   const [changeImage] = useUpdateUserMutation();
   const spendingMilestones = [

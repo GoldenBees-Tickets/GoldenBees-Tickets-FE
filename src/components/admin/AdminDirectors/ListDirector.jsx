@@ -1,23 +1,38 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Table, Tag, Button, Modal, Spin, message, Avatar } from "antd";
+import { Table, Tag, Button, Modal, Spin, message, Avatar, Input, Space, Select } from "antd";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import {
   useDeleteDirectorMutation,
   useGetDirectorsQuery,
 } from "../../../api/directorApi";
 import PaginationDefault from "@/components/PaginationDefault";
+import { formatImage } from "@/utils/formatImage";
 
-const API_BASE_URL = import.meta.env.VITE_SOCKET_URL;
+const { Search } = Input;
+const { Option } = Select;
 
 export default function ListDirector() {
-  const { data: directorData, error, isLoading } = useGetDirectorsQuery();
-  const [deleteDirector] = useDeleteDirectorMutation();
-
   const [selectedDirector, setSelectedDirector] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [genderFilter, setGenderFilter] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
+
+  // Gọi API với các tham số phân trang và lọc
+  const { data: directorData, error, isLoading } = useGetDirectorsQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: searchValue,
+    gender: genderFilter,
+    sort_order: sortOrder
+  });
+  
+  const [deleteDirector] = useDeleteDirectorMutation();
 
   const handleDelete = (director) => {
     setSelectedDirector(director);
@@ -34,6 +49,36 @@ export default function ListDirector() {
     setIsDeleteModalOpen(false);
   };
 
+  const handleSearch = (value) => {
+    setSearchValue(value);
+    setCurrentPage(1);
+  };
+
+  const handleGenderFilterChange = (value) => {
+    setGenderFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleReset = () => {
+    setSearchText("");
+    setSearchValue("");
+    setGenderFilter("");
+    setSortOrder("desc");
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+        setPageSize(newPageSize);
+    }
+    setCurrentPage(page);
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
+  };
+
   const columns = [
     {
       title: "Hình ảnh",
@@ -41,7 +86,7 @@ export default function ListDirector() {
       key: "profile_picture",
       render: (profile_picture) => (
         <Avatar 
-          src={`${API_BASE_URL}/${profile_picture}`}
+          src={formatImage(profile_picture)}
           size={40}
           onError={(e) => {
             e.target.src = '/placeholder-director.png';
@@ -55,7 +100,23 @@ export default function ListDirector() {
       key: "name",
     },
     {
-      title: "Ngày sinh",
+      title: (
+        <div 
+          className="flex items-center cursor-pointer select-none" 
+          onClick={toggleSortOrder}
+        >
+          Ngày sinh
+          <div className="flex flex-col ml-1">
+            <CaretUpOutlined 
+              className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
+              style={{ marginBottom: -2 }}
+            />
+            <CaretDownOutlined 
+              className={`text-[10px] ${sortOrder === "desc" ? "text-blue-500" : "text-gray-400"}`}
+            />
+          </div>
+        </div>
+      ),
       dataIndex: "dob",
       key: "dob",
       render: (dob) => new Date(dob).toLocaleDateString("vi-VN"),
@@ -94,24 +155,53 @@ export default function ListDirector() {
 
   return (
     <>
+      <div className="mb-4 flex flex-wrap gap-4 items-center justify-between">
+        <Space size="middle">
+          <Search
+            placeholder="Tìm kiếm đạo diễn..."
+            allowClear
+            onSearch={handleSearch}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 250 }}
+            prefix={<SearchOutlined className="text-gray-400" />}
+          />
+          <Select
+            placeholder="Lọc theo giới tính"
+            value={genderFilter}
+            onChange={handleGenderFilterChange}
+            style={{ width: 150 }}
+            allowClear
+          >
+            <Option value="Male">Nam</Option>
+            <Option value="Female">Nữ</Option>
+          </Select>
+          {(searchValue || genderFilter || sortOrder !== "desc") && (
+            <Button onClick={handleReset}>Xóa bộ lọc</Button>
+          )}
+        </Space>
+      </div>
+
       <Table
         columns={columns}
-        dataSource={directorData?.directors}
+        dataSource={directorData?.directors || []}
         rowKey="id"
         pagination={false}
-      />
-
-      <PaginationDefault
-        totalItems={directorData?.directors?.length || 0}
-        totalPages={Math.ceil(
-          (directorData?.directors?.length || 0) / pageSize
-        )}
-        currentPage={currentPage}
-        onPageChange={(page, newSize) => {
-          setCurrentPage(page);
-          if (newSize) setPageSize(newSize);
+        locale={{
+          emptyText: "Chưa có đạo diễn nào",
         }}
       />
+
+      <div className="mt-4">
+        <PaginationDefault
+          current={directorData?.pagination?.currentPage || 1}
+          total={directorData?.pagination?.total || 0}
+          pageSize={pageSize}
+          onChange={handlePageChange}
+          showSizeChanger={false}
+          pageSizeOptions={[5, 10, 15]}
+        />
+      </div>
 
       {/* Modal xác nhận xóa */}
       <Modal

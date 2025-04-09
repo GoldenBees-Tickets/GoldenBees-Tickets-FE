@@ -1,20 +1,20 @@
 import { useMemo } from 'react';
+import { formatImage } from '@/utils/formatImage';
+import { formatDate, formatTime } from '../../../utils/format';
 
 // Component hiển thị thông tin phim
 export default function MovieInfo({ showtimeData, imageBaseUrl }) {
-  // Hiển thị thông tin phim
+  // Hiển thị thông tin phim  
   const renderMovieInfo = useMemo(() => {
-    const movie = showtimeData?.showtime?.movie;
-    const room = showtimeData?.showtime?.room;
-    const startTime = showtimeData?.showtime?.start_time;
-  
-    if (!movie || !room || !startTime) return null; // Handle missing data
-  
+    const movie = showtimeData?.Movie;
+    const room = showtimeData?.Room;
+    const startTime = formatTime(showtimeData?.start_time) + " ngày " + formatDate(showtimeData?.show_date);    
+    
     return (
       <>
         <div className="flex flex-col md:flex-row items-center mb-4">
           <img
-            src={`${imageBaseUrl}${movie?.poster}`}
+            src={formatImage(movie?.poster)}
             alt="Banner Phim"
             className="w-full md:w-1/2 h-48 object-cover rounded-lg mr-4"
           />
@@ -30,12 +30,12 @@ export default function MovieInfo({ showtimeData, imageBaseUrl }) {
         {/* Thông tin rạp và suất chiếu */}
         <div className="mt-4">
           <span className="font-semibold">
-            {room?.cinema?.name} - {room?.name}
+            {room?.Cinema?.name} - {room?.name}
           </span>
           <p className="text-gray-800">
             Suất:{" "}
             <span className="font-semibold">
-              {startTime?.time} - {startTime?.dayOfWeek}, {startTime?.date}
+              {startTime}
             </span>
           </p>
         </div>

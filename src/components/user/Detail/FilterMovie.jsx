@@ -12,44 +12,68 @@ export default function FilterMovie() {
   const movie_id = id;
 
   const [selectDate, setSelectDate] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedCinema, setSelectedCinema] = useState("");
+  const [currentTime] = useState(new Date());
 
-  const { data: ListShowtimes } = useGetShowtimesByMovieIdQuery(movie_id, {
-    skip: !movie_id,
-  });
-  
-
-  useEffect(() => {
-    if (ListShowtimes?.data) {
-      setSelectDate(ListShowtimes?.data[0]?.date);
+  // Query lấy suất chiếu với tham số lọc
+  const { data: ListShowtimes, isLoading, error } = useGetShowtimesByMovieIdQuery(
+    {
+      movie_id,
+      branch_id: selectedBranch || undefined,
+      cinema_id: selectedCinema || undefined,
+      current_time: true
+    }, 
+    {
+      skip: !movie_id,
     }
-  }, [ListShowtimes?.data]);
+  );
 
   const { data: List } = useGetBranchesQuery();
-  const branch = List?.branches;
-
   const { data: List2 } = useGetCinemasQuery();
-  const allCinemas = List2?.cinemas;
+  
+  // Đặt ngày mặc định khi có dữ liệu
+  useEffect(() => {
+    if (ListShowtimes && Array.isArray(ListShowtimes) && ListShowtimes.length > 0) {
+      setSelectDate(ListShowtimes[0]?.show_date);
+    }
+  }, [ListShowtimes]);
 
-  const [selectedBranch, setSelectedBranch] = useState("");
-
+  // Lọc rạp chiếu theo khu vực
   const filteredCinemas = useMemo(() => {
-    if (!selectedBranch) return allCinemas || [];
-    return (
-      allCinemas?.filter(
-        (item) => item.branch_id === parseInt(selectedBranch)
-      ) || []
-    );
-  }, [selectedBranch, allCinemas]);
+    if (!selectedBranch) return List2?.cinemas || [];
+    return List2?.cinemas?.filter(
+      (item) => item.branch_id === parseInt(selectedBranch)
+    ) || [];
+  }, [selectedBranch, List2?.cinemas]);
+
+  // Reset selected cinema khi thay đổi khu vực
+  useEffect(() => {
+    setSelectedCinema("");
+  }, [selectedBranch]);
+
+  // Lấy danh sách ngày duy nhất từ ListShowtimes
+  const uniqueDates = useMemo(() => {
+    if (!ListShowtimes || !Array.isArray(ListShowtimes)) return [];
+    return [...new Set(ListShowtimes.map(showtime => showtime.show_date))];
+  }, [ListShowtimes]);
 
   const renderDates = useMemo(
-    () =>
-      ListShowtimes?.data?.map((date, index) => {
-        const isSelected = selectDate === date.date;
+    () => {
+      if (!uniqueDates || uniqueDates.length === 0) {
+        return null;
+      }
+      
+      return uniqueDates.map((date, index) => {
+        const isSelected = selectDate === date;
+        const dateObj = new Date(date);
+        const dayName = dateObj.toLocaleDateString('vi-VN', { weekday: 'short' });
+        const formattedDate = dateObj.toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric' });
 
         return (
           <SplideSlide key={index}>
             <button
-              onClick={() => setSelectDate(date.date)}
+              onClick={() => setSelectDate(date)}
               className={`w-full flex flex-col items-center px-4 py-3 rounded-xl border transition duration-300
                 ${
                   isSelected
@@ -63,67 +87,141 @@ export default function FilterMovie() {
                   isSelected ? "text-white" : "text-gray-700"
                 }`}
               >
-                {date.day}
+                {dayName}
               </span>
               <span
                 className={`text-sm ${
                   isSelected ? "text-white/90" : "text-gray-500"
                 }`}
               >
-                {date.date}
+                {formattedDate}
               </span>
             </button>
           </SplideSlide>
         );
-      }),
-    [ListShowtimes, selectDate]
+      });
+    },
+    [uniqueDates, selectDate]
   );
 
   const renderShowtimes = useMemo(() => {
-    // Tìm ngày tương ứng với selectDate
-    const selectedDay = ListShowtimes?.data?.find(day => day.date === selectDate);
-  
-    // Nếu không có ngày nào khớp, trả về null
-    if (!selectedDay) return null;
-  
-    return selectedDay.cinemas.map((cinema) => (
-      <div
-        key={cinema.cinema_id}
-        className="bg-white p-6 rounded-xl shadow-md border border-gray-100 mt-5 hover:shadow-lg transition duration-300 group"
-      >
-        <div className="flex items-center">
-          <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mr-4 group-hover:bg-orange-200 transition duration-300">
-            <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="font-bold text-gray-800 text-lg">{cinema.cinema_name}</h3>
-            <p className="text-gray-500 text-sm flex items-center">
-              <svg className="w-4 h-4 mr-1 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+    if (!ListShowtimes || !Array.isArray(ListShowtimes) || !selectDate) {
+      return null;
+    }
+    
+    // Lọc suất chiếu theo ngày đã chọn
+    const showtimesForDate = ListShowtimes.filter(showtime => showtime.show_date === selectDate);
+    
+    // Nhóm suất chiếu theo rạp
+    const showtimesByCinema = showtimesForDate.reduce((acc, showtime) => {
+      // Kiểm tra Room và Cinema có tồn tại không
+      if (!showtime.Room || !showtime.Room.Cinema) {
+        console.warn('Showtime missing Room or Cinema data:', showtime);
+        return acc;
+      }
+      
+      const cinemaId = showtime.Room.cinema_id;
+      const cinemaName = showtime.Room.Cinema.name;
+      
+      if (!cinemaId || !cinemaName) {
+        console.warn('Showtime missing cinema_id or name:', showtime);
+        return acc;
+      }
+      
+      // Nếu đã chọn rạp cụ thể, bỏ qua các rạp khác
+      if (selectedCinema && cinemaId !== parseInt(selectedCinema)) {
+        return acc;
+      }
+      
+      if (!acc[cinemaId]) {
+        acc[cinemaId] = {
+          cinema_id: cinemaId,
+          cinema_name: cinemaName,
+          showtimes: []
+        };
+      }
+      acc[cinemaId].showtimes.push(showtime);
+      return acc;
+    }, {});
+
+    const cinemas = Object.values(showtimesByCinema);
+    
+    if (cinemas.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 text-center bg-gray-50 rounded-xl border border-gray-200">
+          <svg className="w-20 h-20 text-gray-300 mb-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className="text-xl font-medium text-gray-700 mb-2">Không tìm thấy suất chiếu</h3>
+          <p className="text-sm text-gray-500 max-w-md">Không có suất chiếu nào phù hợp với bộ lọc của bạn. Vui lòng thử lại với các tiêu chí khác.</p>
+        </div>
+      );
+    }
+
+    return cinemas.map((cinema) => {
+      const today = new Date();
+      const isToday = selectDate === today.toISOString().split('T')[0];
+      
+      let availableShowtimes = cinema.showtimes;
+      if (isToday) {
+        availableShowtimes = availableShowtimes.filter(showtime => {
+          if (!showtime.start_time) return false;
+          
+          const [hours, minutes] = showtime.start_time.split(':');
+          const showtimeDate = new Date();
+          showtimeDate.setHours(parseInt(hours), parseInt(minutes), 0);
+          return showtimeDate > currentTime;
+        });
+      }
+
+      if (!availableShowtimes || availableShowtimes.length === 0) return null;
+
+      return (
+        <div
+          key={cinema.cinema_id}
+          className="bg-white p-6 rounded-xl shadow-md border border-gray-100 mt-5 hover:shadow-lg transition duration-300 group"
+        >
+          <div className="flex items-center">
+            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mr-4 group-hover:bg-orange-200 transition duration-300">
+              <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
               </svg>
-              2D Phụ Đề
-            </p>
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-800 text-lg">{cinema.cinema_name}</h3>
+              <p className="text-gray-500 text-sm flex items-center">
+                <svg className="w-4 h-4 mr-1 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+                </svg>
+                2D Phụ Đề
+              </p>
+            </div>
+          </div>
+          
+          <div className="mt-5 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+            {availableShowtimes.map((showtime) => (
+              <Link 
+                key={showtime.id} 
+                to={`/booking/${showtime.id}?room_id=${showtime.room_id}`}
+                className="block"
+              >
+                <div className="text-center px-3 py-2.5 border border-gray-200 rounded-lg hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600 transition-all duration-300 hover:shadow group">
+                  <span className="font-medium group-hover:scale-105 inline-block transition-transform">
+                    {showtime.start_time ? showtime.start_time.split(':').slice(0, 2).join(':') : 'N/A'}
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
-        
-        <div className="mt-5 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-          {cinema?.showtimes?.map((time) => (
-            <Link 
-              key={time.id} 
-              to={`/booking/${time.id}?room_id=${time.room_id}`}
-              className="block"
-            >
-              <div className="text-center px-3 py-2.5 border border-gray-200 rounded-lg hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600 transition-all duration-300 hover:shadow group">
-                <span className="font-medium group-hover:scale-105 inline-block transition-transform">{time.time}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    ));
-  }, [ListShowtimes, selectDate]);  
+      );
+    }).filter(Boolean);
+  }, [ListShowtimes, selectDate, selectedCinema, currentTime]);
+
+  const handleReset = () => {
+    setSelectedBranch("");
+    setSelectedCinema("");
+  };
 
   return (
     <div className="mt-10">
@@ -143,24 +241,30 @@ export default function FilterMovie() {
               </svg>
               <span className="text-sm font-medium text-gray-700">Chọn ngày xem phim</span>
             </div>
-            <Splide
-              options={{
-                perPage: 4,
-                gap: "0.75rem",
-                pagination: false,
-                arrows: true,
-                drag: true,
-                speed: 800,
-                easing: "ease",
-                classes: {
-                  arrow: 'splide__arrow custom-arrow',
-                  prev: 'splide__arrow--prev custom-prev-arrow',
-                  next: 'splide__arrow--next custom-next-arrow',
-                }
-              }}
-            >
-              {renderDates}
-            </Splide>
+            {isLoading ? (
+              <div className="h-16 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-orange-500"></div>
+              </div>
+            ) : (
+              <Splide
+                options={{
+                  perPage: 4,
+                  gap: "0.75rem",
+                  pagination: false,
+                  arrows: true,
+                  drag: true,
+                  speed: 800,
+                  easing: "ease",
+                  classes: {
+                    arrow: 'splide__arrow custom-arrow',
+                    prev: 'splide__arrow--prev custom-prev-arrow',
+                    next: 'splide__arrow--next custom-next-arrow',
+                  }
+                }}
+              >
+                {renderDates}
+              </Splide>
+            )}
           </div>
 
           <div className="w-full md:w-[40%]">
@@ -180,7 +284,7 @@ export default function FilterMovie() {
                   className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white appearance-none cursor-pointer"
                 >
                   <option value="">Toàn quốc</option>
-                  {branch?.map((item) => (
+                  {List?.branches?.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name}
                     </option>
@@ -197,6 +301,8 @@ export default function FilterMovie() {
                 </div>
                 <select
                   id="theater"
+                  value={selectedCinema}
+                  onChange={(e) => setSelectedCinema(e.target.value)}
                   className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white appearance-none cursor-pointer"
                 >
                   <option value="">Tất cả rạp</option>
@@ -210,6 +316,20 @@ export default function FilterMovie() {
             </div>
           </div>
         </div>
+
+        {(selectedBranch || selectedCinema) && (
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={handleReset}
+              className="text-xs flex items-center px-3 py-1.5 text-white bg-orange-500 hover:bg-orange-600 rounded-full"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Xóa bộ lọc
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="mt-8">
@@ -227,7 +347,27 @@ export default function FilterMovie() {
           </div>
         </div>
         
-        {renderShowtimes || (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center bg-gray-50 rounded-xl border border-gray-200">
+            <svg className="w-20 h-20 text-red-300 mb-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <h3 className="text-xl font-medium text-gray-700 mb-2">Lỗi khi tải dữ liệu</h3>
+            <p className="text-sm text-gray-500 max-w-md">Có lỗi xảy ra khi tải lịch chiếu phim. Vui lòng thử lại sau.</p>
+          </div>
+        ) : !ListShowtimes || !Array.isArray(ListShowtimes) || ListShowtimes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center bg-gray-50 rounded-xl border border-gray-200">
+            <svg className="w-20 h-20 text-gray-300 mb-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 className="text-xl font-medium text-gray-700 mb-2">Không có dữ liệu suất chiếu</h3>
+            <p className="text-sm text-gray-500 max-w-md">Hiện không có suất chiếu nào cho phim này. Vui lòng kiểm tra lại sau.</p>
+          </div>
+        ) : renderShowtimes || (
           <div className="flex flex-col items-center justify-center py-16 text-center bg-gray-50 rounded-xl border border-gray-200">
             <svg className="w-20 h-20 text-gray-300 mb-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -238,7 +378,7 @@ export default function FilterMovie() {
         )}
       </div>
       
-      <style jsx>{`
+      <style>{`
         .custom-arrow {
           background: white;
           border-radius: 50%;

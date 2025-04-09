@@ -23,10 +23,11 @@ const axiosBaseQuery =
         data,
         headers,
       });
-
+      
       return { data: result.data };
     } catch (error) {
-      console.error("Error response:", error.response);
+      console.log("Error in axiosBaseQuery:", error);
+      
       
       if (error.response?.status == 403) {
         authEvents.onForbidden();

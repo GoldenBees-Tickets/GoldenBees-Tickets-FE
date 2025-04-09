@@ -1,23 +1,45 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Table, Tag, Button, Modal, Spin, message, Avatar } from "antd";
+import { Table, Tag, Button, Modal, Spin, message, Avatar, Input, Space, Select } from "antd";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import {
   useGetActorsQuery,
   useDeleteActorMutation,
 } from "../../../api/actorApi";
 import PaginationDefault from "@/components/PaginationDefault";
 import { formatImage } from "@/utils/formatImage";
+import EditActor from "./EditActor";
 
+const { Search } = Input;
+const { Option } = Select;
 
 export default function ListActors() {
-  const { data: actorData, error, isLoading } = useGetActorsQuery();
-  const [deleteActor] = useDeleteActorMutation();
-
   const [selectedActor, setSelectedActor] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [genderFilter, setGenderFilter] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [imageUrl, setImageUrl] = useState("");
+
+  // Gọi API với các tham số phân trang và lọc
+  const { data: actorData, error, isLoading } = useGetActorsQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: searchValue,
+    gender: genderFilter,
+    sort_order: sortOrder
+  });
+  
+  const [deleteActor] = useDeleteActorMutation();
+
+  const handleEdit = (actor) => {
+    setSelectedActor(actor);    
+    setIsEditModalOpen(true);
+  };
 
   const handleDelete = (actor) => {
     setSelectedActor(actor);
@@ -32,6 +54,36 @@ export default function ListActors() {
       message.error("Xóa diễn viên thất bại. Vui lòng thử lại!");
     }
     setIsDeleteModalOpen(false);
+  };
+
+  const handleSearch = (value) => {
+    setSearchValue(value);
+    setCurrentPage(1);
+  };
+
+  const handleGenderFilterChange = (value) => {
+    setGenderFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleReset = () => {
+    setSearchText("");
+    setSearchValue("");
+    setGenderFilter("");
+    setSortOrder("desc");
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+        setPageSize(newPageSize);
+    }
+    setCurrentPage(page);
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
   };
 
   const columns = [
@@ -52,7 +104,23 @@ export default function ListActors() {
       key: "name",
     },
     {
-      title: "Ngày sinh",
+      title: (
+        <div 
+          className="flex items-center cursor-pointer select-none" 
+          onClick={toggleSortOrder}
+        >
+          Ngày sinh
+          <div className="flex flex-col ml-1">
+            <CaretUpOutlined 
+              className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
+              style={{ marginBottom: -2 }}
+            />
+            <CaretDownOutlined 
+              className={`text-[10px] ${sortOrder === "desc" ? "text-blue-500" : "text-gray-400"}`}
+            />
+          </div>
+        </div>
+      ),
       dataIndex: "dob",
       key: "dob",
       render: (dob) => new Date(dob).toLocaleDateString("vi-VN"),
@@ -71,17 +139,19 @@ export default function ListActors() {
       title: "Thao tác",
       key: "actions",
       width: 150,
+      align: "right",
       render: (_, record) => (
-        <div className="flex space-x-2">
-          <Link to={`/admin/editActor/${record.id}`}>
-            <Button icon={<FiEdit2 />} />
-          </Link>
+        <Space>
+          <Button
+            icon={<FiEdit2 />}
+            onClick={() => handleEdit(record)}
+          />
           <Button
             danger
             icon={<FiTrash2 />}
             onClick={() => handleDelete(record)}
           />
-        </div>
+        </Space>
       ),
     },
   ];
@@ -91,24 +161,55 @@ export default function ListActors() {
 
   return (
     <>
-      <Table
-        columns={columns}
-        dataSource={actorData?.actors}
-        rowKey="id"
-        pagination={false}
-      />
+      <div className="mb-4 flex flex-wrap gap-4 items-center justify-between">
+        <Space size="middle">
+          <Search
+            placeholder="Tìm kiếm diễn viên..."
+            allowClear
+            onSearch={handleSearch}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 250 }}
+            prefix={<SearchOutlined className="text-gray-400" />}
+          />
+          <Select
+            placeholder="Lọc theo giới tính"
+            value={genderFilter}
+            onChange={handleGenderFilterChange}
+            style={{ width: 150 }}
+            allowClear
+          >
+            <Option value="Male">Nam</Option>
+            <Option value="Female">Nữ</Option>
+          </Select>
+          {(searchValue || genderFilter || sortOrder !== "desc") && (
+            <Button onClick={handleReset}>Xóa bộ lọc</Button>
+          )}
+        </Space>
+      </div>
 
-      <PaginationDefault
-        totalItems={actorData?.actors?.length || 0}
-        totalPages={Math.ceil(
-          (actorData?.actors?.length || 0) / pageSize
-        )}
-        currentPage={currentPage}
-        onPageChange={(page, newSize) => {
-          setCurrentPage(page);
-          if (newSize) setPageSize(newSize);
-        }}
-      />
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <Table
+          columns={columns}
+          dataSource={actorData?.actors || []}
+          rowKey="id"
+          pagination={false}
+          locale={{
+            emptyText: "Chưa có diễn viên nào",
+          }}
+        />
+      </div>
+
+      <div className="mt-4">
+        <PaginationDefault
+          current={actorData?.pagination?.currentPage || 1}
+          total={actorData?.pagination?.total || 0}
+          pageSize={pageSize}
+          onChange={handlePageChange}
+          showSizeChanger={true}
+          pageSizeOptions={[5, 10, 20]}
+        />
+      </div>
 
       {/* Modal xác nhận xóa */}
       <Modal
@@ -119,8 +220,26 @@ export default function ListActors() {
         okButtonProps={{ danger: true }}
         title="Xác nhận xóa"
       >
-        Bạn có chắc chắn muốn xóa diễn viên "{selectedActor?.name}" không?
+        <p>Bạn có chắc chắn muốn xóa diễn viên "{selectedActor?.name}" không?</p>
       </Modal>
+
+      {/* Modal chỉnh sửa diễn viên */}
+      {isEditModalOpen && selectedActor && (
+        <Modal
+          open={isEditModalOpen}
+          onCancel={() => setIsEditModalOpen(false)}
+          footer={null}
+          width={700}
+          destroyOnClose={true}
+          bodyStyle={{ padding: 0 }}
+        >
+          <EditActor 
+            id={selectedActor.id}
+            actor={selectedActor}
+            onClose={() => setIsEditModalOpen(false)}
+          />
+        </Modal>
+      )}
     </>
   );
 }

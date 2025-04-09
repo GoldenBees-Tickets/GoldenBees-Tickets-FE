@@ -1,19 +1,32 @@
 import { useState } from "react";
-import { Table, Tag, Button, Modal, Spin, message } from "antd";
-import { FiEdit2, FiTrash2, FiEye } from "react-icons/fi";
+import { Table, Tag, Button, Modal, Spin, message, Input, Space, Select } from "antd";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import { useGetCinemasQuery, useDeleteCinemaMutation } from "../../../api/cinemaApi";
 import EditCinema from "./EditCinemas";
 import PaginationDefault from "@/components/PaginationDefault";
 
-export default function ListCinemas() {
-  const { data: cinemaData, error, isLoading } = useGetCinemasQuery();
-  const [deleteCinema] = useDeleteCinemaMutation();
+const { Search } = Input;
 
+export default function ListCinemas() {
   const [selectedCinema, setSelectedCinema] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
+
+  // Gọi API với các tham số phân trang và lọc
+  const { data: cinemaData, error, isLoading } = useGetCinemasQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: searchValue,
+    sort_order: sortOrder
+  });
+  
+  const [deleteCinema] = useDeleteCinemaMutation();
 
   const handleEdit = (cinema) => {
     setSelectedCinema(cinema);
@@ -35,6 +48,30 @@ export default function ListCinemas() {
     setIsDeleteModalOpen(false);
   };
 
+  const handleSearch = (value) => {
+    setSearchValue(value);
+    setCurrentPage(1);
+  };
+
+  const handleReset = () => {
+    setSearchText("");
+    setSearchValue("");
+    setSortOrder("desc");
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+        setPageSize(newPageSize);
+    }
+    setCurrentPage(page);
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
+  };
+
   const columns = [
     {
       title: "ID",
@@ -43,7 +80,23 @@ export default function ListCinemas() {
       width: 70,
     },
     {
-      title: "Tên Cinema",
+      title: (
+        <div 
+          className="flex items-center cursor-pointer select-none" 
+          onClick={toggleSortOrder}
+        >
+          Tên Cinema
+          <div className="flex flex-col ml-1">
+            <CaretUpOutlined 
+              className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
+              style={{ marginBottom: -2 }}
+            />
+            <CaretDownOutlined 
+              className={`text-[10px] ${sortOrder === "desc" ? "text-blue-500" : "text-gray-400"}`}
+            />
+          </div>
+        </div>
+      ),
       dataIndex: "name",
       key: "name",
     },
@@ -94,24 +147,43 @@ export default function ListCinemas() {
 
   return (
     <>
+      <div className="mb-4">
+        <Space size="middle">
+          <Search
+            placeholder="Tìm kiếm rạp phim..."
+            allowClear
+            onSearch={handleSearch}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 250 }}
+            prefix={<SearchOutlined className="text-gray-400" />}
+          />
+          {(searchValue || sortOrder !== "desc") && (
+            <Button onClick={handleReset}>Xóa bộ lọc</Button>
+          )}
+        </Space>
+      </div>
+
       <Table
         columns={columns}
-        dataSource={cinemaData?.cinemas}
+        dataSource={cinemaData?.cinemas || []}
         rowKey="id"
         pagination={false}
-      />
-
-      <PaginationDefault
-        totalItems={cinemaData?.cinemas?.length || 0}
-        totalPages={Math.ceil(
-          (cinemaData?.cinemas?.length || 0) / pageSize
-        )}
-        currentPage={currentPage}
-        onPageChange={(page, newSize) => {
-          setCurrentPage(page);
-          if (newSize) setPageSize(newSize);
+        locale={{
+          emptyText: "Chưa có rạp phim nào",
         }}
       />
+
+      <div className="mt-4">
+        <PaginationDefault
+          current={cinemaData?.pagination?.currentPage || 1}
+          total={cinemaData?.pagination?.total || 0}
+          pageSize={pageSize}
+          onChange={handlePageChange}
+          showSizeChanger={false}
+          pageSizeOptions={[5, 10, 15]}
+        />
+      </div>
 
       {/* Modal chỉnh sửa */}
       {isEditModalOpen && (

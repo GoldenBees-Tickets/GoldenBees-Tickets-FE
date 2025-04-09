@@ -53,9 +53,26 @@ export const actorApi = createApi({
 
     // Lấy danh sách diễn viên
     getActors: builder.query({
-      query: () => ({
-        url: `/`,
-      }),
+      query: (params) => {
+        const { page = 1, limit = 5, search = "", gender = "", sort_order = "desc" } = params || {};
+        
+        // Thêm query params 
+        const queryParams = [];
+        if (page) queryParams.push(`page=${page}`);
+        if (limit) queryParams.push(`limit=${limit}`);
+        if (search) queryParams.push(`search=${search}`);
+        if (gender) queryParams.push(`gender=${gender}`);
+        if (sort_order) queryParams.push(`sort_order=${sort_order}`);
+        
+        let url = '/';
+        if (queryParams.length > 0) {
+          url += `?${queryParams.join('&')}`;
+        }
+        
+        return {
+          url: url,
+        };
+      },
       // Cung cấp tag danh sách diễn viên cho endpoint này
       providesTags: [{ type: "Actor", id: "LISTACTOR" }],
     }),

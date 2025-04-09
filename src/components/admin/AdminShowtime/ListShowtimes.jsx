@@ -1,40 +1,82 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useGetShowtimesQuery } from "@/api/showtimeApi";
-import { Table, Button, Modal, Spin, Tag, message } from "antd";
+import { Table, Button, Modal, Spin, Tag, message, Input, Select, Space } from "antd";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import PaginationDefault from "@/components/PaginationDefault";
 import { formatImage } from "@/utils/formatImage";
-import { formatDate, isDateBefore, formatTime } from "@/utils/format";
+import { formatDate, formatTime, formatCurrency } from "@/utils/format";
+
+const { Search } = Input;
+
+// Hàm bỏ dấu tiếng Việt
+const removeAccents = (str) => {
+  return str.normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd').replace(/Đ/g, 'D');
+};
 
 export default function ListShowtimes({ branch_id }) {
   const [selectedShowtime, setSelectedShowtime] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
+  const [pageSize, setPageSize] = useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("desc");
 
-  const { data: showtimesData, isLoading, error } = useGetShowtimesQuery(branch_id);
+  // Gọi API với các tham số phân trang và lọc
+  const { data: showtimesData, isLoading, error } = useGetShowtimesQuery({
+    branch_id,
+    page: currentPage,
+    limit: pageSize,
+    search: searchText,
+    status: statusFilter,
+    sort_order: sortOrder
+  });
 
-  const showtimes = useMemo(() => 
-    showtimesData?.showtimes || showtimesData?.data || [], 
-    [showtimesData]
-  );
-
-  useEffect(() => {
-    if (showtimesData?.data?.totalItems) {
-      setTotalItems(showtimesData.data.totalItems);
-      setTotalPages(showtimesData.data.totalPages);
+  const getShowtimeStatus = (record) => {
+    const now = new Date();
+    const showDate = new Date(record.show_date);
+    
+    const startTime = record.start_time.split(':');
+    const endTime = record.end_time.split(':');
+    
+    const startDateTime = new Date(showDate);
+    startDateTime.setHours(parseInt(startTime[0]), parseInt(startTime[1]), parseInt(startTime[2] || 0));
+    
+    const endDateTime = new Date(showDate);
+    endDateTime.setHours(parseInt(endTime[0]), parseInt(endTime[1]), parseInt(endTime[2] || 0));
+    
+    if (now > endDateTime) {
+      return { status: "Đã chiếu", color: "default" };
+    } else if (now >= startDateTime && now <= endDateTime) {
+      return { status: "Đang chiếu", color: "processing" };
     } else {
-      setTotalItems(showtimes.length);
-      setTotalPages(Math.ceil(showtimes.length / pageSize));
+      return { status: "Sắp chiếu", color: "green" };
     }
-  }, [showtimesData, showtimes, pageSize]);
+  };
 
-
-  const handlePageChange = (page, newSize) => {
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+        setPageSize(newPageSize);
+    }
     setCurrentPage(page);
-    if (newSize) setPageSize(newSize);
+  };
+
+  const handleSearch = (value) => {
+    setSearchText(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (value) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
   };
 
   const columns = [
@@ -65,35 +107,50 @@ export default function ListShowtimes({ branch_id }) {
       )
     },
     {
-      title: "Thời gian",
+      title: (
+        <div 
+          className="flex items-center cursor-pointer select-none" 
+          onClick={toggleSortOrder}
+        >
+          Ngày chiếu
+          <div className="flex flex-col ml-1">
+            <CaretUpOutlined 
+              className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
+              style={{ marginBottom: -2 }}
+            />
+            <CaretDownOutlined 
+              className={`text-[10px] ${sortOrder === "desc" ? "text-blue-500" : "text-gray-400"}`}
+            />
+          </div>
+        </div>
+      ),
+      dataIndex: "show_date",
+      key: "show_date",
+      render: (date) => <span>{formatDate(date)}</span>
+    },
+    {
+      title: "Giờ chiếu",
       key: "time",
       render: (_, record) => (
         <div>
-          <div className="text-xs text-gray-500">
-            {formatTime(record.start_time)}  {formatDate(record.start_time)} - {formatTime(record.end_time)} {formatDate(record.end_time)}
-          </div>
+          <span>{formatTime(record.start_time)} - {formatTime(record.end_time)}</span>
         </div>
       )
     },
     {
       title: "Giá vé",
-      dataIndex: "price",
+      dataIndex: "base_price",
       key: "price",
-      render: (price, record) => (
-        <span>{(price || record.base_price)?.toLocaleString("vi-VN")} VND</span>
+      render: (price) => (
+        <span>{formatCurrency(price)} VND</span>
       )
     },
     {
       title: "Trạng thái",
       key: "status",
       render: (_, record) => {
-        const isPast = isDateBefore(record.start_time);
-
-        return isPast ? (
-          <Tag color="default">Đã chiếu</Tag>
-        ) : (
-          <Tag color="green">Sắp chiếu</Tag>
-        );
+        const { status, color } = getShowtimeStatus(record);
+        return <Tag color={color}>{status}</Tag>;
       }
     },
     {
@@ -114,16 +171,34 @@ export default function ListShowtimes({ branch_id }) {
 
   if (isLoading) return <Spin className="flex justify-center mt-10" size="large" />;
   if (error) return <div className="text-red-500">Lỗi khi tải dữ liệu lịch chiếu!</div>;
-  
-  // Calculate pagination for client-side pagination if needed
-  const paginatedData = showtimesData?.data?.showtimes || 
-    showtimes.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div>
+      <div className="mb-4 flex flex-wrap gap-4 items-center justify-between">
+        <Space size="middle">
+          <Search
+            placeholder="Tìm kiếm theo tên phim"
+            allowClear
+            onSearch={handleSearch}
+            onChange={(e) => handleSearch(e.target.value)}
+            style={{ width: 250 }}
+          />
+          <Select
+            value={statusFilter}
+            onChange={handleStatusChange}
+            style={{ width: 150 }}
+          >
+            <Select.Option value="all">Tất cả trạng thái</Select.Option>
+            <Select.Option value="Sắp chiếu">Sắp chiếu</Select.Option>
+            <Select.Option value="Đang chiếu">Đang chiếu</Select.Option>
+            <Select.Option value="Đã chiếu">Đã chiếu</Select.Option>
+          </Select>
+        </Space>
+      </div>
+
       <Table
         columns={columns}
-        dataSource={paginatedData}
+        dataSource={showtimesData?.showtimes || []}
         rowKey="id"
         pagination={false}
         locale={{
@@ -131,13 +206,16 @@ export default function ListShowtimes({ branch_id }) {
         }}
       />
 
-      <PaginationDefault
-        totalItems={totalItems}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        onPageChange={handlePageChange}
-      />
-
+      <div className="mt-4">
+        <PaginationDefault
+            current={showtimesData?.pagination?.currentPage || 1}
+            total={showtimesData?.pagination?.total || 0}
+            pageSize={pageSize}
+            onChange={handlePageChange}
+            showSizeChanger={false}
+            pageSizeOptions={[5, 10, 15]}
+        />
+      </div>
     </div>
   );
 } 
