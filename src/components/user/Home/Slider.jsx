@@ -4,10 +4,9 @@ export default function Slider() {
   const slides = [
     {
       type: "video",
-      video: "https://www.youtube.com/embed/zKMOgOWn8lQ",
+      poster: "https://i.imgur.com/7KSXOeF.jpg",
       title: "Bộ tứ báo thủ",
       description: "Khám phá cuộc phiêu lưu mới của Po",
-      poster: "https://i.imgur.com/7KSXOeF.jpg",
       trailer: "https://www.youtube.com/embed/W3xAeYrQPZM"
     },
     {
@@ -30,53 +29,20 @@ export default function Slider() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
-  const [videosLoaded, setVideosLoaded] = useState(false);
-  const videoRefs = useRef([]);
   const trailerRef = useRef(null);
-  const timerRef = useRef(null);
-  const autoPlayInterval = 5000; // Changed from 3000 to 5000 (5 seconds)
-
-  // Set up video refs
-  // useEffect(() => {
-  //   videoRefs.current = videoRefs.current.slice(0, slides.length);
-  //   // Set videos as loaded after a small delay to ensure DOM is ready
-  //   setTimeout(() => setVideosLoaded(true), 100);
-  // }, [slides.length]);
+  const autoPlayInterval = 5000; // 5 seconds
 
   // Toggle trailer visibility
   const toggleTrailer = () => {
     setShowTrailer(prev => !prev);
     
-    // If closing the trailer, pause it
+    // If closing the trailer, reset iframe
     if (showTrailer && trailerRef.current) {
       try {
-        trailerRef.current.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+        const iframe = trailerRef.current;
+        iframe.src = iframe.src;
       } catch (error) {
-        console.error("Error pausing trailer:", error);
-      }
-    }
-  };
-
-  // Handle video slide transitions without reloading
-  const handleVideoTransition = (newIndex) => {
-    // Only if we have videos loaded
-    if (!videosLoaded) return;
-
-    // First pause current video if it's a video type
-    if (slides[currentSlide].type === "video" && videoRefs.current[currentSlide]) {
-      try {
-        videoRefs.current[currentSlide].contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-      } catch (error) {
-        console.error("Error pausing current video:", error);
-      }
-    }
-
-    // Then play the new video if it's a video type
-    if (slides[newIndex].type === "video" && videoRefs.current[newIndex]) {
-      try {
-        videoRefs.current[newIndex].contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-      } catch (error) {
-        console.error("Error playing new video:", error);
+        console.error("Error handling trailer:", error);
       }
     }
   };
@@ -87,7 +53,6 @@ export default function Slider() {
     const interval = setInterval(() => {
       if (!isPaused && !showTrailer && !isAnimating) {
         const newIndex = (currentSlide + 1) % slides.length;
-        handleVideoTransition(newIndex);
         setCurrentSlide(newIndex);
       }
     }, autoPlayInterval);
@@ -105,7 +70,6 @@ export default function Slider() {
     setShowTrailer(false);
     
     const newIndex = (currentSlide + 1) % slides.length;
-    handleVideoTransition(newIndex);
     setCurrentSlide(newIndex);
     
     // Giảm thời gian animation để đảm bảo slide chuyển nhanh hơn
@@ -121,9 +85,8 @@ export default function Slider() {
     setShowTrailer(false);
     
     const newIndex = (currentSlide - 1 + slides.length) % slides.length;
-    handleVideoTransition(newIndex);
     setCurrentSlide(newIndex);
-    setTimeout(() => setIsAnimating(false), 1000); // Increased to match fade duration
+    setTimeout(() => setIsAnimating(false), 1000);
   };
 
   // Chuyển đến một slide cụ thể
@@ -134,15 +97,8 @@ export default function Slider() {
     // Reset trailer state when changing slides
     setShowTrailer(false);
     
-    handleVideoTransition(index);
     setCurrentSlide(index);
-    setTimeout(() => setIsAnimating(false), 1000); // Increased to match fade duration
-  };
-
-  // Helper function to get video ID
-  const getVideoId = (url) => {
-    const splitUrl = url.split('/');
-    return splitUrl[splitUrl.length - 1];
+    setTimeout(() => setIsAnimating(false), 1000);
   };
 
   // Render all slides at once but control visibility with opacity/z-index
@@ -159,39 +115,18 @@ export default function Slider() {
           opacity: index === currentSlide ? 1 : 0,
           zIndex: index === currentSlide ? 1 : 0,
           visibility: Math.abs(index - currentSlide) <= 1 ? 'visible' : 'hidden',
-          transition: 'opacity 600ms ease', // Reduced transition time from 1000ms
+          transition: 'opacity 600ms ease',
         }}
       >
         <div className="relative w-full h-full overflow-hidden bg-black">
           <div className="absolute inset-0 w-full h-full" style={{ zIndex: 1 }}>
-            {slide.type === "video" ? (
-              <iframe 
-                ref={el => videoRefs.current[index] = el}
-                src={`${slide.video}?enablejsapi=1&autoplay=${index === 0 ? 1 : 0}&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${getVideoId(slide.video)}&modestbranding=1&disablekb=1&iv_load_policy=3&color=white&fs=0&playsinline=1&origin=${window.location.origin}`}
-                title={slide.title}
-                className="w-[100%] h-[100%] object-cover pointer-events-none absolute inset-0"
-                style={{ 
-                  position: "absolute", 
-                  top: "0", 
-                  left: "0", 
-                  width: "100%", 
-                  height: "115%", 
-                  maxWidth: "none",
-                  maxHeight: "none",
-                }}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                loading="eager"
-              ></iframe>
-            ) : (
-              <img 
-                src={slide.image}
-                alt={slide.title}
-                className="w-full h-full object-cover absolute inset-0"
-                loading="eager"
-              />
-            )}
+            {/* Thay thế iframe bằng hình ảnh để tránh WebGL errors */}
+            <img 
+              src={slide.type === "video" ? slide.poster : slide.image}
+              alt={slide.title}
+              className="w-full h-full object-cover absolute inset-0"
+              loading={index === currentSlide ? "eager" : "lazy"}
+            />
           </div>
           
           {/* Content overlay with simplified animation */}
@@ -231,28 +166,6 @@ export default function Slider() {
     ));
   };
 
-  // Make initial slide load immediately on component mount
-  useEffect(() => {
-    // Preload first video and start playing it
-    if (slides[0].type === "video") {
-      const checkAndPlayVideo = () => {
-        if (videoRefs.current[0] && videoRefs.current[0].contentWindow) {
-          try {
-            videoRefs.current[0].contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-          } catch (error) {
-            console.error("Error playing initial video:", error);
-          }
-        } else {
-          // If iframe isn't ready yet, try again shortly
-          setTimeout(checkAndPlayVideo, 200);
-        }
-      };
-      
-      // Start checking after a short delay to allow for initial render
-      setTimeout(checkAndPlayVideo, 200);
-    }
-  }, [videosLoaded]);
-
   return (
     <div className="w-full relative">
       {/* Cinematic fullscreen slider */}
@@ -271,19 +184,22 @@ export default function Slider() {
             showTrailer 
               ? 'opacity-100' 
               : 'opacity-0 pointer-events-none'
-          }`}
+          } transition-opacity duration-300`}
         >
           <div className="bg-black/80 rounded-lg overflow-hidden shadow-lg border border-yellow-500/30">
             {/* Trailer video */}
             <div className="aspect-video w-full bg-black relative">
-              <iframe 
-                ref={trailerRef}
-                src={`${slides[currentSlide].trailer}?enablejsapi=1&autoplay=${showTrailer ? 1 : 0}&mute=0&modestbranding=1&origin=${window.location.origin}`}
-                className="w-full h-full"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
+              {showTrailer && (
+                <iframe 
+                  ref={trailerRef}
+                  src={`${slides[currentSlide].trailer}?wmode=opaque&rel=0&modestbranding=1&autohide=1&showinfo=0`}
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  loading="lazy"
+                ></iframe>
+              )}
               
               {/* Close button */}
               <button 
