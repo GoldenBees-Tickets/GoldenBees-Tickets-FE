@@ -23,6 +23,7 @@ import VNPayResult from "../pages/Payment/VNPayResult";
 import VoiceConverterPage from "../pages/VoiceConverter/VoiceConverterPage";
 import Posts from "@/pages/user/Posts";
 import PostDetail from "@/pages/user/PostDetail";
+import TicketPurchasePage from "@/pages/user/TicketPurchasePage";
 
 
 const UserRoutes = {
@@ -55,7 +56,9 @@ const UserRoutes = {
     { path: "/voice-converter", element: <VoiceConverterPage /> },
     // Posts Routes
     { path: "/posts", element: <Posts /> },
-    { path: "/posts/:id", element: <PostDetail /> }
+    { path: "/posts/:id", element: <PostDetail /> },
+    // Ticket Purchase Page
+    { path: "/ticket-purchase", element: <TicketPurchasePage /> }
   ]
 };
 

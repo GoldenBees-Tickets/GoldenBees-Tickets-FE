@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Header from "../user/Header";
 import Footer from "../user/Footer";
 import ChatBox from "@/components/ChatBox/ChatBox";
 
 export default function RootUser() {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const location = useLocation();
 
+  // Xử lý cuộn lên đầu trang mỗi khi route thay đổi
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   const handleDarkModeToggle = () => {
     setIsDarkMode((prevMode) => !prevMode);

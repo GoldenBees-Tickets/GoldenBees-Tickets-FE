@@ -104,119 +104,124 @@ export default function Product() {
   }, [movies]);
 
   return (
-    <div className="font-[sans-serif] p-4 mx-auto max-w-[1400px]">
-      <div className="mb-6 text-center">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
-          Danh sách phim
-        </h1>
-      </div>
+    <div className="bg-gray-50 min-h-screen pt-10 pb-12">
+      {/* Main content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Filter section */}
+        <div className="bg-white p-3 rounded-lg shadow-sm mb-6">
+          <div className="flex flex-row items-center gap-3 flex-wrap">
+            <div className="grow md:grow-0 md:w-60">
+              <div className="relative">
+                <input
+                  id="searchTitle"
+                  type="text"
+                  placeholder="Tên phim..."
+                  className="w-full pl-8 pr-3 py-2 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-200 focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
+                  value={searchTitle}
+                  onChange={(e) => setSearchTitle(e.target.value)}
+                />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+            
+            <div className="w-36 md:w-40">
+              <div className="relative">
+                <select
+                  id="filterYear"
+                  className="w-full pl-8 pr-6 py-2 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-200 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 appearance-none"
+                  value={filterYear}
+                  onChange={(e) => setFilterYear(e.target.value)}
+                >
+                  <option value="">Năm phát hành</option>
+                  {uniqueYears.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <svg className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+            
+            <div className="w-36 md:w-40">
+              <div className="relative">
+                <select
+                  id="filterGenre"
+                  className="w-full pl-8 pr-6 py-2 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-200 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 appearance-none"
+                  value={filterGenre}
+                  onChange={(e) => setFilterGenre(e.target.value)}
+                >
+                  <option value="">Thể loại</option>
+                  {uniqueGenres.map(genre => (
+                    <option key={genre.id} value={genre.id}>{genre.name}</option>
+                  ))}
+                </select>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                <svg className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+            
+            {(searchTitle || filterYear || filterGenre) && (
+              <button
+                onClick={handleReset}
+                className="py-2 px-3 text-xs text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Đặt lại
+              </button>
+            )}
+          </div>
+          
+          <div className="flex flex-wrap items-center justify-between mt-2 text-xs text-gray-500">
+            <span>
+              Hiển thị <span className="font-medium text-orange-500">{filteredMovies.length}</span> trên {ListMovie.length} phim
+              {(searchTitle || filterYear || filterGenre) && <span className="ml-1 text-orange-500">(đã lọc)</span>}
+            </span>
+          </div>
+        </div>
 
-      {/* Status Tabs */}
-      <div className="flex mb-6 border-b border-gray-200">
-        <button 
-          onClick={() => setActiveTab("now_showing")}
-          className={`mr-4 py-2 px-4 text-sm font-medium ${
-            activeTab === "now_showing"
-              ? "text-yellow-600 border-b-2 border-yellow-500"
-              : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
-          }`}
-        >
-          {getStatusCountText.now_showing}
-        </button>
-        <button 
-          onClick={() => setActiveTab("opening_soon")}
-          className={`mr-4 py-2 px-4 text-sm font-medium ${
-            activeTab === "opening_soon"
-              ? "text-yellow-600 border-b-2 border-yellow-500"
-              : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
-          }`}
-        >
-          {getStatusCountText.opening_soon}
-        </button>
-        <button 
-          onClick={() => setActiveTab("coming_soon")}
-          className={`mr-4 py-2 px-4 text-sm font-medium ${
-            activeTab === "coming_soon"
-              ? "text-yellow-600 border-b-2 border-yellow-500"
-              : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
-          }`}
-        >
-          {getStatusCountText.coming_soon}
-        </button>
-        <button 
-          onClick={() => setActiveTab("all")}
-          className={`mr-4 py-2 px-4 text-sm font-medium ${
-            activeTab === "all"
-              ? "text-yellow-600 border-b-2 border-yellow-500"
-              : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
-          }`}
-        >
-          {getStatusCountText.all}
-        </button>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Tên phim..."
-            className="w-full sm:w-48 pl-8 pr-2 py-1.5 text-sm border border-gray-200 rounded-full focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
-            value={searchTitle}
-            onChange={(e) => setSearchTitle(e.target.value)}
-          />
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-        
-        <div className="relative">
-          <select
-            className="w-full sm:w-40 appearance-none pl-8 pr-8 py-1.5 text-sm border border-gray-200 rounded-full focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
-            value={filterYear}
-            onChange={(e) => setFilterYear(e.target.value)}
-          >
-            <option value="">Năm phát hành</option>
-            {uniqueYears.map(year => (
-              <option key={year} value={year}>{year}</option>
+        {/* Movie grid */}
+        {filteredMovies.length > 0 ? (
+          <div className="grid grid-cols-4 gap-4 sm:gap-6">
+            {filteredMovies?.map((movie) => (
+              <HomeItemMovie
+                key={movie.id}
+                title={movie.name}
+                year={movie.year}
+                imageSrc={formatImage(movie.poster)}
+                id={movie.id}
+                genres={movie.MovieGenres?.map(mg => ({ id: mg.Genre?.id, name: mg.Genre?.name }))}
+              />
             ))}
-          </select>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <svg className="w-3 h-3 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </div>
-        
-        <div className="relative">
-          <select
-            className="w-full sm:w-40 appearance-none pl-8 pr-8 py-1.5 text-sm border border-gray-200 rounded-full focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
-            value={filterGenre}
-            onChange={(e) => setFilterGenre(e.target.value)}
-          >
-            <option value="">Thể loại</option>
-            {uniqueGenres.map(genre => (
-              <option key={genre.id} value={genre.id}>{genre.name}</option>
-            ))}
-          </select>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-          </svg>
-          <svg className="w-3 h-3 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </div>
-        
-        {(searchTitle || filterYear || filterGenre || activeTab !== "now_showing") && (
-          <button
-            onClick={handleReset}
-            className="py-1.5 px-3 text-xs text-white bg-orange-500 hover:bg-orange-600 rounded-full flex items-center"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl p-12 text-center shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
             </svg>
-            Đặt lại
-          </button>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">Không tìm thấy phim</h3>
+            <p className="text-gray-500">Không có phim nào phù hợp với bộ lọc bạn đã chọn.</p>
+            <button
+              onClick={handleReset}
+              className="mt-4 py-2 px-4 text-sm text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors inline-flex items-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Đặt lại bộ lọc
+            </button>
+          </div>
         )}
       </div>
 

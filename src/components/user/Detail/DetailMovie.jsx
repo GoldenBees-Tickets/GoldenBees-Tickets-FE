@@ -8,6 +8,7 @@ export default function MovieDetail() {
   const ListMovie = movie?.movie;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isShowMore, setIsShowMore] = useState(false);
 
   if (isLoading) return (
     <div className="min-h-[300px] flex items-center justify-center">
@@ -171,7 +172,29 @@ export default function MovieDetail() {
                 </svg>
                 Mô Tả Phim
               </h2>
-              <p className="text-gray-700 leading-relaxed">{ListMovie?.description}</p>
+              <div className="relative">
+                <p className={`text-gray-700 leading-relaxed ${!isShowMore ? 'line-clamp-3' : ''}`}>
+                  {ListMovie?.description}
+                </p>
+                <button 
+                  onClick={() => setIsShowMore(!isShowMore)} 
+                  className="mt-2 text-orange-500 hover:text-orange-600 font-medium flex items-center transition-all duration-300"
+                >
+                  {isShowMore ? (
+                    <>
+                      Thu gọn <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7"></path>
+                      </svg>
+                    </>
+                  ) : (
+                    <>
+                      Xem thêm <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
