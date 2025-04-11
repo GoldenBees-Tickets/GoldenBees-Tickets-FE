@@ -48,7 +48,7 @@ import PostsCreate from "@/pages/admin/PostsCreate";
 import PostsEdit from "@/pages/admin/PostsEdit";
 import UserManagement from "@/pages/admin/UserManagement";
 import Cinema from "@/pages/admin/cinema";
-
+import ScanQrCodePage from "@/pages/staff/ScanQrCodePage";
 
 const AdminRoutes = {
   path: "/admin",
@@ -101,7 +101,7 @@ const AdminRoutes = {
     { path: "setting", element: <SettingsPage /> },
     { path: "setting/price", element: <AddPriceSetting /> },
   
-    
+     { path: "scan-qr", element: <ScanQrCodePage /> },
     { path: "branch", element: <Branch /> },
    
     { path: "chat-history", element: <ChatHistoryPage /> },
