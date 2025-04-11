@@ -54,7 +54,7 @@ const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats }) =>
     showtime_id: dataPage?.showtime,
     combos: dataPage?.foodItems,
     promotion_id,
-    orderInfo: "Thanh toán vé xem phim",
+    orderInfo: `Thanh toán vé xem phim ${dataPage?.showtime?.movie?.name}`,
   };
 
   // Xử lý khi thanh toán thành công

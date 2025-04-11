@@ -5,7 +5,6 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "react-toastify";
 import logoHeader from "../../public/LogoHeader.png";
 
-
 export default function Register() {
   const [regiserUser] = useRegiterMutation();
 
@@ -61,7 +60,7 @@ export default function Register() {
         return;
       }
     } else {
-      toast.success("Đăng ký thành công.")
+      toast.success("Đăng ký thành công.");
     }
   };
 
@@ -73,19 +72,25 @@ export default function Register() {
           <div className="absolute w-full h-full top-0 left-0 bg-pattern opacity-10"></div>
           <div className="relative z-10">
             <div className="w-40 h-40 mx-auto animate-float">
-              <img 
-                src="/src/public/LogoHeader.png" 
-                alt="logo" 
-                className="w-full h-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] transform transition-transform duration-700 hover:rotate-12 animate-pulse"
-              />
+              <Link to="/">
+                <img
+                  src="/src/public/LogoHeader.png"
+                  alt="logo"
+                  className="w-full h-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] transform transition-transform duration-700 hover:rotate-12 animate-pulse"
+                />
+              </Link>
             </div>
-            <h2 className="text-white text-2xl font-bold text-center mt-6 animate-typing overflow-hidden whitespace-nowrap">Bees-Cinema</h2>
-            <p className="text-orange-100 text-center mt-2 animate-fadeIn opacity-0">Hệ thống đặt vé xem phim trực tuyến</p>
+            <h2 className="text-white text-2xl font-bold text-center mt-6 animate-typing overflow-hidden whitespace-nowrap">
+              Bees-Cinema
+            </h2>
+            <p className="text-orange-100 text-center mt-2 animate-fadeIn opacity-0">
+              Hệ thống đặt vé xem phim trực tuyến
+            </p>
           </div>
           <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-orange-300 rounded-full opacity-20"></div>
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-orange-300 rounded-full opacity-20"></div>
         </div>
-        
+
         {/* Form Section - Right */}
         <div className="md:w-3/5 p-8">
           <div className="max-w-md mx-auto">
@@ -93,7 +98,10 @@ export default function Register() {
               Đăng ký tài khoản
             </h2>
             <form onSubmit={handleRegister} className="space-y-4">
-              <div className="animate-slideIn" style={{animationDelay: "0.2s"}}>
+              <div
+                className="animate-slideIn"
+                style={{ animationDelay: "0.2s" }}
+              >
                 <label className="text-gray-800 text-sm block mb-2">
                   Tên người dùng
                 </label>
@@ -117,7 +125,10 @@ export default function Register() {
                 </div>
                 <small className="text-red-500">{errorUsername}</small>
               </div>
-              <div className="animate-slideIn" style={{animationDelay: "0.4s"}}>
+              <div
+                className="animate-slideIn"
+                style={{ animationDelay: "0.4s" }}
+              >
                 <label className="text-gray-800 text-sm block mb-2">
                   Email
                 </label>
@@ -162,7 +173,10 @@ export default function Register() {
                 </div>
                 <small className="text-red-500">{errorEmail}</small>
               </div>
-              <div className="animate-slideIn" style={{animationDelay: "0.6s"}}>
+              <div
+                className="animate-slideIn"
+                style={{ animationDelay: "0.6s" }}
+              >
                 <label className="text-gray-800 text-sm block mb-2">
                   Mật khẩu
                 </label>
@@ -189,7 +203,10 @@ export default function Register() {
                 </div>
                 <small className="text-red-500">{errorPassword}</small>
               </div>
-              <div className="animate-slideIn" style={{animationDelay: "0.8s"}}>
+              <div
+                className="animate-slideIn"
+                style={{ animationDelay: "0.8s" }}
+              >
                 <label className="text-gray-800 text-sm block mb-2">
                   Xác nhận mật khẩu
                 </label>
@@ -216,7 +233,10 @@ export default function Register() {
                 </div>
                 <small className="text-red-500">{errorConfirmPassword}</small>
               </div>
-              <div className="mt-8 animate-slideIn" style={{animationDelay: "1s"}}>
+              <div
+                className="mt-8 animate-slideIn"
+                style={{ animationDelay: "1s" }}
+              >
                 <button
                   type="submit"
                   className="w-full py-2.5 px-4 text-sm tracking-wide rounded-md text-white bg-orange-500 hover:bg-orange-600 focus:outline-none transform transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
@@ -224,7 +244,10 @@ export default function Register() {
                   Đăng ký
                 </button>
               </div>
-              <p className="text-gray-800 text-sm mt-6 text-center animate-slideIn" style={{animationDelay: "1.2s"}}>
+              <p
+                className="text-gray-800 text-sm mt-6 text-center animate-slideIn"
+                style={{ animationDelay: "1.2s" }}
+              >
                 Đã có tài khoản?{" "}
                 <Link
                   to="/login"
@@ -242,7 +265,7 @@ export default function Register() {
 }
 
 /* Thêm style keyframes để tạo hiệu ứng */
-const style = document.createElement('style');
+const style = document.createElement("style");
 style.textContent = `
   @keyframes float {
     0% {
