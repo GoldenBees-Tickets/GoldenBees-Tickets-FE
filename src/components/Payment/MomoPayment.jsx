@@ -15,9 +15,58 @@ const MomoPayment = ({ data, onSuccess, onError }) => {
 
     try {
       const { user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo } = data;
-      // Gọi API MOMO với unwrap() để lấy dữ liệu chuẩn
       
-      const response = await addOrder({ user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo }).unwrap(); 
+      // Kiểm tra dữ liệu trước khi gửi
+      if (!user_id) {
+        throw new Error("Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.");
+      }
+      
+      // Xử lý trường hợp showtime_id có thể là đối tượng hoặc ID đơn giản
+      if (!showtime_id) {
+        throw new Error("Thiếu thông tin suất chiếu. Vui lòng quay lại trang đặt vé.");
+      }
+      
+      // Chuẩn bị showtime_id đúng định dạng
+      const preparedShowtimeId = showtime_id.id ? showtime_id.id : 
+                               (typeof showtime_id === 'object' ? showtime_id.id : showtime_id);
+      
+      if (!preparedShowtimeId) {
+        throw new Error("ID suất chiếu không hợp lệ. Vui lòng quay lại trang đặt vé.");
+      }
+      
+      if (!seat_ids || seat_ids.length === 0) {
+        throw new Error("Chưa chọn ghế. Vui lòng quay lại trang đặt vé.");
+      }
+      
+      if (!amount || amount <= 0) {
+        throw new Error("Số tiền thanh toán không hợp lệ.");
+      }
+      
+      // Log dữ liệu gửi lên để debug
+      console.log('Payment data being sent:', { 
+        user_id, 
+        total, 
+        amount, 
+        seat_ids, 
+        showtime_id, 
+        combos, 
+        promotion_id, 
+        orderInfo 
+      });
+      
+      // Gọi API MOMO với unwrap() để lấy dữ liệu chuẩn
+      const response = await addOrder({ 
+        user_id, 
+        total, 
+        amount, 
+        seat_ids, 
+        showtime_id: preparedShowtimeId, 
+        combos, 
+        promotion_id, 
+        orderInfo 
+      }).unwrap(); 
+      
+      console.log('MoMo API response:', response);
 
       if (response.payUrl) {
         localStorage.removeItem("payment_info");
@@ -29,11 +78,17 @@ const MomoPayment = ({ data, onSuccess, onError }) => {
           window.open(response.payUrl, '_blank');
         }
       } else {
-        throw new Error(response.message || 'Không thể tạo thanh toán');
+        console.error('Missing payUrl in response:', response);
+        throw new Error(response.message || 'Không thể tạo thanh toán. Thiếu payUrl trong phản hồi.');
       }
     } catch (error) {
-      console.error('Payment error:', error);
-      setError(error?.data?.message || 'Có lỗi xảy ra khi xử lý thanh toán');
+      console.error('Payment error details:', error);
+      
+      if (error.data) {
+        console.error('Server error response:', error.data);
+      }
+      
+      setError(error?.data?.message || error.message || 'Có lỗi xảy ra khi xử lý thanh toán');
       if (onError) onError(error);
     } finally {
       setLoading(false);
@@ -81,8 +136,7 @@ const MomoPayment = ({ data, onSuccess, onError }) => {
 };
 
 MomoPayment.propTypes = {
-  amount: PropTypes.number.isRequired,
-  orderInfo: PropTypes.string,
+  data: PropTypes.object.isRequired,
   onSuccess: PropTypes.func,
   onError: PropTypes.func,
 };
