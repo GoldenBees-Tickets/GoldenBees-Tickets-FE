@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Button } from "antd";
+import { Button, Modal } from "antd";
 import { FiPlus } from "react-icons/fi";
-import AddGenre from "../../components/Admin/AdminGenre/AddGenre";
-import ListGenres from "../../components/Admin/AdminGenre/ListGenre";
+import AddGenre from "../../components/admin/AdminGenre/AddGenre";
+import ListGenre from "../../components/admin/AdminGenre/ListGenre";
 
 export default function Genre() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -22,16 +22,17 @@ export default function Genre() {
       </div>
       
       <div className="mt-4">
-        <ListGenres />
+        <ListGenre />
       </div>
 
-      {isAddModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-[9999]">
-          <div className="w-full max-w-lg bg-white rounded-lg overflow-hidden">
+      <Modal
+        open={isAddModalOpen}
+        footer={null}
+        onCancel={() => setIsAddModalOpen(false)}
+        width={500}
+      >
             <AddGenre setAddGenre={setIsAddModalOpen} />
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }

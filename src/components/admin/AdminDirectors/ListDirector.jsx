@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Table, Tag, Button, Modal, Spin, message, Avatar, Input, Space, Select } from "antd";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
@@ -14,6 +14,7 @@ const { Search } = Input;
 const { Option } = Select;
 
 export default function ListDirector() {
+  const navigate = useNavigate();
   const [selectedDirector, setSelectedDirector] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,6 +34,10 @@ export default function ListDirector() {
   });
   
   const [deleteDirector] = useDeleteDirectorMutation();
+
+  const handleEdit = (director) => {
+    navigate(`/admin/directors/edit/${director.id}`);
+  };
 
   const handleDelete = (director) => {
     setSelectedDirector(director);
@@ -137,9 +142,10 @@ export default function ListDirector() {
       width: 150,
       render: (_, record) => (
         <div className="flex space-x-2">
-          <Link to={`/admin/editDirector/${record.id}`}>
-            <Button icon={<FiEdit2 />} />
-          </Link>
+          <Button 
+            icon={<FiEdit2 />} 
+            onClick={() => handleEdit(record)}
+          />
           <Button
             danger
             icon={<FiTrash2 />}

@@ -6,7 +6,6 @@ import StaffRoutes from "@/routes/StaffRoutes";
 import PageNotFound from "@/pages/PageNotFound";
 
 function App() {
-
   const router = createBrowserRouter([
     UserRoutes,
     AdminRoutes,

@@ -20,17 +20,9 @@ export default function EditGenre({ id, name, setToggleUpdateGenre }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 relative w-full max-w-md mx-auto">
-      <Button
-        type="text"
-        icon={<CloseOutlined />}
-        onClick={() => setToggleUpdateGenre(false)}
-        className="absolute right-2 top-2"
-      />
-
+    <div className="p-6 relative w-full max-w-md mx-auto">
       <div className="text-center mb-6">
         <Title level={4}>Chỉnh Sửa Thể Loại</Title>
-        <Text type="secondary">Cập nhật thông tin thể loại</Text>
       </div>
 
       <Form

@@ -11,71 +11,117 @@ import {
   Spin
 } from "antd";
 import { UploadOutlined, CloseOutlined, SaveOutlined } from "@ant-design/icons";
-import { useGetProducersQuery, useUpdateProducerMutation } from "@/api/producerApi";
+import { useGetProducerByIdQuery, useUpdateProducerMutation } from "@/api/producerApi";
+import { formatImage } from "@/utils/formatImage";
 
 const { Title } = Typography;
 const { TextArea } = Input;
-const API_BASE_URL = import.meta.env.VITE_SOCKET_URL;
 
 export default function EditProducer() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  const { data: producerData, isLoading } = useGetProducersQuery();
+  const { data: producerData, isLoading } = useGetProducerByIdQuery(id);
   const [updateProducer, { isLoading: isUpdating }] = useUpdateProducerMutation();
   
-  const currentProducer = producerData?.producers?.find(
-    (item) => item.id === parseInt(id, 10)
-  );
+  const currentProducer = producerData?.producer;
 
   const [fileList, setFileList] = useState([]);
   const [previewImage, setPreviewImage] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     if (currentProducer) {
+      console.log("Producer data loaded:", currentProducer);
       form.setFieldsValue({
         name: currentProducer.name,
         description: currentProducer.description || "",
       });
       
       if (currentProducer.profile_picture) {
-        setPreviewImage(`${API_BASE_URL}/${currentProducer.profile_picture}`);
+        setPreviewImage(formatImage(currentProducer.profile_picture));
       }
     }
   }, [currentProducer, form]);
 
-  const handleFileChange = ({ fileList: newFileList }) => {
+  const handleFileChange = (info) => {
+    console.log("File Change Event:", info);
+    const { fileList: newFileList } = info;
     setFileList(newFileList);
     
     if (newFileList.length > 0 && newFileList[0].originFileObj) {
+      const file = newFileList[0].originFileObj;
+      console.log("Selected file:", {
+        name: file.name, 
+        type: file.type, 
+        size: file.size,
+        lastModified: new Date(file.lastModified).toISOString()
+      });
+      
+      // Lưu file để gửi lên server
+      setSelectedFile(file);
+      
+      // Tạo preview
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onload = () => {
         setPreviewImage(reader.result);
       };
-      reader.readAsDataURL(newFileList[0].originFileObj);
+      reader.readAsDataURL(file);
+    } else {
+      console.log("No file selected or file removed");
+      setSelectedFile(null);
     }
   };
 
   const handleSubmit = async (values) => {
     try {
+      console.log("Form values:", values);
+      
       const formData = new FormData();
       formData.append("name", values.name);
-      formData.append("description", values.description || "");
       
-      if (fileList.length > 0 && fileList[0].originFileObj) {
-        formData.append("profile_picture", fileList[0].originFileObj);
+      if (values.description) {
+        formData.append("description", values.description);
+        console.log("Added description:", values.description);
+      }
+      
+      // Thêm file nếu có
+      if (selectedFile) {
+        console.log("Adding file to FormData:", {
+          name: selectedFile.name,
+          type: selectedFile.type,
+          size: selectedFile.size
+        });
+        formData.append("profile_picture", selectedFile);
+      } else {
+        console.log("No file selected for upload");
       }
 
-      await updateProducer({
-        id: parseInt(id, 10),
+      // Log FormData để debug
+      console.log("=== FormData contents ===");
+      for (let [key, value] of formData.entries()) {
+        if (key === 'profile_picture' && value instanceof File) {
+          console.log(`${key}: File(${value.name}, ${value.type}, ${value.size} bytes)`);
+        } else {
+          console.log(`${key}: ${value}`);
+        }
+      }
+
+      // Đảm bảo ID là số
+      const producerId = parseInt(id, 10);
+      console.log("Submitting update for producer ID:", producerId);
+
+      const result = await updateProducer({
+        id: producerId,
         formData
       }).unwrap();
       
+      console.log("API Response:", result);
       message.success("Cập nhật nhà sản xuất thành công!");
       navigate("/admin/producers");
     } catch (error) {
       console.error("Lỗi khi cập nhật nhà sản xuất:", error);
-      message.error("Cập nhật nhà sản xuất thất bại!");
+      message.error("Cập nhật nhà sản xuất thất bại: " + (error.data?.message || error.message || ""));
     }
   };
 
@@ -83,6 +129,19 @@ export default function EditProducer() {
     return (
       <div className="flex justify-center items-center h-full py-20">
         <Spin size="large" tip="Đang tải dữ liệu..." />
+      </div>
+    );
+  }
+
+  if (!currentProducer) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="bg-white p-6 rounded-lg shadow text-center">
+          <div className="text-red-500 mb-4">Không tìm thấy thông tin nhà sản xuất!</div>
+          <Button type="primary" onClick={() => navigate("/admin/producers")}>
+            Quay lại danh sách
+          </Button>
+        </div>
       </div>
     );
   }
@@ -114,10 +173,7 @@ export default function EditProducer() {
           </Form.Item>
 
           <Form.Item
-            name="profile_picture"
             label="Ảnh đại diện"
-            valuePropName="fileList"
-            getValueFromEvent={e => e && e.fileList}
           >
             <Upload
               listType="picture-card"

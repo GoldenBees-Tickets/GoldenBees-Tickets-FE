@@ -37,7 +37,10 @@ export const branchApi = createApi({
           patchResult.undo();
         }
       },
-      invalidatesTags: (result, error, { id }) => [{ type: "Branch", id }],
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Branch", id },
+        { type: "Branch", id: "LISTBRANCH" },
+      ],
     }),
 
     // Xóa chi nhánh
@@ -52,9 +55,25 @@ export const branchApi = createApi({
       ],
     }),
 
-    // Lấy danh sách chi nhánh
+    // Lấy danh sách chi nhánh với phân trang, tìm kiếm và sắp xếp
     getBranches: builder.query({
-      query: () => `/`,
+      query: (params) => {
+        const { page = 1, limit = 5, search = "", sort_order = "desc" } = params || {};
+        
+        // Thêm query params 
+        const queryParams = [];
+        if (page) queryParams.push(`page=${page}`);
+        if (limit) queryParams.push(`limit=${limit}`);
+        if (search) queryParams.push(`search=${search}`);
+        if (sort_order) queryParams.push(`sort_order=${sort_order}`);
+        
+        let url = '/';
+        if (queryParams.length > 0) {
+          url += `?${queryParams.join('&')}`;
+        }
+        
+        return url;
+      },
       providesTags: [{ type: "Branch", id: "LISTBRANCH" }],
     }),
 

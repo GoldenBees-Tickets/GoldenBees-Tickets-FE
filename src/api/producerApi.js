@@ -22,11 +22,12 @@ export const producerApi = createApi({
     }),
 
     updateProducer: builder.mutation({
-      query: ({ id, formData }) => {        
+      query: ({ id, ...dataForm }) => {        
         return {
           url: `/${id}`,
           method: "PUT",
-          data: formData,
+          data: dataForm.formData,
+          isFormData: true,
         };
       },
 

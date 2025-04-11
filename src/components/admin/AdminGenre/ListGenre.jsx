@@ -171,12 +171,11 @@ export default function ListGenre() {
           footer={null}
           onCancel={() => setIsEditModalOpen(false)}
           width={500}
-          bodyStyle={{ padding: 0 }}
         >
           <EditGenre 
             id={selectedGenre.id} 
             name={selectedGenre.name} 
-            setToggleUpdateGenre={() => setIsEditModalOpen(false)} 
+            setToggleUpdateGenre={(value) => setIsEditModalOpen(value)} 
           />
         </Modal>
       )}
@@ -184,7 +183,5 @@ export default function ListGenre() {
   );
 }
 
-ListGenre.propTypes = {
-  setToggleUpdateGenre: PropTypes.func
-};
+ListGenre.propTypes = {};
 

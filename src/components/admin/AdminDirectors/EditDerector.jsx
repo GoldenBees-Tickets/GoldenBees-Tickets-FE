@@ -10,33 +10,34 @@ import {
   message,
   Typography,
   Space,
-  Spin
+  Spin,
 } from "antd";
 import { UploadOutlined, CloseOutlined, SaveOutlined } from "@ant-design/icons";
-import { useGetDirectorsQuery, useUpdateDirectorMutation } from "@/api/directorApi";
+import { useGetDirectorByIdQuery, useUpdateDirectorMutation } from "@/api/directorApi";
 import dayjs from "dayjs";
+import { formatImage } from "../../../utils/formatImage";
 
 const { Title } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
-const API_BASE_URL = import.meta.env.VITE_SOCKET_URL;
 
 export default function EditDirector() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  const { data: directorsData, isLoading } = useGetDirectorsQuery();
+  const { data: directorData, isLoading } = useGetDirectorByIdQuery(id);
   const [updateDirector, { isLoading: isUpdating }] = useUpdateDirectorMutation();
-  
-  const currentDirector = directorsData?.directors?.find(
-    (item) => item.id === parseInt(id, 10)
-  );
+    console.log("directorData", directorData);
+    
+  const currentDirector = directorData?.director;
 
   const [fileList, setFileList] = useState([]);
   const [previewImage, setPreviewImage] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     if (currentDirector) {
+      console.log("Director data loaded:", currentDirector);
       form.setFieldsValue({
         name: currentDirector.name,
         dob: currentDirector.dob ? dayjs(currentDirector.dob) : null,
@@ -45,52 +46,118 @@ export default function EditDirector() {
       });
       
       if (currentDirector.profile_picture) {
-        setPreviewImage(`${API_BASE_URL}/${currentDirector.profile_picture}`);
+        setPreviewImage(formatImage(currentDirector.profile_picture));
       }
     }
   }, [currentDirector, form]);
 
-  const handleFileChange = ({ fileList: newFileList }) => {
+  const handleFileChange = (info) => {
+    console.log("File Change Event:", info);
+    const { fileList: newFileList } = info;
     setFileList(newFileList);
     
     if (newFileList.length > 0 && newFileList[0].originFileObj) {
+      const file = newFileList[0].originFileObj;
+      console.log("Selected file:", {
+        name: file.name, 
+        type: file.type, 
+        size: file.size,
+        lastModified: new Date(file.lastModified).toISOString()
+      });
+      
+      // Lưu file để gửi lên server
+      setSelectedFile(file);
+      
+      // Tạo preview
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onload = () => {
         setPreviewImage(reader.result);
       };
-      reader.readAsDataURL(newFileList[0].originFileObj);
+      reader.readAsDataURL(file);
+    } else {
+      console.log("No file selected or file removed");
+      setSelectedFile(null);
     }
   };
 
   const handleSubmit = async (values) => {
     try {
+      console.log("Form values:", values);
+      
       const formData = new FormData();
       formData.append("name", values.name);
-      formData.append("dob", values.dob.format("YYYY-MM-DD"));
-      formData.append("bio", values.bio || "");
-      formData.append("gender", values.gender);
       
-      if (fileList.length > 0 && fileList[0].originFileObj) {
-        formData.append("profile_picture", fileList[0].originFileObj);
+      if (values.dob) {
+        const dobString = values.dob.format("YYYY-MM-DD");
+        formData.append("dob", dobString);
+        console.log("Added DOB:", dobString);
+      }
+      
+      if (values.bio) {
+        formData.append("bio", values.bio);
+        console.log("Added bio:", values.bio);
+      }
+      
+      formData.append("gender", values.gender || "Male");
+      console.log("Added gender:", values.gender || "Male");
+      
+      // Thêm file nếu có
+      if (selectedFile) {
+        console.log("Adding file to FormData:", {
+          name: selectedFile.name,
+          type: selectedFile.type,
+          size: selectedFile.size
+        });
+        formData.append("profile_picture", selectedFile);
+      } else {
+        console.log("No file selected for upload");
       }
 
-      await updateDirector({
-        id: parseInt(id, 10),
-        formData
+      // Log FormData để debug
+      console.log("=== FormData contents ===");
+      for (let [key, value] of formData.entries()) {
+        if (key === 'profile_picture' && value instanceof File) {
+          console.log(`${key}: File(${value.name}, ${value.type}, ${value.size} bytes)`);
+        } else {
+          console.log(`${key}: ${value}`);
+        }
+      }
+
+      // Đảm bảo ID là số
+      const directorId = parseInt(id, 10);
+      console.log("Submitting update for director ID:", directorId);
+      
+      const result = await updateDirector({
+        id: directorId,
+        formData: formData
       }).unwrap();
       
+      console.log("API Response:", result);
       message.success("Cập nhật đạo diễn thành công!");
       navigate("/admin/directors");
     } catch (error) {
-      console.error("Lỗi khi cập nhật đạo diễn:", error);
-      message.error("Cập nhật đạo diễn thất bại!");
+      console.error("Update error details:", error);
+      message.error("Cập nhật đạo diễn thất bại! " + (error.data?.message || error.message || ""));
     }
   };
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-full py-20">
-        <Spin size="large" tip="Đang tải dữ liệu..." />
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (!currentDirector) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="bg-white p-6 rounded-lg shadow text-center">
+          <div className="text-red-500 mb-4">Không tìm thấy thông tin đạo diễn!</div>
+          <Button type="primary" onClick={() => navigate("/admin/directors")}>
+            Quay lại danh sách
+          </Button>
+        </div>
       </div>
     );
   }
@@ -146,12 +213,9 @@ export default function EditDirector() {
               </Select>
             </Form.Item>
 
-            <Form.Item
-              name="profile_picture"
-              label="Ảnh đại diện"
-              valuePropName="fileList"
-              getValueFromEvent={e => e && e.fileList}
-            >
+            <div className="space-y-4">
+              <div className="font-medium text-gray-700">Ảnh đại diện</div>
+              
               <Upload
                 listType="picture-card"
                 fileList={fileList}
@@ -166,6 +230,8 @@ export default function EditDirector() {
                   </div>
                 )}
               </Upload>
+
+              {/* Hiển thị ảnh hiện tại nếu không có file mới được chọn */}
               {previewImage && fileList.length < 1 && (
                 <div className="mt-2">
                   <img 
@@ -179,7 +245,7 @@ export default function EditDirector() {
                   <div className="text-xs text-gray-500 mt-1">Ảnh hiện tại</div>
                 </div>
               )}
-            </Form.Item>
+            </div>
           </div>
 
           <Form.Item

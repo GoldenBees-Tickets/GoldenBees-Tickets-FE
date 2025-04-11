@@ -1,19 +1,20 @@
-import { useGetMoviesQuery } from "../../api/movieApi";
 import HomeItemMovie from "@/components/user/Home/HomeItemMovie";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { formatImage } from "@/utils/formatImage";
+import { useGetAllMoviesByUserQuery } from "../../api/movieApi";
 
 export default function Product() {
-  const { data: List } = useGetMoviesQuery();
+  const { data: List } = useGetAllMoviesByUserQuery();
+  console.log("List",List);
   const [activeTab, setActiveTab] = useState("now_showing"); // Default to "now_showing" instead of "all"
   const [searchTitle, setSearchTitle] = useState("");
   const [filterYear, setFilterYear] = useState("");
   const [filterGenre, setFilterGenre] = useState("");
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
-
+  
   // Use useMemo to process movies data only when List changes
   const { movies, uniqueYears, uniqueGenres } = useMemo(() => {
-    if (!List?.movies) {
+    if (!List?.data) {
       return { movies: [], uniqueYears: [], uniqueGenres: [] };
     }
 

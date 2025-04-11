@@ -18,7 +18,7 @@ export default function ListPromotions() {
   const [searchText, setSearchText] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
-  
+
   const [selectedPromotion, setSelectedPromotion] = useState(null);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDetailModalOpen, setDetailModalOpen] = useState(false);
@@ -212,8 +212,8 @@ export default function ListPromotions() {
         <Table
           columns={columns}
           dataSource={promotions}
-          rowKey="id"
-          pagination={false}
+        rowKey="id"
+        pagination={false}
           locale={{
             emptyText: (
               <div className="py-5">
@@ -241,7 +241,7 @@ export default function ListPromotions() {
             onChange={handlePageChange}
             showSizeChanger={true}
             pageSizeOptions={[5, 10, 20]}
-          />
+      />
         </div>
       )}
 

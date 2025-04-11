@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Table, Button, Modal, Spin, message, Input, Space } from "antd";
 import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
 import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
@@ -10,6 +10,8 @@ import { formatImage } from "@/utils/formatImage";
 const { Search } = Input;
 
 export default function ListProducers() {
+    const navigate = useNavigate();
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProducer, setSelectedProducer] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,8 +30,8 @@ export default function ListProducers() {
   
   const [deleteProducer] = useDeleteProducerMutation();
 
-  const handleEdit = (producer) => {
-    // Link to edit page is handled in the column definition
+  const handleEdit = (id) => {    
+    navigate(`/admin/producers/edit/${id}`);
   };
 
   const handleDelete = (producer) => {
@@ -126,8 +128,7 @@ export default function ListProducers() {
         <div className="flex space-x-2">
           <Button
             icon={<FiEdit2 />}
-            onClick={() => handleEdit(record)}
-            href={`/admin/editProducer/${record.id}`}
+            onClick={() => handleEdit(record.id)}
           />
           <Button
             danger
