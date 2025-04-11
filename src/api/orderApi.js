@@ -15,7 +15,24 @@ export const orderApi = createApi({
         return {
           url: `/pay-with-momo`,
           method: "POST",
-          data: { user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo },  // Sửa từ `data` thành `body`
+          data: { user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo }
+        };
+      },
+      invalidatesTags: [{ type: "Order", id: "ORDER" }],
+    }),
+
+    // Gọi callback từ client để cập nhật trạng thái đơn hàng
+    clientCallback: builder.mutation({
+      query: ({ orderId, resultCode, message, extraData }) => {
+        return {
+          url: `/client-callback`,
+          method: "POST",
+          data: { 
+            orderId, 
+            resultCode, 
+            message,
+            extraData 
+          }
         };
       },
       invalidatesTags: [{ type: "Order", id: "ORDER" }],
@@ -48,6 +65,7 @@ export const orderApi = createApi({
 // Xuất các hook tự động được tạo ra
 export const {
  useAddOrderMutation,
+ useClientCallbackMutation,
  useCheckOrderQuery,
  useGetOrderByUserQuery,
  useGetOrdersQuery

@@ -47,6 +47,7 @@ export default function Booking() {
   const { data: showtimeData } = useGetShowtimeByIdQuery(showtime_id, {
     skip: !showtime_id,
   });
+  console.log("showtimeData", showtimeData);
   
 
   const { data: listSeatTypes } = useGetListSeatTypesQuery();
@@ -235,6 +236,8 @@ export default function Booking() {
           setIsLoading(false);
 
           if (response.success) {
+            console.log("Lưu thông tin reservation với showtimeData:", showtimeData);
+            
             // Lưu thông tin vào localStorage
             saveReservationData(preparedSeats, response, showtimeData);
 

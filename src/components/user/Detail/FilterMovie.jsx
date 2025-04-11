@@ -14,10 +14,10 @@ export default function FilterMovie() {
   const [selectDate, setSelectDate] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedCinema, setSelectedCinema] = useState("");
-  const [currentTime] = useState(new Date());
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Query lấy suất chiếu với tham số lọc
-  const { data: ListShowtimes, isLoading, error } = useGetShowtimesByMovieIdQuery(
+  const { data: ListShowtimes, isLoading, error, refetch } = useGetShowtimesByMovieIdQuery(
     {
       movie_id,
       branch_id: selectedBranch || undefined,
@@ -26,9 +26,29 @@ export default function FilterMovie() {
     }, 
     {
       skip: !movie_id,
+      pollingInterval: 5 * 60 * 1000,
+      refetchOnMountOrArgChange: true
     }
   );
 
+  // Làm mới dữ liệu xuất chiếu mỗi khi thời gian thay đổi
+  useEffect(() => {
+    const getTimeToNextMinute = () => {
+      const now = new Date();
+      const nextMinute = new Date(now);
+      nextMinute.setMinutes(now.getMinutes() + 1, 0, 0);
+      return nextMinute.getTime() - now.getTime();
+    };
+
+    const refreshTimer = setTimeout(() => {
+      console.log("Đang làm mới dữ liệu xuất chiếu...");
+      refetch();
+      setRefreshKey(prev => prev + 1);
+    }, getTimeToNextMinute());
+
+    return () => clearTimeout(refreshTimer);
+  }, [refetch, refreshKey]);
+  
   const { data: List } = useGetBranchesQuery();
   const { data: List2 } = useGetCinemasQuery();
   
@@ -52,10 +72,13 @@ export default function FilterMovie() {
     setSelectedCinema("");
   }, [selectedBranch]);
 
-  // Lấy danh sách ngày duy nhất từ ListShowtimes
+  // Lấy danh sách ngày duy nhất từ ListShowtimes và sắp xếp theo ngày
   const uniqueDates = useMemo(() => {
     if (!ListShowtimes || !Array.isArray(ListShowtimes)) return [];
-    return [...new Set(ListShowtimes.map(showtime => showtime.show_date))];
+    
+    const dates = [...new Set(ListShowtimes.map(showtime => showtime.show_date))];
+    
+    return dates.sort((a, b) => new Date(a) - new Date(b));
   }, [ListShowtimes]);
 
   const renderDates = useMemo(
@@ -159,20 +182,8 @@ export default function FilterMovie() {
     }
 
     return cinemas.map((cinema) => {
-      const today = new Date();
-      const isToday = selectDate === today.toISOString().split('T')[0];
-      
+      // Không cần lọc lại ở frontend vì đã được lọc ở backend
       let availableShowtimes = cinema.showtimes;
-      if (isToday) {
-        availableShowtimes = availableShowtimes.filter(showtime => {
-          if (!showtime.start_time) return false;
-          
-          const [hours, minutes] = showtime.start_time.split(':');
-          const showtimeDate = new Date();
-          showtimeDate.setHours(parseInt(hours), parseInt(minutes), 0);
-          return showtimeDate > currentTime;
-        });
-      }
 
       if (!availableShowtimes || availableShowtimes.length === 0) return null;
 
@@ -216,7 +227,7 @@ export default function FilterMovie() {
         </div>
       );
     }).filter(Boolean);
-  }, [ListShowtimes, selectDate, selectedCinema, currentTime]);
+  }, [ListShowtimes, selectDate, selectedCinema]);
 
   const handleReset = () => {
     setSelectedBranch("");

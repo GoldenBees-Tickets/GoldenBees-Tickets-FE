@@ -17,12 +17,8 @@ export default function Product() {
       return { movies: [], uniqueYears: [], uniqueGenres: [] };
     }
 
-    // Only include active movies (filter out "ended" movies)
-    const activeMovies = List.movies.filter(movie => 
-      movie.status === "now_showing" || 
-      movie.status === "opening_soon" || 
-      movie.status === "coming_soon"
-    );
+    // Lấy tất cả phim thay vì lọc theo status
+    const activeMovies = List.movies;
 
     // Extract unique years
     const years = [...new Set(activeMovies.map(movie => movie.year))]
@@ -51,10 +47,10 @@ export default function Product() {
     if (!movies.length) return [];
     
     return movies.filter(movie => {
-      // Filter by status
-      if (activeTab !== "all" && movie.status !== activeTab) {
-        return false;
-      }
+      // Bỏ qua việc lọc theo status
+      // if (activeTab !== "all" && movie.status !== activeTab) {
+      //   return false;
+      // }
       
       // Filter by title
       if (searchTitle && !movie.name.toLowerCase().includes(searchTitle.toLowerCase())) {
@@ -75,10 +71,10 @@ export default function Product() {
       
       return true;
     });
-  }, [movies, activeTab, searchTitle, filterYear, filterGenre]);
+  }, [movies, searchTitle, filterYear, filterGenre]); // Loại bỏ activeTab khỏi dependencies
 
   const handleReset = () => {
-    setActiveTab("now_showing"); // Reset to now_showing instead of all
+    // setActiveTab("now_showing"); // Không cần thiết lập activeTab nữa
     setSearchTitle("");
     setFilterYear("");
     setFilterGenre("");
@@ -88,20 +84,21 @@ export default function Product() {
     setIsFilterExpanded(!isFilterExpanded);
   };
 
-  const getStatusCountText = useMemo(() => {
-    if (!movies.length) return {};
+  // Không cần getStatusCountText vì chúng ta không lọc theo status nữa
+  // const getStatusCountText = useMemo(() => {
+  //   if (!movies.length) return {};
     
-    const nowShowing = movies.filter(m => m.status === "now_showing").length;
-    const openingSoon = movies.filter(m => m.status === "opening_soon").length;
-    const comingSoon = movies.filter(m => m.status === "coming_soon").length;
+  //   const nowShowing = movies.filter(m => m.status === "now_showing").length;
+  //   const openingSoon = movies.filter(m => m.status === "opening_soon").length;
+  //   const comingSoon = movies.filter(m => m.status === "coming_soon").length;
     
-    return {
-      now_showing: `Đang chiếu (${nowShowing})`,
-      opening_soon: `Sắp chiếu (${openingSoon})`,
-      coming_soon: `Sắp ra mắt (${comingSoon})`,
-      all: `Tất cả (${movies.length})`
-    };
-  }, [movies]);
+  //   return {
+  //     now_showing: `Đang chiếu (${nowShowing})`,
+  //     opening_soon: `Sắp chiếu (${openingSoon})`,
+  //     coming_soon: `Sắp ra mắt (${comingSoon})`,
+  //     all: `Tất cả (${movies.length})`
+  //   };
+  // }, [movies]);
 
   return (
     <div className="bg-gray-50 min-h-screen pt-10 pb-12">
@@ -185,44 +182,11 @@ export default function Product() {
           
           <div className="flex flex-wrap items-center justify-between mt-2 text-xs text-gray-500">
             <span>
-              Hiển thị <span className="font-medium text-orange-500">{filteredMovies.length}</span> trên {ListMovie.length} phim
+              Hiển thị <span className="font-medium text-orange-500">{filteredMovies.length}</span> trên {movies.length} phim
               {(searchTitle || filterYear || filterGenre) && <span className="ml-1 text-orange-500">(đã lọc)</span>}
             </span>
           </div>
         </div>
-
-        {/* Movie grid */}
-        {filteredMovies.length > 0 ? (
-          <div className="grid grid-cols-4 gap-4 sm:gap-6">
-            {filteredMovies?.map((movie) => (
-              <HomeItemMovie
-                key={movie.id}
-                title={movie.name}
-                year={movie.year}
-                imageSrc={formatImage(movie.poster)}
-                id={movie.id}
-                genres={movie.MovieGenres?.map(mg => ({ id: mg.Genre?.id, name: mg.Genre?.name }))}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white rounded-xl p-12 text-center shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-            </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Không tìm thấy phim</h3>
-            <p className="text-gray-500">Không có phim nào phù hợp với bộ lọc bạn đã chọn.</p>
-            <button
-              onClick={handleReset}
-              className="mt-4 py-2 px-4 text-sm text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors inline-flex items-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Đặt lại bộ lọc
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="flex items-center justify-between mb-4">
@@ -249,14 +213,26 @@ export default function Product() {
               year={movie.year}
               imageSrc={formatImage(movie.poster)}
               id={movie.id}
-              status={movie.status}
               genres={movie.MovieGenres?.map(mg => ({ id: mg.Genre?.id, name: mg.Genre?.name }))}
             />
           ))}
         </div>
       ) : (
-        <div className="text-center py-8">
-          <p className="text-gray-500">Không tìm thấy phim phù hợp với tiêu chí tìm kiếm.</p>
+        <div className="bg-white rounded-xl p-12 text-center shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+          </svg>
+          <h3 className="text-lg font-medium text-gray-900 mb-1">Không tìm thấy phim</h3>
+          <p className="text-gray-500">Không có phim nào phù hợp với bộ lọc bạn đã chọn.</p>
+          <button
+            onClick={handleReset}
+            className="mt-4 py-2 px-4 text-sm text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors inline-flex items-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Đặt lại bộ lọc
+          </button>
         </div>
       )}
     </div>

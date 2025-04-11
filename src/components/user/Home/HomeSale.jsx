@@ -67,9 +67,9 @@ export default function HomeSale() {
         {/* Use flex layout instead of grid for horizontal display on all screen sizes */}
         <div className="overflow-x-auto hide-scrollbar">
           <div className="flex space-x-4 md:space-x-6 min-w-min">
-            {visibleItems.map((item, index) => (
-              <div 
-                key={item.id} 
+          {visibleItems.map((item, index) => (
+            <div 
+              key={item.id} 
                 className={`rounded-lg overflow-hidden shadow hover:shadow-md transition-all duration-700 bg-white flex-shrink-0 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}
                 style={{ 
                   transitionDelay: `${index * 150}ms`,
@@ -77,19 +77,19 @@ export default function HomeSale() {
                   maxWidth: '280px',
                   minWidth: '220px'
                 }}
-              >
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img
-                    src={item.image}
-                    alt={item.content}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-3">
-                  <p className="font-medium text-sm text-gray-800 hover:text-red-600 transition-colors">{item.content}</p>
-                </div>
+            >
+              <div className="aspect-[4/3] overflow-hidden">
+                <img
+                  src={item.image}
+                  alt={item.content}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                />
               </div>
-            ))}
+              <div className="p-3">
+                <p className="font-medium text-sm text-gray-800 hover:text-red-600 transition-colors">{item.content}</p>
+              </div>
+            </div>
+          ))}
           </div>
         </div>
         

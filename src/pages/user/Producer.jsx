@@ -58,9 +58,9 @@ export default function Producer() {
           <div className="md:flex">
             <div className="md:w-1/3 lg:w-1/4 p-6 flex flex-col items-center">
               <div className="w-48 h-48 md:w-full md:h-72 lg:h-96 rounded-xl overflow-hidden shadow-lg mb-4">
-                <img
+              <img
                   src={`${API_BASE_URL}/${profile_picture}`}
-                  alt={name}
+                alt={name}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.target.onerror = null;
@@ -74,7 +74,7 @@ export default function Producer() {
                 </span>
               </div>
             </div>
-            
+
             <div className="md:w-2/3 lg:w-3/4 p-6 md:p-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-4">{name}</h1>
               
@@ -109,7 +109,7 @@ export default function Producer() {
               </p>
             </div>
           </div>
-        </div>
+      </div>
       </div>
     </div>
   );

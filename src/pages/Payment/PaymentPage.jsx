@@ -5,58 +5,69 @@ import MomoPayment from "../../components/Payment/MomoPayment";
 const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats }) => {
   const location = useLocation();
   const navigate = useNavigate();
+console.log("showtimeData payment", showtimeData);
 
+
+  // Lấy dữ liệu từ localStorage
   const dataPage = JSON.parse(localStorage.getItem("reservation") || "{}");
   const dataTotal = JSON.parse(localStorage.getItem("payment_info") || "{}");
   const promotion_id = localStorage.getItem("promotion_id") || null;
+  const finalPrice = localStorage.getItem("finalPrice") || 0;
+  // Log để debug
+  console.log("PaymentPage - dataPage:", dataPage);
+  console.log("PaymentPage - showtimeData:", showtimeData);
   
+  // Lấy thông tin ghế và tính giá
   const seat_ids = selectedSeats?.map((seat) => {
     let basePrice = 0;
     const price_offset = listSeatTypes?.seat_types?.find((type) => type.id === seat.type_id)?.price_offset;
 
-    basePrice = Number(showtimeData?.showtime?.base_price) + Number(price_offset);
-    return { id: seat.id,price: basePrice}  
+    basePrice = Number(showtimeData?.base_price) + Number(price_offset);
+    return { id: seat.id, price: basePrice}  
   });
     
+  // Chuẩn bị dữ liệu hiển thị
+  const movieName = showtimeData?.showtime?.Movie?.name || 
+                   showtimeData?.Movie?.name || 
+                   dataPage?.showtime?.Movie?.name || 
+                   "Không xác định";
+  
+  // Định dạng suất chiếu
+  let showtimeText = "Không xác định";
+  if (showtimeData?.start_time && showtimeData?.show_date) {
+    showtimeText = `${showtimeData.start_time} ${showtimeData.show_date}`;
+  } else if (showtimeData?.showtime?.start_time) {
+    showtimeText = showtimeData.showtime.start_time;
+  } else if (dataPage?.showtime?.start_time) {
+    showtimeText = typeof dataPage.showtime.start_time === 'object'
+      ? `${dataPage.showtime.start_time.time} - ${dataPage.showtime.start_time.date}`
+      : dataPage.showtime.start_time;
+  }
   
   const dataConfirm = {
-    movie: dataPage?.showtime?.movie?.name,
-    showtime:
-      dataPage?.showtime?.start_time?.time +
-      " - " +
-      dataPage?.showtime?.start_time?.date,
+    movie: movieName,
+    showtime: showtimeText,
     foodItems: dataPage?.foodItems,
-    total: dataTotal?.total_amount,
+    total: finalPrice || 0,
   };
 
-  // Lấy thông tin thanh toán từ state hoặc sử dụng giá trị mặc định
-  const { amount, orderInfo, movieData } = location.state || {
-    amount: dataTotal?.total_amount,
-    orderInfo: `Thanh toán vé xem phim ${dataPage?.showtime?.movie?.name}`,
-    movieData: {
-      title: dataPage?.showtime?.movie?.name,
-      showtime:
-        dataPage?.showtime?.start_time?.time +
-        " - " +
-        dataPage?.showtime?.start_time?.date,
-      theater: dataPage?.showtime?.room?.cinema?.name,
-      seats: dataPage?.seats
-        ?.map((seat) => seat.seat_row + seat.seat_number)
-        .join(", "),
-    },
-  };
+  // Lấy thông tin thanh toán
+  const amount = dataTotal?.total_amount || 0;
+  const orderInfo = `Thanh toán vé xem phim ${movieName}`;
   
+  // Chuẩn bị dữ liệu gửi đến API
   const dataApi = {
     user_id,
-    total: dataTotal?.total_amount,
-    amount: dataTotal?.total_amount,
+    total: finalPrice,
+    amount: finalPrice,
     seat_ids: seat_ids,
-    showtime_id: dataPage?.showtime,
+    showtime_id: dataPage?.showtime.id,
     combos: dataPage?.foodItems,
     promotion_id,
-    orderInfo: `Thanh toán vé xem phim ${dataPage?.showtime?.movie?.name}`,
+    orderInfo: orderInfo,
   };
-
+  console.log("dataApi", dataApi);
+  
   // Xử lý khi thanh toán thành công
   const handlePaymentSuccess = (payUrl) => {
     // Chuyển hướng đến trang thanh toán MOMO
@@ -132,7 +143,7 @@ const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats }) =>
                 Tổng tiền:
               </td>
               <td className="border border-gray-300 px-4 py-2">
-                {dataConfirm?.total}
+                {dataConfirm?.total.toLocaleString()} VNĐ
               </td>
             </tr>
           </tbody>

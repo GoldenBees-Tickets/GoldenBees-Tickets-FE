@@ -21,6 +21,9 @@ const BookingSidebar = ({
   const totalPrice = calculateTotalPrice();
   const discount = discountValue();
   const finalPrice = totalPrice - discount;
+  if(finalPrice) {
+    localStorage.setItem("finalPrice", finalPrice);
+  }
 
   const [searchParams, updateSearchParams] = useSearchParams();
   const checkCancel = searchParams.get("step") || "";
