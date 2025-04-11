@@ -64,25 +64,33 @@ export default function HomeSale() {
       <h2 className={`text-2xl font-bold text-gray-800 mb-6 transition-all duration-700 delay-100 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>Tin Khuyến Mãi</h2>
 
       <div className="relative mx-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {visibleItems.map((item, index) => (
-            <div 
-              key={item.id} 
-              className={`rounded-lg overflow-hidden shadow hover:shadow-md transition-all duration-700 bg-white ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}
-              style={{ transitionDelay: `${index * 150}ms` }}
-            >
-              <div className="aspect-[4/3] overflow-hidden">
-                <img
-                  src={item.image}
-                  alt={item.content}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                />
+        {/* Use flex layout instead of grid for horizontal display on all screen sizes */}
+        <div className="overflow-x-auto hide-scrollbar">
+          <div className="flex space-x-4 md:space-x-6 min-w-min">
+            {visibleItems.map((item, index) => (
+              <div 
+                key={item.id} 
+                className={`rounded-lg overflow-hidden shadow hover:shadow-md transition-all duration-700 bg-white flex-shrink-0 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}
+                style={{ 
+                  transitionDelay: `${index * 150}ms`,
+                  width: 'calc(100% / 1.2)',
+                  maxWidth: '280px',
+                  minWidth: '220px'
+                }}
+              >
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img
+                    src={item.image}
+                    alt={item.content}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-3">
+                  <p className="font-medium text-sm text-gray-800 hover:text-red-600 transition-colors">{item.content}</p>
+                </div>
               </div>
-              <div className="p-3">
-                <p className="font-medium text-sm text-gray-800 hover:text-red-600 transition-colors">{item.content}</p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
         
         {/* Navigation Buttons - Positioned outside the grid container */}
@@ -123,3 +131,14 @@ export default function HomeSale() {
     </div>
   );
 }
+
+/* Add this CSS to hide scrollbars but maintain scroll functionality */
+<style jsx>{`
+  .hide-scrollbar {
+    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari, Opera */
+  }
+`}</style>

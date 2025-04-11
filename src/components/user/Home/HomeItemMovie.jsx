@@ -19,38 +19,41 @@ export default function HomeItemMovie({ title, year, imageSrc, id, genres = [], 
   };
   
   return (
-    <Link to={`/detail/${id}`} className="block">
-      <div className="relative h-full bg-gray-800 rounded-xl overflow-hidden">
-
+    <Link to={`/detail/${id}`} className="block h-full">
+      <div className="relative h-full bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+          {/* Gradient overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10"></div>
+          
           <img
             src={imageSrc}
             alt={title}
             className="aspect-[3/4] w-full object-cover"
+            loading="lazy"
           />
           
-          {/* Rating badge */}
-          <div className="absolute top-3 right-3 z-20">
-            <div className="bg-yellow-400 text-xs font-bold text-gray-900 px-2 py-1 rounded-md">
+          {/* Rating badge - smaller on mobile */}
+          <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-20">
+            <div className="bg-yellow-400 text-[10px] sm:text-xs font-bold text-gray-900 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
               8.5
             </div>
           </div>
           
-          {/* Genre badge */}
-          <div className="absolute top-3 left-3 z-20 flex flex-wrap gap-2">
+          {/* Genre badge - adaptive for mobile */}
+          <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-20 flex flex-wrap gap-1 sm:gap-2 max-w-[70%]">
             {genres && genres.length > 0 ? (
-              genres.map((genre, index) => (
+              // Limit to 2 genres on small screens
+              genres.slice(0, window.innerWidth < 640 ? 1 : 2).map((genre, index) => (
                 <div 
                   key={index}
-                  className="bg-purple-600 text-xs font-bold text-white px-2 py-1 rounded-md"
+                  className="bg-orange-500 text-[10px] sm:text-xs font-medium sm:font-bold text-white px-1.5 sm:px-2 py-0.5 sm:py-1 rounded truncate max-w-full"
                 >
                   {genre.name}
                 </div>
               ))
             ) : (
-              <div className="bg-purple-600 text-xs font-bold text-white px-2 py-1 rounded-md">
-                Chưa phân loại
+              <div className="bg-orange-500 text-[10px] sm:text-xs font-medium sm:font-bold text-white px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
+                Phim
               </div>
             )}
           </div>
@@ -76,17 +79,17 @@ export default function HomeItemMovie({ title, year, imageSrc, id, genres = [], 
             )}
           </div>
           
-          {/* Action buttons */}
-          <div className="flex justify-between items-center mt-3">
+          {/* Action buttons - hide on very small screens, show on hover for larger screens */}
+          <div className="flex justify-between items-center mt-1.5 sm:mt-2 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <button 
-              className="text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full"
+              className="text-[10px] sm:text-xs bg-white/10 hover:bg-white/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full hidden sm:block"
               title="Add to wishlist"
             >
               <span className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                 </svg>
-                Wishlist
+                <span className="hidden sm:inline">Wishlist</span>
               </span>
             </button>
             {status !== "coming_soon" ? (

@@ -21,13 +21,13 @@ export default function Footer() {
               <div className="flex items-center">
                 <div className="w-12 h-12 flex items-center justify-center rounded bg-amber-500 p-2">
                   <img
-                    src="https://www.svgrepo.com/show/452102/slack.svg"
-                    alt="XemPhim"
-                    className="h-8 w-8 brightness-0 invert"
+                    src="/src/public/LogoHeader.png"
+                    alt="Golden Bees Cinema"
+                    className="h-8 w-8 object-contain"
                   />
                 </div>
                 <div className="ml-4">
-                  <h2 className="text-2xl font-bold tracking-tight text-white">XemPhim</h2>
+                  <h2 className="text-2xl font-bold tracking-tight text-white">Golden Bees</h2>
                   <p className="text-xs text-gray-500 mt-1">Trải nghiệm điện ảnh</p>
                 </div>
               </div>
@@ -187,7 +187,7 @@ export default function Footer() {
         <div className="mt-20 pt-8 border-t border-gray-900">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-xs text-gray-600">
-              © {new Date().getFullYear()} <span className="text-gray-500">XemPhim</span>. Tất cả quyền được bảo lưu.
+              © {new Date().getFullYear()} <span className="text-gray-500">Golden Bees</span>. Tất cả quyền được bảo lưu.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="/chinh-sach" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">
