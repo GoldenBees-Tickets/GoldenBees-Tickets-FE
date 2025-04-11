@@ -16,7 +16,6 @@ import Actors from "@/pages/admin/Actors";
 import AddActor from "@/components/Admin/AdminActor/AddActor";
 import EditActor from "@/components/Admin/AdminActor/EditActor";
 import AddDirector from "@/components/Admin/AdminDirectors/AddDirector";
-import ListDirector from "@/components/Admin/AdminDirectors/ListDirector";
 import EditDerector from "@/components/Admin/AdminDirectors/EditDerector";
 import Directors from "@/pages/admin/Directors";
 import Producers from "@/pages/admin/Producers";
@@ -70,15 +69,13 @@ const AdminRoutes = {
     { path: "editcinemas", element: <EditCinemas /> },
     { path: "genre", element: <Genre /> },
     { path: "actors", element: <Actors /> },
-    { path: "addactors", element: <AddActor /> },
-    { path: "editActor/:id", element: <EditActor /> },
-    { path: "directors", element: <Directors /> },
-    { path: "addDirector", element: <AddDirector /> },
-    { path: "ListDirector", element: <ListDirector /> },
-    { path: "EditDirector/:id", element: <EditDerector /> },
+    { path: "actors/add", element: <AddActor /> },
+    { path: "actors/edit/:id", element: <EditActor /> },
+    { path: "directors/add", element: <AddDirector /> },
+    { path: "directors/edit/:id", element: <EditDerector /> },
     { path: "directors", element: <Directors /> },
     { path: "producers", element: <Producers /> },
-    { path: "EditProducer/:id", element: <EditProducer /> },
+    { path: "producers/edit/:id", element: <EditProducer /> },
     { path: "listproducer", element: <ListProducer /> },
     { path: "AddProducer", element: <AddProducer /> },
     { path: "rooms", element: <Room /> },

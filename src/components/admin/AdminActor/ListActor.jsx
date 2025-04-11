@@ -8,22 +8,21 @@ import {
 } from "../../../api/actorApi";
 import PaginationDefault from "@/components/PaginationDefault";
 import { formatImage } from "@/utils/formatImage";
-import EditActor from "./EditActor";
+import { useNavigate } from "react-router-dom";
 
 const { Search } = Input;
 const { Option } = Select;
 
 export default function ListActors() {
+  const navigate = useNavigate();
   const [selectedActor, setSelectedActor] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [searchText, setSearchText] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [genderFilter, setGenderFilter] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
-  const [imageUrl, setImageUrl] = useState("");
 
   // Gọi API với các tham số phân trang và lọc
   const { data: actorData, error, isLoading } = useGetActorsQuery({
@@ -37,8 +36,7 @@ export default function ListActors() {
   const [deleteActor] = useDeleteActorMutation();
 
   const handleEdit = (actor) => {
-    setSelectedActor(actor);    
-    setIsEditModalOpen(true);
+    navigate(`/admin/actors/edit/${actor.id}`);
   };
 
   const handleDelete = (actor) => {
@@ -222,24 +220,6 @@ export default function ListActors() {
       >
         <p>Bạn có chắc chắn muốn xóa diễn viên "{selectedActor?.name}" không?</p>
       </Modal>
-
-      {/* Modal chỉnh sửa diễn viên */}
-      {isEditModalOpen && selectedActor && (
-        <Modal
-          open={isEditModalOpen}
-          onCancel={() => setIsEditModalOpen(false)}
-          footer={null}
-          width={700}
-          destroyOnClose={true}
-          bodyStyle={{ padding: 0 }}
-        >
-          <EditActor 
-            id={selectedActor.id}
-            actor={selectedActor}
-            onClose={() => setIsEditModalOpen(false)}
-          />
-        </Modal>
-      )}
     </>
   );
 }

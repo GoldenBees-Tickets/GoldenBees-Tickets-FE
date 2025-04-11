@@ -27,7 +27,7 @@ export const actorApi = createApi({
       query: ({ id, ...actorData }) => ({
         url: `/${id}`,
         method: "PUT",
-        data: actorData,
+        data: actorData.formData,
         useHttpClient: true,
         isFormData: true,
       }),

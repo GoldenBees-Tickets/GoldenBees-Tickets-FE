@@ -1,21 +1,34 @@
-import { useState, useEffect } from "react";
-import { Table, Button, Modal, Spin, message } from "antd";
+import { useState } from "react";
+import { Table, Button, Modal, Spin, message, Input, Space } from "antd";
 import { FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
+import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import { useGetListSeatTypesQuery, useDeleteSeatTypeMutation } from "@/api/seatTypeApi";
 import UpdateSeatType from "./UpdateSeatType";
 import PaginationDefault from "@/components/PaginationDefault";
 import AddSeatType from "./AddSeatType";
 
+const { Search } = Input;
+
 export default function ListSeatType() {
-  const { data: listSeatTypes, isLoading } = useGetListSeatTypesQuery();
-  const [deleteSeatType] = useDeleteSeatTypeMutation();
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [isShowFormUpdate, setIsShowFormUpdate] = useState(false);
   const [isShowFormCreate, setIsShowFormCreate] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedSeatType, setSelectedSeatType] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+
+  // Gọi API với các tham số phân trang, tìm kiếm và sắp xếp
+  const { data: seatTypeData, isLoading } = useGetListSeatTypesQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: searchValue,
+    sort_order: sortOrder
+  });
+  
+  const [deleteSeatType] = useDeleteSeatTypeMutation();
 
   const handleEdit = (seatType) => {
     setSelectedSeatType(seatType);
@@ -38,6 +51,36 @@ export default function ListSeatType() {
     setIsDeleteModalOpen(false);
   };
 
+  const handleSearch = (value) => {
+    setSearchValue(value);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchText(e.target.value);
+  };
+
+  const handleReset = () => {
+    setSearchText("");
+    setSearchValue("");
+    setSortOrder("desc");
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+      setPageSize(newPageSize);
+      setCurrentPage(1);
+    } else {
+      setCurrentPage(page);
+    }
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
+  };
+
   const columns = [
     {
       title: "ID",
@@ -46,7 +89,23 @@ export default function ListSeatType() {
       width: 80,
     },
     {
-      title: "Loại ghế",
+      title: (
+        <div 
+          className="flex items-center cursor-pointer select-none" 
+          onClick={toggleSortOrder}
+        >
+          Loại ghế
+          <div className="flex flex-col ml-1">
+            <CaretUpOutlined 
+              className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
+              style={{ marginBottom: -2 }}
+            />
+            <CaretDownOutlined 
+              className={`text-[10px] ${sortOrder === "desc" ? "text-blue-500" : "text-gray-400"}`}
+            />
+          </div>
+        </div>
+      ),
       dataIndex: "type",
       key: "type",
     },
@@ -113,12 +172,16 @@ export default function ListSeatType() {
 
   if (isLoading) return <Spin className="flex justify-center mt-10" size="large" />;
 
-  const seatTypes = listSeatTypes?.seat_types || [];
+  const seatTypes = seatTypeData?.seat_types || [];
+  const pagination = seatTypeData?.pagination || { total: 0, currentPage: 1, totalPages: 1 };
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+        <div>
         <h2 className="text-xl font-bold text-gray-800">Danh Sách Loại Ghế</h2>
+          <p className="text-gray-500 mt-1">Quản lý các loại ghế trong hệ thống</p>
+        </div>
         <Button
           type="primary"
           icon={<FiPlus />}
@@ -129,6 +192,23 @@ export default function ListSeatType() {
         </Button>
       </div>
 
+      {/* Thanh tìm kiếm và bộ lọc */}
+      <div className="mb-4 flex flex-wrap gap-3">
+        <Search
+          placeholder="Tìm kiếm loại ghế..."
+          allowClear
+          onSearch={handleSearch}
+          value={searchText}
+          onChange={handleSearchChange}
+          style={{ width: 250 }}
+          prefix={<SearchOutlined className="text-gray-400" />}
+        />
+        
+        {(searchValue || sortOrder !== "desc") && (
+          <Button onClick={handleReset}>Xóa bộ lọc</Button>
+        )}
+      </div>
+
       <Table
         columns={columns}
         dataSource={seatTypes}
@@ -137,26 +217,39 @@ export default function ListSeatType() {
       />
 
       <PaginationDefault
-        totalItems={seatTypes.length || 0}
-        totalPages={Math.ceil((seatTypes.length || 0) / pageSize)}
-        currentPage={currentPage}
-        onPageChange={(page, newSize) => {
-          setCurrentPage(page);
-          if (newSize) setPageSize(newSize);
-        }}
+        current={pagination.currentPage}
+        total={pagination.total}
+        pageSize={pageSize}
+        onChange={handlePageChange}
+        showSizeChanger={true}
+        pageSizeOptions={[5, 10, 20]}
       />
 
       {isShowFormUpdate && (
+        <Modal
+          open={isShowFormUpdate}
+          footer={null}
+          onCancel={() => setIsShowFormUpdate(false)}
+          width={500}
+        >
         <UpdateSeatType
           seat_type={selectedSeatType}
           setIsShowFormUpdate={setIsShowFormUpdate}
         />
+        </Modal>
       )}
 
       {isShowFormCreate && (
+        <Modal
+          open={isShowFormCreate}
+          footer={null}
+          onCancel={() => setIsShowFormCreate(false)}
+          width={500}
+        >
         <AddSeatType
           isShowFormCreate={setIsShowFormCreate}
         />
+        </Modal>
       )}
 
       {/* Modal xác nhận xóa */}
@@ -168,7 +261,8 @@ export default function ListSeatType() {
         okButtonProps={{ danger: true }}
         title="Xác nhận xóa"
       >
-        Bạn có chắc chắn muốn xóa loại ghế "{selectedSeatType?.type}" không?
+        <p>Bạn có chắc chắn muốn xóa loại ghế "{selectedSeatType?.type}" không?</p>
+        <p className="text-red-500 text-sm mt-2">Lưu ý: Hành động này không thể hoàn tác.</p>
       </Modal>
     </div>
   );

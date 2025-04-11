@@ -12,10 +12,26 @@ export const seatTypeApi = createApi({
   tagTypes: ["SeatType"], 
   endpoints: (builder) => ({
     getListSeatTypes: builder.query({
-      query: () => ({
-        url: `/`,
+      query: (params) => {
+        const { page = 1, limit = 5, search = "", sort_order = "desc" } = params || {};
+        
+        // Thêm query params 
+        const queryParams = [];
+        if (page) queryParams.push(`page=${page}`);
+        if (limit) queryParams.push(`limit=${limit}`);
+        if (search) queryParams.push(`search=${search}`);
+        if (sort_order) queryParams.push(`sort_order=${sort_order}`);
+        
+        let url = '/';
+        if (queryParams.length > 0) {
+          url += `?${queryParams.join('&')}`;
+        }
+        
+        return {
+          url: url,
         useHttpClient: true,
-      }),
+        };
+      },
       providesTags: (result) =>
         result
           ? [

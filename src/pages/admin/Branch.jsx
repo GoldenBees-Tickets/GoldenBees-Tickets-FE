@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Tag, Button, Modal, Spin, message } from "antd";
+import { Tag, Button, Modal, Spin, message, Input, Space } from "antd";
 import { FiEdit2, FiTrash2, FiPlus, FiEye } from "react-icons/fi";
+import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import {
   useDeleteBranchMutation,
   useGetBranchesQuery,
@@ -12,12 +13,9 @@ import citiesData from "../../public/vietnamAddress.json";
 import ResponsiveTable from "@/components/admin/ResponsiveTable";
 import PaginationDefault from "@/components/PaginationDefault";
 
-export default function Branch() {
-  const { data: branchData, error, isLoading } = useGetBranchesQuery();
-  const [deleteBranch] = useDeleteBranchMutation();
-  const [createBranch] = useCreateBranchMutation();
-  const [updateBranch] = useUpdateBranchMutation();
+const { Search } = Input;
 
+export default function Branch() {
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDetailModalOpen, setDetailModalOpen] = useState(false);
@@ -25,10 +23,25 @@ export default function Branch() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [formData, setFormData] = useState({
     name: "",
     city: null
   });
+
+  // Gọi API với các tham số phân trang và lọc
+  const { data: branchData, error, isLoading } = useGetBranchesQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: searchValue,
+    sort_order: sortOrder
+  });
+  
+  const [deleteBranch] = useDeleteBranchMutation();
+  const [createBranch] = useCreateBranchMutation();
+  const [updateBranch] = useUpdateBranchMutation();
 
   const handleViewDetail = (branch) => {
     setSelectedBranch(branch);
@@ -121,6 +134,36 @@ export default function Branch() {
     }
   };
 
+  const handleSearch = (value) => {
+    setSearchValue(value);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchText(e.target.value);
+  };
+
+  const handleReset = () => {
+    setSearchText("");
+    setSearchValue("");
+    setSortOrder("desc");
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+      setPageSize(newPageSize);
+      setCurrentPage(1);
+    } else {
+      setCurrentPage(page);
+    }
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
+  };
+
   const columns = [
     {
       title: "ID",
@@ -129,7 +172,23 @@ export default function Branch() {
       width: 70,
     },
     {
-      title: "Tên chi nhánh",
+      title: (
+        <div 
+          className="flex items-center cursor-pointer select-none" 
+          onClick={toggleSortOrder}
+        >
+          Tên chi nhánh
+          <div className="flex flex-col ml-1">
+            <CaretUpOutlined 
+              className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
+              style={{ marginBottom: -2 }}
+            />
+            <CaretDownOutlined 
+              className={`text-[10px] ${sortOrder === "desc" ? "text-blue-500" : "text-gray-400"}`}
+            />
+          </div>
+        </div>
+      ),
       dataIndex: "name",
       key: "name",
       ellipsis: true,
@@ -185,10 +244,27 @@ export default function Branch() {
         </Button>
       </div>
 
+      {/* Thanh tìm kiếm và bộ lọc */}
+      <div className="mb-4 flex flex-wrap gap-3">
+        <Search
+          placeholder="Tìm kiếm chi nhánh..."
+          allowClear
+          onSearch={handleSearch}
+          value={searchText}
+          onChange={handleSearchChange}
+          style={{ width: 250 }}
+          prefix={<SearchOutlined className="text-gray-400" />}
+        />
+        
+        {(searchValue || sortOrder !== "desc") && (
+          <Button onClick={handleReset}>Xóa bộ lọc</Button>
+        )}
+      </div>
+
       <div className="bg-white rounded-lg shadow-sm mb-4 sm:mb-6">
         <ResponsiveTable
           columns={columns}
-          dataSource={branchData?.branches}
+          dataSource={branchData?.branches || []}
           rowKey="id"
           pagination={false}
           scroll={{ x: 650 }}
@@ -196,17 +272,16 @@ export default function Branch() {
         />
       </div>
 
+      <div className="mt-4">
       <PaginationDefault
-        totalItems={branchData?.branches?.length || 0}
-        totalPages={Math.ceil(
-          (branchData?.branches?.length || 0) / pageSize
-        )}
-        currentPage={currentPage}
-        onPageChange={(page, newSize) => {
-          setCurrentPage(page);
-          if (newSize) setPageSize(newSize);
-        }}
+          current={branchData?.pagination?.currentPage || 1}
+          total={branchData?.pagination?.total || 0}
+          pageSize={pageSize}
+          onChange={handlePageChange}
+          showSizeChanger={true}
+          pageSizeOptions={[5, 10, 20]}
       />
+      </div>
 
       {/* Modals */}
       {/* Chi tiết chi nhánh */}

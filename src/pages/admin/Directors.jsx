@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "antd";
 import { FiPlus } from "react-icons/fi";
-import ListDirectors from "@/components/admin/AdminDirector/ListDirectors";
+import ListDirectors from "@/components/admin/AdminDirectors/ListDirector";
 
 export default function Directors() {
   return (

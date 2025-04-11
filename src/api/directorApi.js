@@ -24,18 +24,21 @@ export const directorApi = createApi({
 
     // Cập nhật thông tin đạo diễn
     updateDirector: builder.mutation({
-      query: ({ id, ...directorData }) => ({
-        url: `/${id}`,
-        method: "PUT",
-        data: directorData,
-        useHttpClient: true,
-        isFormData: true,
-      }),
+      query: ({ id, ...directorData }) => {
+        const formData = directorData.formData;
+        return {
+          url: `/${id}`,
+          method: "PUT",
+          data: formData,
+          isFormData: true,
+        };
+      },
       invalidatesTags: (result, error, { id }) => [
         { type: "Director", id },
         { type: "Director", id: "LISTDIRECTOR" },
       ],
     }),
+    
 
     // Xoá đạo diễn (không cập nhật UI tự động)
     deleteDirector: builder.mutation({
@@ -43,8 +46,7 @@ export const directorApi = createApi({
         url: `/${id}`,
         method: "DELETE",
       }),
-      // Không dùng invalidatesTags để không tự động cập nhật UI sau khi xoá.
-      // Nếu cần cập nhật UI, bạn có thể xử lý bằng cách cập nhật cache thủ công trong onQueryStarted.
+      invalidatesTags: [{ type: "Director", id: "LISTDIRECTOR" }],
     }),
 
     // Lấy danh sách đạo diễn

@@ -4,12 +4,14 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const movieApi = createApi({
   reducerPath: "movieApi",
-  baseQuery: axiosBaseQuery({ baseUrl: `${API_BASE_URL}movie`, useHttpClient: true }),
+  baseQuery: axiosBaseQuery({
+    baseUrl: `${API_BASE_URL}movie`,
+    useHttpClient: true,
+  }),
 
   tagTypes: ["Movie"],
 
   endpoints: (builder) => ({
-
     createMovie: builder.mutation({
       query: (movieData) => {
         return {
@@ -23,19 +25,20 @@ export const movieApi = createApi({
       invalidatesTags: [{ type: "Movie", id: "LISTMOVIE" }],
     }),
 
-
     updateMovie: builder.mutation({
       query: ({ id, movieData }) => {
         return {
           url: `/${id}`,
           method: "PUT",
           data: movieData,
-          isFormData: true
+          isFormData: true,
         };
       },
-      invalidatesTags: (result, error, { id }) => [{ type: "Movie", id }, { type: "Movie", id: "LISTMOVIE" }],
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Movie", id },
+        { type: "Movie", id: "LISTMOVIE" },
+      ],
     }),
-
 
     deleteMovie: builder.mutation({
       query: (id) => ({
@@ -48,24 +51,29 @@ export const movieApi = createApi({
       ],
     }),
 
-
     getMovies: builder.query({
       query: (params) => {
-        const { page = 1, limit = 5, search = "", status = "", sort_order = "desc" } = params || {};
-        
-        // Thêm query params 
+        const {
+          page = 1,
+          limit = 5,
+          search = "",
+          status = "",
+          sort_order = "desc",
+        } = params || {};
+
+        // Thêm query params
         const queryParams = [];
         if (page) queryParams.push(`page=${page}`);
         if (limit) queryParams.push(`limit=${limit}`);
         if (search) queryParams.push(`search=${search}`);
         if (status) queryParams.push(`status=${status}`);
         if (sort_order) queryParams.push(`sort_order=${sort_order}`);
-        
-        let url = '/';
+
+        let url = "/";
         if (queryParams.length > 0) {
-          url += `?${queryParams.join('&')}`;
+          url += `?${queryParams.join("&")}`;
         }
-        
+
         return {
           url: url,
           useHttpClient: false,
@@ -74,6 +82,16 @@ export const movieApi = createApi({
       providesTags: [{ type: "Movie", id: "LISTMOVIE" }],
     }),
 
+    getAllMoviesByUser: builder.query({
+      query: () => {
+        return {
+          url: "/getAll",
+          method: "GET",
+          useHttpClient: false,
+        };
+      },
+      providesTags: [{ type: "Movie", id: "LISTMOVIE" }],
+    }),
 
     getMovieById: builder.query({
       query: (id) => ({
@@ -92,12 +110,12 @@ export const movieApi = createApi({
   }),
 });
 
-
 export const {
   useCreateMovieMutation,
   useUpdateMovieMutation,
   useDeleteMovieMutation,
   useGetMoviesQuery,
   useGetMovieByIdQuery,
-  useUpdateStatusMutation
+  useUpdateStatusMutation,
+  useGetAllMoviesByUserQuery,
 } = movieApi;

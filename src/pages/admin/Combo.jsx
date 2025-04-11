@@ -207,7 +207,7 @@ const Combo = () => {
           Thêm Combo Mới
         </Button>
       </div>
-      
+
       {/* Thanh tìm kiếm và bộ lọc */}
       <div className="mb-4 flex flex-wrap gap-3">
         <Search
@@ -234,20 +234,20 @@ const Combo = () => {
           locale={{
             emptyText: (
               <div className="py-5">
-                <p className="text-gray-500 text-base">Chưa có combo nào</p>
+                    <p className="text-gray-500 text-base">Chưa có combo nào</p>
                 <Button
                   type="link"
-                  onClick={() => setAddForm(true)}
+                      onClick={() => setAddForm(true)}
                   className="mt-2 text-blue-600 hover:text-blue-700"
-                >
-                  Thêm combo mới ngay
+                    >
+                      Thêm combo mới ngay
                 </Button>
-              </div>
+                      </div>
             )
           }}
         />
       </div>
-      
+
       {/* Phân trang */}
       {combos.length > 0 && (
         <div className="mt-4">
@@ -282,6 +282,7 @@ const Combo = () => {
         onCancel={() => setIsShowDetail(false)}
         footer={null}
         width={600}
+        centered
       >
         {viewDetails && (
           <div className="space-y-6">
@@ -298,47 +299,55 @@ const Combo = () => {
                 </Text>
               </div>
             </div>
-            
-            <div>
+
+                <div>
               <Title level={5}>Danh Sách Món</Title>
               <div className="space-y-2 mt-2">
                 {viewDetails.ComboItems?.map((item) => (
-                  <div key={item.id} className="bg-gray-50 p-3 rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">{item.FoodAndDrink.name}</span>
-                      <span className="text-sm text-gray-600">x{item.quantity}</span>
-                    </div>
-                    <div className="text-sm text-gray-500 mt-1">
-                      Tổng: {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.quantity * Number(item.FoodAndDrink.price))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                      <div key={item.id} className="bg-gray-50 p-3 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">{item.FoodAndDrink.name}</span>
+                          <span className="text-sm text-gray-600">x{item.quantity}</span>
+                        </div>
+                        <div className="text-sm text-gray-500 mt-1">
+                          Tổng: {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.quantity * Number(item.FoodAndDrink.price))}
+                        </div>
+                      </div>
+                    ))}
             </div>
           </div>
-        )}
+        </div>
+      )}
       </Modal>
 
       {/* Modal Thêm Combo mới */}
       <Modal
-        title="Thêm Combo Mới"
         open={addForm}
         onCancel={() => setAddForm(false)}
         footer={null}
-        width={600}
         destroyOnClose
+        width={600}
+        centered
+        bodyStyle={{ padding: 0, maxHeight: '70vh', overflow: 'auto' }}
+        title={null}
+        closeIcon={false}
+        style={{ top: 20 }}
       >
         {addForm && <AddCombo setAddForm={setAddForm} />}
       </Modal>
 
       {/* Modal Chỉnh sửa */}
       <Modal
-        title="Chỉnh Sửa Combo"
         open={editForm}
         onCancel={() => setEditForm(false)}
         footer={null}
         width={600}
         destroyOnClose
+        centered
+        bodyStyle={{ padding: 0, maxHeight: '70vh', overflow: 'auto' }}
+        title={null}
+        closeIcon={false}
+        style={{ top: 20 }}
       >
         {editForm && <EditCombo setEditForm={setEditForm} combo={editItem} />}
       </Modal>
