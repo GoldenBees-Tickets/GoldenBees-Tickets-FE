@@ -1,81 +1,58 @@
 import { useState, useCallback, memo } from "react";
 import { useGetFoodAndDrinksQuery } from "../../../api/foodAndDrinkApi";
 import { useCreateComboMutation } from "../../../api/comboApi";
-import { FiX, FiUpload, FiTrash2, FiPlus, FiImage } from "react-icons/fi";
+import { FiX, FiUpload, FiTrash2, FiPlus } from "react-icons/fi";
 import { toast } from "react-toastify";
-import React, { useRef } from "react";
-import { Modal } from "antd";
 
 // Component Item được tách riêng để tránh re-render không cần thiết
-const ComboItem = ({
-  item,
-  index,
-  foodAndDrinks,
-  onItemChange,
-  onRemoveItem,
-}) => {
+const ComboItem = memo(({ item, index, foodAndDrinks, onItemChange, onRemoveItem }) => {
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h5 className="text-base font-medium text-gray-700">Món {index + 1}</h5>
-        <button
-          type="button"
-          onClick={() => onRemoveItem(index)}
-          className="p-1.5 hover:bg-gray-200 rounded-full transition-colors duration-200"
+    <div className="flex gap-2 items-start p-2 bg-gray-50 rounded-lg">
+      <div className="flex-1">
+        <label className="block text-xs font-medium text-gray-700 mb-1">
+          Thực phẩm/Đồ uống
+        </label>
+        <select
+          value={item.foodAndDrinkId}
+          onChange={(e) => onItemChange(index, "foodAndDrinkId", e.target.value)}
+          className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
         >
-          <FiTrash2 className="w-5 h-5 text-red-500" />
-        </button>
+          <option value="">Chọn món</option>
+          {foodAndDrinks?.map((foodAndDrink) => (
+            <option key={foodAndDrink.id} value={foodAndDrink.id}>
+              {foodAndDrink.name}
+            </option>
+          ))}
+        </select>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Sản phẩm
-          </label>
-          <select
-            value={item.foodOrDrinkId || ""}
-            onChange={(e) =>
-              onItemChange(index, {
-                ...item,
-                foodOrDrinkId: e.target.value,
-              })
-            }
-            className="w-full px-4 py-2.5 text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-          >
-            <option value="">Chọn sản phẩm</option>
-            {foodAndDrinks?.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Số lượng
-          </label>
-          <input
-            type="number"
-            min="1"
-            value={item.quantity || 1}
-            onChange={(e) =>
-              onItemChange(index, {
-                ...item,
-                quantity: parseInt(e.target.value) || 1,
-              })
-            }
-            className="w-full px-4 py-2.5 text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
+      <div className="w-24">
+        <label className="block text-xs font-medium text-gray-700 mb-1">
+          Số lượng
+        </label>
+        <input
+          type="number"
+          value={item.quantity}
+          onChange={(e) => onItemChange(index, "quantity", Number(e.target.value))}
+          min="1"
+          className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
       </div>
+
+      <button
+        type="button"
+        onClick={() => onRemoveItem(index)}
+        className="mt-6 p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors duration-150"
+      >
+        <FiTrash2 className="w-4 h-4" />
+      </button>
     </div>
   );
-};
+});
 
 ComboItem.displayName = "ComboItem";
 
-export default function AddCombo({ setAddForm, isVisible }) {
+export default function AddCombo({ setAddForm }) {
   const { data: List } = useGetFoodAndDrinksQuery();
   const foodAndDrinks = List?.items || [];
   
@@ -87,15 +64,10 @@ export default function AddCombo({ setAddForm, isVisible }) {
   const [selectedItems, setSelectedItems] = useState([{ foodAndDrinkId: "", quantity: 1 }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const fileInputRef = useRef(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (name === "name") {
-      setName(value);
-    } else if (name === "price") {
-      setPrice(value);
-    }
+    name === "comboName" ? setName(value) : setPrice(value);
   };
 
   const handleImageChange = (e) => {
@@ -190,189 +162,150 @@ export default function AddCombo({ setAddForm, isVisible }) {
   };
 
   return (
-    <Modal
-      visible={isVisible}
-      onCancel={closeModal}
-      footer={null}
-      width={600}
-      closeIcon={false}
-      title={null}
-      centered
-      bodyStyle={{ padding: 0, maxHeight: '80vh', overflow: 'hidden' }}
-    >
-      <div className="flex flex-col h-full">
-        {/* Fixed Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-gray-100 bg-white">
-          <h3 className="text-lg font-semibold text-gray-800">Thêm Combo</h3>
-          <button
-            onClick={closeModal}
-            className="p-1.5 hover:bg-gray-100 rounded-full transition-colors duration-200"
-          >
-            <FiX className="w-5 h-5 text-gray-500" />
-          </button>
-        </div>
+    <div className="w-full">
+      <div className="flex items-center justify-between p-3 border-b border-gray-100">
+        <h3 className="text-base font-semibold text-gray-800">Thêm Combo</h3>
+        <button
+          onClick={closeModal}
+          className="p-1 hover:bg-gray-100 rounded-full transition-colors duration-200"
+        >
+          <FiX className="w-5 h-5 text-gray-500" />
+        </button>
+      </div>
 
-        {/* Scrollable Content with padding */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 pr-8">
-          <form onSubmit={handleSubmit}>
-            {/* Form content starts here */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-              {/* Name input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tên Combo
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={name}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Nhập tên combo"
-                />
-              </div>
-
-              {/* Price input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Giá tiền
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={price}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Nhập giá combo"
-                />
-              </div>
+      <div className="p-3">
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tên Combo
+              </label>
+              <input
+                type="text"
+                name="comboName"
+                value={name}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Nhập tên combo..."
+              />
             </div>
 
-            {/* Image upload */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Hình ảnh
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Giá Combo
               </label>
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0 w-24 h-24 bg-gray-100 rounded-lg overflow-hidden">
-                  {imagePreview ? (
+              <input
+                type="number"
+                name="comboPrice"
+                value={price}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Nhập giá..."
+              />
+            </div>
+          </div>
+
+          <div className="mb-3">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Hình Ảnh
+            </label>
+            <div className="mt-1 flex justify-center px-3 py-3 border-2 border-gray-200 border-dashed rounded-lg hover:border-gray-300 transition-colors duration-200">
+              <div className="space-y-2 text-center">
+                {imagePreview ? (
+                  <div className="relative w-24 h-24 mx-auto">
                     <img
                       src={imagePreview}
                       alt="Preview"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover rounded-lg"
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <FiImage className="w-8 h-8 text-gray-400" />
+                    <button
+                      type="button"
+                      onClick={handleClosePreview}
+                      className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-full transform translate-x-1/2 -translate-y-1/2 hover:bg-red-600"
+                    >
+                      <FiX className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <FiUpload className="mx-auto h-8 w-8 text-gray-400" />
+                    <div className="flex justify-center text-sm text-gray-600">
+                      <label className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
+                        <span>Tải ảnh lên</span>
+                        <input
+                          type="file"
+                          className="sr-only"
+                          onChange={handleImageChange}
+                          accept="image/*"
+                        />
+                      </label>
+                      <p className="pl-1">hoặc kéo thả</p>
                     </div>
-                  )}
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    <FiUpload className="mr-2 -ml-1 h-5 w-5 text-gray-500" />
-                    Tải ảnh lên
-                  </button>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleImageChange}
-                    className="hidden"
-                    accept="image/*"
-                  />
-                </div>
+                    <p className="text-xs text-gray-500">PNG, JPG, GIF tối đa 10MB</p>
+                  </>
+                )}
               </div>
             </div>
+          </div>
 
-            {/* Description input */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mô tả
-              </label>
-              <textarea
-                name="description"
-                value=""
-                onChange={handleInputChange}
-                rows="3"
-                className="w-full px-4 py-2.5 text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Nhập mô tả cho combo"
-              ></textarea>
-            </div>
-
-            {/* Combo items */}
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  Các món trong combo
-                </label>
-                <button
-                  type="button"
-                  onClick={addItem}
-                  className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  <FiPlus className="mr-1 h-4 w-4" />
-                  Thêm món
-                </button>
-              </div>
-
-              {selectedItems.length > 0 ? (
-                <div className="space-y-4">
-                  {selectedItems.map((item, index) => (
-                    <ComboItem
-                      key={index}
-                      item={item}
-                      index={index}
-                      foodAndDrinks={foodAndDrinks}
-                      onItemChange={handleItemChange}
-                      onRemoveItem={removeItem}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500 italic">
-                  Chưa có món nào trong combo. Vui lòng thêm món.
-                </p>
-              )}
-            </div>
-
-            {/* Status select */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Trạng thái
-              </label>
-              <select
-                name="status"
-                value="ACTIVE"
-                onChange={handleInputChange}
-                className="w-full px-4 py-2.5 text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-              >
-                <option value="ACTIVE">Hoạt động</option>
-                <option value="INACTIVE">Không hoạt động</option>
-              </select>
-            </div>
-
-            {/* Submit buttons */}
-            <div className="flex justify-end space-x-4 mt-8">
+          <div className="space-y-3 mb-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium text-gray-700">Danh Sách Món</h4>
               <button
                 type="button"
-                onClick={closeModal}
-                className="px-5 py-2.5 border border-gray-300 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={addItem}
+                className="flex items-center gap-1 px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-150"
               >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2.5 bg-blue-600 border border-transparent rounded-lg text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Thêm mới
+                <FiPlus className="w-4 h-4" />
+                <span>Thêm món</span>
               </button>
             </div>
-          </form>
-        </div>
+
+            <div className="space-y-2">
+              {selectedItems.map((item, index) => (
+                <ComboItem 
+                  key={index} 
+                  item={item}
+                  index={index}
+                  foodAndDrinks={foodAndDrinks}
+                  onItemChange={handleItemChange}
+                  onRemoveItem={removeItem}
+                />
+              ))}
+            </div>
+          </div>
+
+          {error && (
+            <div className="mb-3 p-2 bg-red-50 rounded-lg">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 border-t border-gray-100 pt-3">
+            <button
+              type="button"
+              onClick={closeModal}
+              className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-150"
+            >
+              Hủy
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Đang thêm...</span>
+                </>
+              ) : (
+                "Thêm"
+              )}
+            </button>
+          </div>
+        </form>
       </div>
-    </Modal>
+    </div>
   );
 }

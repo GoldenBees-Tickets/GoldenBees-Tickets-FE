@@ -32,19 +32,19 @@ export const qrCodeApi = createApi({
     
     // Quét mã QR
     scanQrCode: builder.mutation({
-      query: (ticketId) => {        
-        // Kiểm tra kiểu dữ liệu của ticketId
-        let processedTicketId = ticketId;
+      query: (order_id) => {        
+        // // Kiểm tra kiểu dữ liệu của ticketId
+        // let processedTicketId = ticketId;
         
-        // Nếu là chuỗi số, chuyển đổi sang số
-        if (!isNaN(ticketId) && typeof ticketId === 'string') {
-          processedTicketId = parseInt(ticketId, 10);
-        }
+        // // Nếu là chuỗi số, chuyển đổi sang số
+        // if (!isNaN(ticketId) && typeof ticketId === 'string') {
+        //   processedTicketId = parseInt(ticketId, 10);
+        // }
         
         return {
           url: '/scan',
           method: 'POST',
-          body: { ticketId: processedTicketId },
+          data: { order_id },
         };
       },
       transformResponse: (response) => {

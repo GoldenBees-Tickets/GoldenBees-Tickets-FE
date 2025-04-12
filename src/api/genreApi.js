@@ -8,7 +8,7 @@ export const genreApi = createApi({
   tagTypes: ["Genre"],
   endpoints: (builder) => ({
     getGenres: builder.query({
-      query: ({ page = 1, limit = 5, search = '' }) => ({
+      query: ({ page = 1, limit = 5, search = '' } = {}) => ({ // 👈 Thêm = {} ở đây
         url: `/?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`,
         method: "GET",
       }),

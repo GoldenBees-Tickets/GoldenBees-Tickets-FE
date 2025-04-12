@@ -17,7 +17,7 @@ function RootStaff() {
       <header className="bg-black/20 border-b border-white/10 fixed top-0 left-0 right-0 z-50">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <Link to="/staff" className="flex items-center space-x-3">
+            <a href="/admin" className="flex items-center space-x-3">
               <div className="bg-yellow-500 p-2 rounded-lg">
                 <span className="text-xl">🐝</span>
               </div>
@@ -30,13 +30,13 @@ function RootStaff() {
                   <span className="text-xs text-green-300 font-medium">Nhân viên</span>
                 </div>
               </div>
-            </Link>
+            </a>
             
             {/* Desktop navigation */}
             <nav className="hidden md:flex items-center space-x-6">
-              <NavLink to="/staff" exact>
+              <NavLink exact>
                 <IoHomeOutline className="mr-1.5" />
-                Trang chủ
+                <a href="/admin">Admin</a>
               </NavLink>
               <NavLink to="/staff/scan-qr">
                 <IoQrCodeOutline className="mr-1.5" />

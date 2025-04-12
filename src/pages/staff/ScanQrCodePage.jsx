@@ -8,7 +8,7 @@ function ScanQrCodePage() {
   const [error, setError] = useState(null);
   const [scanning, setScanning] = useState(true);
   const [scanQrCode] = useScanQrCodeMutation();
-  const [manualTicketId, setManualTicketId] = useState('');
+  const [manualOrderId, setManualOrderId] = useState('');
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [cameraPermission, setCameraPermission] = useState(true);
@@ -57,57 +57,85 @@ function ScanQrCodePage() {
         throw new Error('Dữ liệu QR trống hoặc không hợp lệ');
       }
       
-      let ticketId = data.trim();
+      let orderId = data.trim();
       
-      // Thử parse JSON
-      try {
-        const jsonData = JSON.parse(data);
-        if (jsonData) {
-          if (jsonData.ticketId) ticketId = jsonData.ticketId;
-          else if (jsonData.id) ticketId = jsonData.id;
-          else if (jsonData.ticket?.id) ticketId = jsonData.ticket.id;
-          else if (typeof jsonData === 'number' || (typeof jsonData === 'string' && !isNaN(jsonData))) {
-            ticketId = jsonData.toString();
+      // Kiểm tra xem dữ liệu có phải là số không
+      if (isNaN(orderId)) {
+        // Thử parse JSON
+        try {
+          const jsonData = JSON.parse(data);
+          if (jsonData) {
+            if (jsonData.orderId) orderId = jsonData.orderId;
+            else if (jsonData.id) orderId = jsonData.id;
+            else if (typeof jsonData === 'number' || (typeof jsonData === 'string' && !isNaN(jsonData))) {
+              orderId = jsonData.toString();
+            }
           }
+        } catch (e) {
+          // Không phải JSON, tiếp tục xử lý
         }
-      } catch (e) {
-        // Không phải JSON, tiếp tục xử lý
-      }
-      
-      // Kiểm tra định dạng TIX + số
-      const tixMatch = ticketId.match(/TIX\d+/i);
-      if (tixMatch) {
-        ticketId = tixMatch[0];
-      }
-      
-      // Kiểm tra URL
-      try {
-        const urlObj = new URL(ticketId);
-        const idParam = urlObj.searchParams.get('id') || urlObj.searchParams.get('ticketId');
-        if (idParam) {
-          ticketId = idParam;
+        
+        // Kiểm tra URL
+        try {
+          const urlObj = new URL(orderId);
+          const idParam = urlObj.searchParams.get('orderId') || urlObj.searchParams.get('id');
+          if (idParam) {
+            orderId = idParam;
+          }
+        } catch (e) {
+          // Không phải URL
         }
-      } catch (e) {
-        // Không phải URL
       }
-            
-      const response = await scanQrCode(ticketId);
       
-      if (response.data && response.data.success) {
-        setScanResult(response.data.data.ticket);
-        setError(null);
-        setShowSuccessPopup(true);
-      } else if (response.error) {
+      console.log("Đang xử lý order ID:", orderId);
+      
+      // Gọi API với order_id
+      const response = await scanQrCode(orderId);
+      console.log("API response:", response);
+
+      if (response.data) {
+        // Nếu thành công
+        if (response.data.success) {
+          // Chuẩn bị dữ liệu cho hiển thị
+          const orderData = response.data.data.order || response.data.data;
+          
+          // Tạo dữ liệu scanResult với định dạng phù hợp cho UI
+          const result = {
+            orderId: orderId,
+            status: orderData.status || 'completed',
+            usedAt: orderData.updatedAt || new Date().toISOString(),
+            // Các thông tin khác nếu có
+            movieName: orderData.movieName || 'Không có thông tin',
+            showTime: orderData.showTime || 'Không có thông tin',
+            seat: orderData.seat || 'Không có thông tin'
+          };
+          
+          setScanResult(result);
+          setError(null);
+          setShowSuccessPopup(true);
+        } 
+        // Nếu không thành công nhưng có dữ liệu trả về
+        else if (response.data.error) {
+          setError(response.data.message || 'Không thể xác nhận vé');
+          setScanResult(null);
+          setShowErrorPopup(true);
+        }
+      } 
+      // Nếu có lỗi từ RTK Query
+      else if (response.error) {
         const errorMessage = response.error.data?.message || 'Không thể xác nhận vé';
         setError(errorMessage);
         setScanResult(null);
         setShowErrorPopup(true);
-      } else {
+      } 
+      // Trường hợp khác
+      else {
         setError('Không thể xác nhận vé, phản hồi không xác định từ server');
         setScanResult(null);
         setShowErrorPopup(true);
       }
     } catch (err) {
+      console.error("Lỗi khi xử lý QR:", err);
       setError('Lỗi xử lý: ' + (err.message || err.data?.message || 'Lỗi khi quét mã QR'));
       setScanResult(null);
       setShowErrorPopup(true);
@@ -124,14 +152,14 @@ function ScanQrCodePage() {
 
   const handleManualSubmit = async (e) => {
     e.preventDefault();
-    if (!manualTicketId.trim()) {
-      setError('Vui lòng nhập ID vé');
+    if (!manualOrderId.trim()) {
+      setError('Vui lòng nhập mã đơn hàng');
       setShowErrorPopup(true);
       return;
     }
     
     setScanning(false);
-    await processQrCode(manualTicketId);
+    await processQrCode(manualOrderId);
   };
 
   // Format date in Vietnamese format
@@ -234,15 +262,15 @@ function ScanQrCodePage() {
               <div className="mt-6 border-t border-white/10 pt-6">
                 <h3 className="text-lg font-medium text-blue-100 mb-3 flex items-center">
                   <IoTicketOutline className="mr-2 text-blue-300" />
-                  Hoặc nhập ID vé thủ công
+                  Hoặc nhập mã đơn hàng thủ công
                 </h3>
                 <form onSubmit={handleManualSubmit} className="flex">
                   <input 
                     type="text"
-                    value={manualTicketId}
-                    onChange={(e) => setManualTicketId(e.target.value)}
+                    value={manualOrderId}
+                    onChange={(e) => setManualOrderId(e.target.value)}
                     className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-l-lg text-white placeholder-blue-200/70"
-                    placeholder="Nhập ID vé"
+                    placeholder="Nhập mã đơn hàng"
                   />
                   <button
                     type="submit"
@@ -273,21 +301,13 @@ function ScanQrCodePage() {
                 <div className="bg-white/10 rounded-lg p-4 mb-4">
                   <div className="space-y-3 text-blue-100">
                     <div className="flex justify-between border-b border-white/10 pb-2">
-                      <span className="font-medium text-gray-300">Phim:</span>
-                      <span className="font-bold text-white">{scanResult.movieName}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-white/10 pb-2">
-                      <span className="font-medium text-gray-300">Suất chiếu:</span>
-                      <span className="font-bold text-white">{formatDate(scanResult.showTime)}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-white/10 pb-2">
-                      <span className="font-medium text-gray-300">Ghế:</span>
-                      <span className="font-bold text-white">{scanResult.seat}</span>
+                      <span className="font-medium text-gray-300">Mã đơn hàng:</span>
+                      <span className="font-bold text-white">{scanResult.orderId || "N/A"}</span>
                     </div>
                     <div className="flex justify-between border-b border-white/10 pb-2">
                       <span className="font-medium text-gray-300">Trạng thái:</span>
                       <span className="font-bold text-green-400">
-                        {scanResult.status === 'used' ? 'Đã sử dụng' : 'Xác nhận thành công'}
+                        {scanResult.status === 'completed' ? 'Đã xác nhận' : 'Xác nhận thành công'}
                       </span>
                     </div>
                     {scanResult.usedAt && (
@@ -364,30 +384,22 @@ function ScanQrCodePage() {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-bold text-green-300 mb-2">
-                      Vé đã được xác nhận thành công!
+                      Đơn hàng đã được xác nhận thành công!
                     </h3>
                     <div className="space-y-2 text-blue-100">
                       <div className="grid grid-cols-3 gap-2">
-                        <span className="font-medium text-gray-300">Phim:</span>
-                        <span className="col-span-2 font-semibold text-white">{scanResult.movieName}</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <span className="font-medium text-gray-300">Suất chiếu:</span>
-                        <span className="col-span-2 font-semibold text-white">{formatDate(scanResult.showTime)}</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <span className="font-medium text-gray-300">Ghế:</span>
-                        <span className="col-span-2 font-semibold text-white">{scanResult.seat}</span>
+                        <span className="font-medium text-gray-300">Mã đơn hàng:</span>
+                        <span className="col-span-2 font-semibold text-white">{scanResult.orderId || "N/A"}</span>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         <span className="font-medium text-gray-300">Trạng thái:</span>
                         <span className="col-span-2 font-semibold text-green-400">
-                          {scanResult.status === 'used' ? 'Đã sử dụng' : 'Xác nhận thành công'}
+                          {scanResult.status === 'completed' ? 'Đã xác nhận' : 'Xác nhận thành công'}
                         </span>
                       </div>
                       {scanResult.usedAt && (
                         <div className="grid grid-cols-3 gap-2">
-                          <span className="font-medium text-gray-300">Thời gian:</span>
+                          <span className="font-medium text-gray-300">Thời gian xác nhận:</span>
                           <span className="col-span-2 font-semibold text-white">{formatDate(scanResult.usedAt)}</span>
                         </div>
                       )}
@@ -398,7 +410,7 @@ function ScanQrCodePage() {
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none"
                       >
                         <IoRefreshOutline className="mr-2" />
-                        Quét Vé Khác
+                        Quét Đơn Hàng Khác
                       </button>
                     </div>
                   </div>
