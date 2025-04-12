@@ -125,15 +125,6 @@ const MenuGroup = ({ id, icon: Icon, title, children, isCollapsed, isActive }) =
   );
 };
 
-MenuGroup.propTypes = {
-  id: PropTypes.string.isRequired,
-  icon: PropTypes.elementType.isRequired,
-  title: PropTypes.string.isRequired,
-  children: PropTypes.node.isRequired,
-  isCollapsed: PropTypes.bool.isRequired,
-  isActive: PropTypes.bool.isRequired
-};
-
 export default function AdminNav1({ isCollapsed, onNavLinkClick, userRole = "admin" }) {  
   const location = useLocation();
   const currentPath = location.pathname;
@@ -320,10 +311,10 @@ export default function AdminNav1({ isCollapsed, onNavLinkClick, userRole = "adm
 
         <MenuItem 
           icon={AiOutlineMessage} 
-          text="Lịch sử Chat" 
-          to="/admin/chat-history" 
+          text="Quét mã QR" 
+          to="/staff/scan-qr" 
           isCollapsed={isCollapsed} 
-          isActive={currentPath.includes("chat-history")}
+          isActive={currentPath.includes("scan-qr")}
           onClick={onNavLinkClick}
         />
 
@@ -339,9 +330,3 @@ export default function AdminNav1({ isCollapsed, onNavLinkClick, userRole = "adm
     </nav>
   );
 }
-
-AdminNav1.propTypes = {
-  isCollapsed: PropTypes.bool.isRequired,
-  onNavLinkClick: PropTypes.func,
-  userRole: PropTypes.string
-};

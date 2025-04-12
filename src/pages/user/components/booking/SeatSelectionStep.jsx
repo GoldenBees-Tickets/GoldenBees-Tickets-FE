@@ -97,48 +97,6 @@ const SeatSelectionStep = ({
       )}
       
       {/* Hiển thị thông báo đơn hàng đang xử lý */}
-      {activeReservationInfo && !activeReservationInfo.isOtherShowtime && (
-        <div className={`rounded-md p-4 mb-6 flex justify-between items-center shadow-md 
-                         ${isExpiring ? 'bg-red-50 border-2 border-red-300' : 
-                         isAlmostExpired ? 'bg-orange-50 border border-orange-300' : 
-                         'bg-yellow-50 border border-yellow-300'}`}>
-          <div className="flex flex-col space-y-2 flex-grow">
-            <div className="flex items-center space-x-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${isExpiring ? 'text-red-600' : isAlmostExpired ? 'text-orange-600' : 'text-yellow-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="font-semibold text-gray-800 text-base">
-                Thời gian giữ ghế:
-              </span>
-            </div>
-            <div className="flex items-center justify-between pl-8 pr-4">
-              <div>
-                <p className="text-gray-700">
-                  <span className="font-medium">Bạn đang đặt {activeReservationInfo.seats?.length || 0} ghế</span>
-                </p>
-                {isExpiring && (
-                  <p className="text-red-600 text-sm font-medium">Sắp hết thời gian, vui lòng thanh toán ngay!</p>
-                )}
-                {isAlmostExpired && !isExpiring && (
-                  <p className="text-orange-600 text-sm">Thời gian sắp hết, hãy thanh toán sớm!</p>
-                )}
-              </div>
-              <div className="ml-4 w-24">
-                {renderRemainingTime()}
-              </div>
-            </div>
-          </div>
-          <button 
-            onClick={() => setSearchParams({ room_id: activeReservationInfo?.showtime?.room?.id, step: "payment" })}
-            className={`px-4 py-2 text-white rounded-md transition-colors ml-4 whitespace-nowrap
-                       ${isExpiring ? 'bg-red-600 hover:bg-red-700' : 
-                       isAlmostExpired ? 'bg-orange-600 hover:bg-orange-700' : 
-                       'bg-yellow-600 hover:bg-yellow-700'}`}
-          >
-            Thanh toán ngay
-          </button>
-        </div>
-      )}
       
       {/* Hiển thị màn hình */}
       <MovieScreen />
