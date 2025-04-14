@@ -77,6 +77,15 @@ export const cinemaApi = createApi({
       // Cache the result for a specific cinema
       providesTags: (result, error, id) => [{ type: "Cinema", id }],
     }),
+
+    getAllCinemaNotPagination: builder.query({
+      query: () => ({
+        url: `/getAll`,
+        method: "GET",
+      }),
+      // Provides the tag to refetch the cinema list
+      providesTags: [{ type: "Cinema", id: "LISTCINEMA" }],
+    }),
   }),
 });
 
@@ -86,5 +95,6 @@ export const {
   useDeleteCinemaMutation,
   useGetCinemasQuery,
   useGetCinemaByIdQuery,
-  useGetCinemaByBranchIdQuery
+  useGetCinemaByBranchIdQuery,
+  useGetAllCinemaNotPaginationQuery,
 } = cinemaApi;
