@@ -58,6 +58,10 @@ export default function Booking() {
   // State hooks
   const [selectedFoodItems, setSelectedFoodItems] = useState([]);
   const [discountCode, setDiscountCode] = useState("");
+  const [onApplyStar, setOnApplyStar] = useState({
+    starsUsed: 0,
+    discountAmount: 0
+  });
   const [appliedDiscount, setAppliedDiscount] = useState(null);
   const [isCheckingDiscount, setIsCheckingDiscount] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("momo");
@@ -89,6 +93,8 @@ export default function Booking() {
     refetchSeats
   );
 
+  console.log("onApplyStar", onApplyStar);
+  
   const {
     calculateTicketPrice,
     calculateTotalPrice,
@@ -416,7 +422,7 @@ export default function Booking() {
         return (
           <button
             onClick={handleContinueToPayment}
-            className="w-full md:w-1/2 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+            className="w-full px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
           >
             Tiếp tục
           </button>
@@ -427,7 +433,7 @@ export default function Booking() {
         return (
           <button
             onClick={handleContinueFromPayment}
-            className="w-full md:w-1/2 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Tiếp tục
           </button>
@@ -438,7 +444,7 @@ export default function Booking() {
           <button
             onClick={handleContinueFromSeats}
             disabled={selectedSeats.length === 0 || isLoading}
-            className="w-full md:w-1/2 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Tiếp tục
           </button>
@@ -468,6 +474,7 @@ export default function Booking() {
       case "payment":
         return (
           <PaymentStep
+            user_id={user_id}
             appliedDiscount={appliedDiscount}
             setAppliedDiscount={setAppliedDiscount}
             discountCode={discountCode}
@@ -480,6 +487,8 @@ export default function Booking() {
             selectedPaymentMethod={selectedPaymentMethod}
             setSelectedPaymentMethod={setSelectedPaymentMethod}
             handlePayment={handlePayment}
+            onApplyStar={onApplyStar}
+            setOnApplyStar={setOnApplyStar}
           />
         );
       case "seats":
@@ -559,6 +568,7 @@ export default function Booking() {
           setSearchParams={setSearchParams}
           descriptionDiscount={descriptionDiscount || ""}
           listSeatTypes={listSeatTypes}
+          onApplyStar={onApplyStar}
         />
       </div>
       {/* Xác nhận đặt vé */}

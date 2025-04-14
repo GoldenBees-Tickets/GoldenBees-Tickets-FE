@@ -68,6 +68,13 @@ export const userApi = createApi({
       }),
       invalidatesTags: (result, error, { id }) => [{ type: "User", id }],
     }),
+    getStarByUser: builder.query({
+      query: (id) => ({
+        url: `/star/${id}`,
+        method: "GET",
+      }),
+      providesTags: () => [{ type: "User", id: "LIST" }],
+    })
   }),
 });
 
@@ -80,4 +87,5 @@ export const {
   useGetAdminBranchesQuery,
   useAddUserMutation,
   useDeleteUserMutation,
+  useGetStarByUserQuery
 } = userApi;
