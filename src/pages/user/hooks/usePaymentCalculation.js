@@ -7,7 +7,7 @@ export const usePaymentCalculation = (
   selectedFoodItems,
   appliedDiscount,
   hasActiveReservation,
-  activeReservationInfo
+  activeReservationInfo,
 ) => {
   // Tính giá vé dựa trên loại ghế
   const calculateTicketPrice = useMemo(() => {
@@ -90,11 +90,6 @@ export const usePaymentCalculation = (
         discount_type === "percentage"
           ? (price * discount_value) / 100
           : discount_value;
-
-      if (discount_type === "percentage" && max_discount !== null) {
-        discount = Math.min(discount, max_discount);
-      }
-
       return Math.max(0, discount);
     };
 
@@ -120,7 +115,6 @@ export const usePaymentCalculation = (
       default:
         discountValue = 0;
     }
-
     return discountValue;
   }, [
     calculateTotalBeforeDiscount,
@@ -145,7 +139,6 @@ export const usePaymentCalculation = (
     );
 
     const totalPriceBeforeDiscount = ticketPrice + foodPrice;
-
     // Xử lý giảm giá
     if (!appliedDiscount) return totalPriceBeforeDiscount;
 
@@ -180,7 +173,6 @@ export const usePaymentCalculation = (
       default:
         discountValue = 0;
     }
-
     return { totalPriceBeforeDiscount, discountValue }; // Không cho phép giá trị âm
   }, [
     hasActiveReservation,

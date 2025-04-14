@@ -4,6 +4,7 @@ import MomoPayment from "../../../../components/Payment/MomoPayment";
 import Payment from "../../Payment";
 
 const PaymentStep = ({
+  user_id,
   appliedDiscount,
   setAppliedDiscount,
   discountCode,
@@ -11,6 +12,8 @@ const PaymentStep = ({
   handleApplyDiscount,
   isCheckingDiscount,  selectedFoodItems,
   calculateTotalPrice,
+  onApplyStar,
+  setOnApplyStar
 }) => {
   const [showMomoPaymentUI, setShowMomoPaymentUI] = useState(false);
 
@@ -73,12 +76,15 @@ const PaymentStep = ({
 
       {/* Phần nhập mã giảm giá */}
       <DiscountSection
+        user_id={user_id}
         appliedDiscount={appliedDiscount}
         setAppliedDiscount={setAppliedDiscount}
         discountCode={discountCode}
         setDiscountCode={setDiscountCode}
         handleApplyDiscount={handleApplyDiscount}
         isCheckingDiscount={isCheckingDiscount}
+        onApplyStar={onApplyStar}
+        setOnApplyStar={setOnApplyStar}
       />
 
       {/* Phương thức thanh toán */}
