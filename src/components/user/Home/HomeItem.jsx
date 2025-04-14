@@ -8,9 +8,14 @@ export default function HomeItem() {
   const { data: List } = useGetMoviesQuery();
   let ListMovie = List?.movies;
   
-
-  const nowShowingMovies = ListMovie || [];
-  const comingSoonMovies = ListMovie || [];
+  // Filter movies based on status
+  const nowShowingMovies = ListMovie?.filter(movie => 
+    movie.status === "now_showing" || movie.status === "opening_soon"
+  ) || [];
+  
+  const comingSoonMovies = ListMovie?.filter(movie => 
+    movie.status === "coming_soon"
+  ) || [];
   
   // Display movies based on active tab
   const moviesToDisplay = activeTab === "nowShowing" ? nowShowingMovies : comingSoonMovies;

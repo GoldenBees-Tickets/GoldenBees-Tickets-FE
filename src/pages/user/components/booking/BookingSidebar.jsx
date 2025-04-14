@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import MovieInfo from "../MovieInfo";
 import SelectedSeatsInfo from "../SelectedSeatsInfo";
 import { useSearchParams } from "react-router-dom";
@@ -16,8 +16,131 @@ const BookingSidebar = ({
   renderContinueButton,
   setSearchParams,
   descriptionDiscount,
-  listSeatTypes
+  listSeatTypes,
+  onReservationUpdate
 }) => {
+  const [remainingTime, setRemainingTime] = useState({ minutes: 0, seconds: 0 });
+  const [searchParams, updateSearchParams] = useSearchParams();
+  const checkCancel = searchParams.get("step") || "";
+  const [reservation, setReservation] = useState(null);
+  const [isExpired, setIsExpired] = useState(false);
+
+  // Handler for reservation cancellation
+  const handleReservationCancel = useCallback(() => {
+    // Update local state
+    setReservation(null);
+    setRemainingTime({ minutes: 0, seconds: 0 });
+    
+    // Notify parent component to update its state
+    if (typeof onReservationUpdate === 'function') {
+      onReservationUpdate({
+        type: 'CANCEL_RESERVATION',
+        hasActiveReservation: false,
+        activeReservationInfo: null
+      });
+    }
+  }, [onReservationUpdate]);
+
+  // Effect to continuously check for reservation data in localStorage
+  useEffect(() => {
+    const checkReservation = () => {
+      const reservationData = localStorage.getItem('reservation');
+      if (reservationData) {
+        try {
+          const parsedReservation = JSON.parse(reservationData);
+          setReservation(parsedReservation);
+        } catch (error) {
+          console.error("Error parsing reservation data:", error);
+        }
+      } else {
+        setReservation(null);
+      }
+    };
+
+    // Check immediately on mount
+    checkReservation();
+    
+    // Set up interval to check every second for changes in localStorage
+    const checkInterval = setInterval(checkReservation, 1000);
+    
+    return () => clearInterval(checkInterval);
+  }, []);
+
+  // Countdown timer based on current reservation data
+  useEffect(() => {
+    if (!reservation || !reservation.expires_at) {
+      setRemainingTime({ minutes: 0, seconds: 0 });
+      return;
+    }
+    
+    const expiresAt = new Date(reservation.expires_at);
+    
+    const updateRemainingTime = () => {
+      const now = new Date();
+      const diffMs = expiresAt - now;
+      
+      if (diffMs <= 0) {
+        setRemainingTime({ minutes: 0, seconds: 0 });
+        setIsExpired(true);
+        return;
+      }
+      
+      const minutes = Math.floor(diffMs / 60000);
+      const seconds = Math.floor((diffMs % 60000) / 1000);
+      setRemainingTime({ minutes, seconds });
+    };
+    
+    // Initial update
+    updateRemainingTime();
+    
+    // Set interval to update every second
+    const timerInterval = setInterval(updateRemainingTime, 1000);
+    
+    return () => clearInterval(timerInterval);
+  }, [reservation]);
+  
+  // Effect to handle expiration and clear storage
+  useEffect(() => {
+    if (isExpired) {
+      console.log("Reservation expired, clearing data...");
+      
+      // Store the showtime_id and room_id before clearing
+      const showtimeId = reservation?.showtime?.id;
+      const roomId = reservation?.showtime?.room_id;
+      
+      // Clear localStorage items
+      localStorage.removeItem('finalPrice');
+      localStorage.removeItem('reservation');
+      
+      // Clear all sessionStorage
+      sessionStorage.clear();
+      
+      // Reset expired state
+      setIsExpired(false);
+      
+      // Notify parent component
+      if (typeof onReservationUpdate === 'function') {
+        onReservationUpdate({
+          type: 'CANCEL_RESERVATION',
+          hasActiveReservation: false,
+          activeReservationInfo: null
+        });
+      }
+      
+      // Redirect back to the booking page with the showtime_id and room_id
+      if (showtimeId && roomId) {
+        alert("Thời gian giữ ghế đã hết. Bạn sẽ được chuyển về trang đặt vé.");
+        
+        // Use setSearchParams to navigate back to the initial booking page
+        window.location.href = `/booking/${showtimeId}?room_id=${roomId}`;
+      } else {
+        // Fallback if we can't find the showtime_id and room_id
+        alert("Thời gian giữ ghế đã hết. Vui lòng đặt lại từ đầu.");
+        setSearchParams({});
+      }
+    }
+  }, [isExpired, setSearchParams, reservation, onReservationUpdate]);
+  
   const totalPrice = calculateTotalPrice();
   const discount = discountValue();
   const finalPrice = totalPrice - discount;
@@ -25,12 +148,22 @@ const BookingSidebar = ({
     localStorage.setItem("finalPrice", finalPrice);
   }
 
-  const [searchParams, updateSearchParams] = useSearchParams();
-  const checkCancel = searchParams.get("step") || "";
-
   return (
     <div className="w-full md:w-[30%] ml-5 mt-6 md:mt-0">
       <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-yellow-500">
+        {/* Countdown Timer */}
+        {(hasActiveReservation || reservation) && remainingTime.minutes >= 0 && remainingTime.seconds >= 0 && (
+          <div className="mb-4 bg-orange-100 p-3 rounded-lg text-center">
+            <p className="text-sm text-gray-700">Thời gian giữ ghế còn lại:</p>
+            <p className="text-xl font-bold text-orange-600">
+              {String(remainingTime.minutes).padStart(2, '0')}:{String(remainingTime.seconds).padStart(2, '0')}
+            </p>
+            {remainingTime.minutes === 0 && remainingTime.seconds < 30 && (
+              <p className="text-xs text-red-600 mt-1 font-medium">Sắp hết thời gian đặt vé!</p>
+            )}
+          </div>
+        )}
+        
         {/* Thông tin phim */}
         <MovieInfo showtimeData={showtimeData} imageBaseUrl={imageBaseUrl} />
 
@@ -47,6 +180,7 @@ const BookingSidebar = ({
                 showtime_id: activeReservationInfo?.showtime?.id,
               })
             }
+            onReservationCancel={handleReservationCancel}
           />
         </div>
 

@@ -52,12 +52,26 @@ export default function FilterMovie() {
   const { data: List } = useGetBranchesQuery();
   const { data: List2 } = useGetCinemasQuery();
   
+  // Lọc suất chiếu không quá 3 ngày trong tương lai
+  const filteredShowtimes = useMemo(() => {
+    if (!ListShowtimes || !Array.isArray(ListShowtimes)) return [];
+    
+    const currentDate = new Date();
+    const threeDaysLater = new Date();
+    threeDaysLater.setDate(currentDate.getDate() + 3);
+    
+    return ListShowtimes.filter(showtime => {
+      const showtimeDate = new Date(showtime.show_date);
+      return showtimeDate <= threeDaysLater;
+    });
+  }, [ListShowtimes]);
+  
   // Đặt ngày mặc định khi có dữ liệu
   useEffect(() => {
-    if (ListShowtimes && Array.isArray(ListShowtimes) && ListShowtimes.length > 0) {
-      setSelectDate(ListShowtimes[0]?.show_date);
+    if (filteredShowtimes && filteredShowtimes.length > 0) {
+      setSelectDate(filteredShowtimes[0]?.show_date);
     }
-  }, [ListShowtimes]);
+  }, [filteredShowtimes]);
 
   // Lọc rạp chiếu theo khu vực
   const filteredCinemas = useMemo(() => {
@@ -72,14 +86,14 @@ export default function FilterMovie() {
     setSelectedCinema("");
   }, [selectedBranch]);
 
-  // Lấy danh sách ngày duy nhất từ ListShowtimes và sắp xếp theo ngày
+  // Lấy danh sách ngày duy nhất từ filteredShowtimes và sắp xếp theo ngày
   const uniqueDates = useMemo(() => {
-    if (!ListShowtimes || !Array.isArray(ListShowtimes)) return [];
+    if (!filteredShowtimes || !filteredShowtimes.length) return [];
     
-    const dates = [...new Set(ListShowtimes.map(showtime => showtime.show_date))];
+    const dates = [...new Set(filteredShowtimes.map(showtime => showtime.show_date))];
     
     return dates.sort((a, b) => new Date(a) - new Date(b));
-  }, [ListShowtimes]);
+  }, [filteredShowtimes]);
 
   const renderDates = useMemo(
     () => {
@@ -128,12 +142,12 @@ export default function FilterMovie() {
   );
 
   const renderShowtimes = useMemo(() => {
-    if (!ListShowtimes || !Array.isArray(ListShowtimes) || !selectDate) {
+    if (!filteredShowtimes || !filteredShowtimes.length || !selectDate) {
       return null;
     }
     
     // Lọc suất chiếu theo ngày đã chọn
-    const showtimesForDate = ListShowtimes.filter(showtime => showtime.show_date === selectDate);
+    const showtimesForDate = filteredShowtimes.filter(showtime => showtime.show_date === selectDate);
     
     // Nhóm suất chiếu theo rạp
     const showtimesByCinema = showtimesForDate.reduce((acc, showtime) => {
@@ -227,12 +241,34 @@ export default function FilterMovie() {
         </div>
       );
     }).filter(Boolean);
-  }, [ListShowtimes, selectDate, selectedCinema]);
+  }, [filteredShowtimes, selectDate, selectedCinema]);
 
   const handleReset = () => {
     setSelectedBranch("");
     setSelectedCinema("");
   };
+
+  // Nhận showtime đầu tiên có sẵn ngoài giới hạn 3 ngày
+  const firstAvailableShowtime = useMemo(() => {
+    if (!ListShowtimes || !Array.isArray(ListShowtimes) || ListShowtimes.length === 0) {
+      return null;
+    }
+    
+    // Sắp xếp tất cả các suất chiếu theo ngày, từ sớm nhất đến muộn nhất
+    const sortedShowtimes = [...ListShowtimes].sort((a, b) => 
+      new Date(a.show_date) - new Date(b.show_date)
+    );
+    
+    const currentDate = new Date();
+    const threeDaysLater = new Date();
+    threeDaysLater.setDate(currentDate.getDate() + 3);
+    
+    // Tìm suất chiếu đầu tiên ngoài phạm vi 3 ngày
+    return sortedShowtimes.find(showtime => {
+      const showtimeDate = new Date(showtime.show_date);
+      return showtimeDate > threeDaysLater;
+    });
+  }, [ListShowtimes]);
 
   return (
     <div className="mt-10">
@@ -370,13 +406,22 @@ export default function FilterMovie() {
             <h3 className="text-xl font-medium text-gray-700 mb-2">Lỗi khi tải dữ liệu</h3>
             <p className="text-sm text-gray-500 max-w-md">Có lỗi xảy ra khi tải lịch chiếu phim. Vui lòng thử lại sau.</p>
           </div>
-        ) : !ListShowtimes || !Array.isArray(ListShowtimes) || ListShowtimes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center bg-gray-50 rounded-xl border border-gray-200">
+        ) : !filteredShowtimes || filteredShowtimes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-6 text-center bg-gray-50 rounded-xl border border-gray-200">
             <svg className="w-20 h-20 text-gray-300 mb-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h3 className="text-xl font-medium text-gray-700 mb-2">Không có dữ liệu suất chiếu</h3>
-            <p className="text-sm text-gray-500 max-w-md">Hiện không có suất chiếu nào cho phim này. Vui lòng kiểm tra lại sau.</p>
+            <h3 className="text-xl font-medium text-gray-700 mb-2">Không có suất chiếu trong 3 ngày tới</h3>
+            {firstAvailableShowtime ? (
+              <p className="text-sm font-medium text-orange-500 max-w-md">
+                Phim này sẽ có suất chiếu vào ngày {new Date(firstAvailableShowtime.show_date).toLocaleDateString('vi-VN', {day: 'numeric', month: 'numeric', year: 'numeric'})}.
+                Bạn có thể quay lại để đặt vé trước 3 ngày so với ngày chiếu.
+              </p>
+            ) : (
+              <p className="text-sm text-gray-500 max-w-md">
+                Hiện chưa có thông tin về lịch chiếu của phim này. Vui lòng kiểm tra lại sau.
+              </p>
+            )}
           </div>
         ) : renderShowtimes || (
           <div className="flex flex-col items-center justify-center py-16 text-center bg-gray-50 rounded-xl border border-gray-200">

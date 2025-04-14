@@ -38,6 +38,7 @@ export default function Branch() {
     search: searchValue,
     sort_order: sortOrder
   });
+  console.log("citiesData", citiesData);
   
   const [deleteBranch] = useDeleteBranchMutation();
   const [createBranch] = useCreateBranchMutation();
@@ -346,8 +347,8 @@ export default function Branch() {
               value={formData.city}
               onChange={handleCityChange}
               options={citiesData.map(city => ({ 
-                value: city.name, 
-                label: city.name 
+                value: city.Name, 
+                label: city.Name 
               }))}
               placeholder="Chọn thành phố"
               className="react-select-container"

@@ -1,14 +1,22 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { useResetPassMutation } from "../../api/authApi";
+import { Link, useNavigate } from "react-router-dom";
+import logoHeader from "@/public/LogoHeader.png";
+import { FaEye, FaEyeSlash, FaSpinner } from "react-icons/fa";
+import { useSearchParams } from "react-router-dom";
+import { useNewPassMutation } from "@/api/authApi";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
-import { validateEmail } from "@/utils/auth";
-import { FaSpinner } from "react-icons/fa";
 
-export default function ResetPassword() {
-  const [resetPass] = useResetPassMutation();
+export default function NewPassword() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const token = searchParams.get("token");
+  const email = searchParams.get("email");
+
+  const [newPass] = useNewPassMutation();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const {
     register,
@@ -28,12 +36,13 @@ export default function ResetPassword() {
     setIsLoading(true);
     
     try {
-      const response = await resetPass(data.email);
+      const response = await newPass({ token, password: data.password, email });
 
       if (response.data.status === 401) {
-        toast.error("Không tìm thấy tài khoản nào!");
+        toast.error("Token không hợp lệ hoặc đã hết hạn!");
       } else {
-        toast.success("Vui lòng kiểm tra email của bạn để lấy mật khẩu mới.");
+        toast.success("Cập nhật thành công, vui lòng đăng nhập");
+        navigate("/login");
       }
     } catch (error) {
       toast.error("Đã xảy ra lỗi, vui lòng thử lại sau.");
@@ -42,7 +51,7 @@ export default function ResetPassword() {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <div className="bg-orange-50 font-[sans-serif] min-h-screen flex items-center justify-center p-4">
       <div className="max-w-5xl w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
@@ -53,7 +62,7 @@ export default function ResetPassword() {
             <div className="w-40 h-40 mx-auto animate-float">
               <Link to="/">
                 <img 
-                  src="/src/public/LogoHeader.png" 
+                  src={logoHeader}
                   alt="logo" 
                   className="w-full h-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] transform transition-transform duration-700 hover:rotate-12 animate-pulse"
                 />
@@ -70,58 +79,41 @@ export default function ResetPassword() {
         <div className="md:w-3/5 p-8 overflow-y-auto max-h-screen">
           <div className="max-w-md mx-auto">
             <h2 className="text-orange-600 text-center text-2xl font-bold mb-6 animate-slideDown">
-              Quên mật khẩu
+              Đặt lại mật khẩu
             </h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
               <div className="animate-slideIn" style={{animationDelay: "0.2s"}}>
                 <label className="text-gray-800 text-sm block mb-1">
-                  Email
+                  Mật khẩu mới
                 </label>
                 <div className="relative flex items-center">
                   <input
-                    {...register("email", {
-                      required: "Vui lòng nhập email",
-                      validate: {
-                        validFormat: (value) => validateEmail(value) || "Email không hợp lệ"
+                    {...register("password", {
+                      required: "Vui lòng nhập mật khẩu mới",
+                      minLength: {
+                        value: 6,
+                        message: "Mật khẩu phải có ít nhất 6 ký tự"
                       }
                     })}
-                    type="text"
+                    type={showPassword ? "text" : "password"}
                     className="w-full text-sm text-gray-800 border-b border-orange-200 focus:border-orange-500 px-2 py-2 outline-none transition-colors duration-300"
-                    placeholder="Nhập email của bạn"
-                    onBlur={() => handleBlur("email")}
+                    placeholder="Nhập mật khẩu mới"
+                    onBlur={() => handleBlur("password")}
                   />
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="#F97316"
-                    stroke="#F97316"
-                    className="w-[18px] h-[18px] absolute right-2"
-                    viewBox="0 0 682.667 682.667"
-                  >
-                    <defs>
-                      <clipPath id="a" clipPathUnits="userSpaceOnUse">
-                        <path d="M0 512h512V0H0Z" data-original="#000000" />
-                      </clipPath>
-                    </defs>
-                    <g
-                      clipPath="url(#a)"
-                      transform="matrix(1.33 0 0 -1.33 0 682.667)"
-                    >
-                      <path
-                        fill="none"
-                        strokeMiterlimit={10}
-                        strokeWidth={40}
-                        d="M452 444H60c-22.091 0-40-17.909-40-40v-39.446l212.127-157.782c14.17-10.54 33.576-10.54 47.746 0L492 364.554V404c0 22.091-17.909 40-40 40Z"
-                        data-original="#000000"
-                      />
-                      <path
-                        d="M472 274.9V107.999c0-11.027-8.972-20-20-20H60c-11.028 0-20 8.973-20 20V274.9L0 304.652V107.999c0-33.084 26.916-60 60-60h392c33.084 0 60 26.916 60 60v196.653Z"
-                        data-original="#000000"
-                      />
-                    </g>
-                  </svg>
+                  {showPassword ? (
+                    <FaEye
+                      onClick={() => setShowPassword(false)}
+                      className="w-[16px] text-orange-400 absolute right-2 cursor-pointer"
+                    />
+                  ) : (
+                    <FaEyeSlash
+                      onClick={() => setShowPassword(true)}
+                      className="w-[16px] text-orange-400 absolute right-2 cursor-pointer"
+                    />
+                  )}
                 </div>
                 <small className="text-red-500 text-xs block h-5">
-                  {errors.email?.message}
+                  {errors.password?.message}
                 </small>
               </div>
               <div className="mt-6 animate-slideIn" style={{animationDelay: "0.4s"}}>
@@ -136,7 +128,7 @@ export default function ResetPassword() {
                       Đang xử lý...
                     </span>
                   ) : (
-                    "Lấy lại mật khẩu"
+                    "Đặt lại mật khẩu"
                   )}
                 </button>
               </div>

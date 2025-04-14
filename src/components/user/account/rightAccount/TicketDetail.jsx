@@ -1,8 +1,12 @@
 import { IoMdCloseCircleOutline } from "react-icons/io";
-
-export default function TicketDetail({ setToggleShowTicket }) {
+import { formatImage } from "@/utils/formatImage";
+const VITE_SOCKET_URL= import.meta.env.VITE_SOCKET_URL;
+import {formatCurrency, formatDate, formatTime} from '@/utils/format'
+export default function TicketDetail({ order, setToggleShowTicket }) {
+  console.log(order);
+  
   return (
-      <div className="border-t-8 border-orange-500 bg-white w-96 rounded-lg shadow-lg p-6 relative">
+      <div className="border-t-8 border-orange-500 bg-white w-96 rounded-lg shadow-lg p-5 relative max-h-[90vh] overflow-y-auto">
         {/* Close button */}
         <button
           onClick={() => setToggleShowTicket(false)}
@@ -12,56 +16,64 @@ export default function TicketDetail({ setToggleShowTicket }) {
         </button>
 
         {/* Movie image */}
-        <div className="flex justify-center items-center w-full h-32">
+        <div className="flex justify-center items-center w-full h-28">
           <img
-            src="https://cdn.galaxycine.vn/media/2024/2/19/baghead-500_1708317004756.jpg" // Thay bằng URL ảnh phim
-            alt="Movie Poster"
+            src={formatImage(order?.Showtime?.Movie?.poster)} // Thay bằng URL ảnh phim
+            alt={order?.Showtime?.Movie?.name}
             className="h-full object-cover rounded-lg"
           />
         </div>
 
         {/* Movie details */}
-        <h2 className="mt-4 text-xl font-semibold text-center text-gray-800">
-          Quỷ Thay Đầu
+        <h2 className="mt-3 text-lg font-semibold text-center text-gray-800">
+        {order?.Showtime?.Movie?.name}
         </h2>
-        <div className="flex items-center justify-center mt-2">
-        <p className="text-center text-gray-600">2D Phụ Đề</p>
+        <div className="flex items-center justify-center mt-1">
+        <p className="text-center text-gray-600 text-sm">2D Phụ Đề</p>
         <div className="flex justify-center items-center">
-          <span className="text-xs font-bold text-white bg-orange-500 ml-2 px-2 py-1 rounded-md">
+          <span className="text-xs font-bold text-white bg-orange-500 ml-2 px-2 py-0.5 rounded-md">
             T18
           </span>
         </div>
         </div>
 
         {/* Divider */}
-        <hr className="my-4 border-gray-300" />
+        <hr className="my-3 border-gray-300" />
 
         {/* Cinema and session details */}
-        <div className="text-gray-700 space-y-2">
-          <p className="text-center">
-            <span className="font-semibold">Galaxy Da Nang</span>
+        <div className="text-gray-700 space-y-1">
+          <p className="text-center text-sm">
+            <span className="font-semibold">{order?.Showtime?.Room?.Cinema?.name}</span>
           </p>
-          <p className="text-center">
-            Suất: <span className="font-semibold">23:00 - Thứ Sáu, 08/03/2024</span>
+          <p className="text-center text-sm">
+            Suất: <span className="font-semibold">{formatTime(order?.Showtime?.start_time)} - {formatDate(order?.Showtime?.show_date)}</span>
           </p>
+          <hr className="my-3 border-gray-300" />
+
+          <div className="text-center">
+            <p className="text-sm">Mã vé:</p>
+            <div className="flex justify-center py-2">
+              <img 
+                src={order?.qr_code.startsWith("http") ? order?.qr_code : `${VITE_SOCKET_URL}${order?.qr_code}`} 
+                alt="QR Code"
+                className="w-32 h-32 object-contain" 
+              />
+            </div>
+          </div>
         </div>
 
         {/* Divider */}
-        <hr className="my-4 border-gray-300" />
+        <hr className="my-3 border-gray-300" />
 
         {/* Ticket details */}
-        <div className="grid grid-cols-3 gap-4 text-center text-gray-700">
-          <div>
-            <p className="text-sm">Mã vé</p>
-            <p className="font-semibold">12345</p>
-          </div>
+        <div className="grid grid-cols-2 gap-3 text-center text-gray-700">
           <div>
             <p className="text-sm">Stars</p>
-            <p className="font-semibold">4</p>
+            <p className="font-semibold">3</p>
           </div>
           <div>
             <p className="text-sm">Giá</p>
-            <p className="font-semibold">110.000 đ</p>
+            <p className="font-semibold">{formatCurrency(order?.total)}</p>
           </div>
         </div>
       </div>

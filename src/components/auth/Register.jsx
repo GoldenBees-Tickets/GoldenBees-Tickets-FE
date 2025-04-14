@@ -1,67 +1,64 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useRegiterMutation } from "../../api/authApi";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaSpinner } from "react-icons/fa";
 import { toast } from "react-toastify";
-import logoHeader from "../../public/LogoHeader.png";
+import { useForm } from "react-hook-form";
+import { validateEmail } from "../../utils/auth";
 
 export default function Register() {
   const [regiserUser] = useRegiterMutation();
+  const navigate = useNavigate();
 
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, touchedFields },
+    trigger,
+  } = useForm({
+    mode: "all",
+    criteriaMode: "all",
+  });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState({ field: "", message: "" });
 
-  const [errorUsername, setErrorUsername] = useState("");
-  const [errorEmail, setErrorEmail] = useState("");
-  const [errorPassword, setErrorPassword] = useState("");
-  const [errorConfirmPassword, setErrorConfirmPassword] = useState("");
+  const onSubmit = async (data) => {
+    setIsLoading(true);
+    setServerError({ field: "", message: "" });
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-
-    setErrorUsername("");
-    setErrorEmail("");
-    setErrorPassword("");
-    setErrorConfirmPassword("");
-
-    if (username.trim() === "") {
-      setErrorUsername("Username is required");
-      return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (email.trim() === "") {
-      setErrorEmail("Email is required");
-      return;
-    } else if (!emailRegex.test(email)) {
-      setErrorEmail("Invalid email format");
-      return;
-    }
-    if (password.trim() === "") {
-      setErrorPassword("Password is required");
-      return;
-    }
-    if (confirmPassword !== password) {
-      setErrorConfirmPassword("The confirmation password does not match");
-      return;
-    }
-    const user = await regiserUser({ username, email, password });
-    if (user?.data.status === 401) {
-      if (user?.data.field === "username") {
-        setErrorUsername(user?.data.message);
-        return;
+    try {
+      const response = await regiserUser({
+        username: data.username,
+        email: data.email,
+        password: data.password,
+      });
+      if (response?.data.error && response?.data.status === 401) {
+        toast.error(response?.data?.message || "Lỗi hệ thống");
+      } else {
+        toast.success(
+          response?.data.message ||
+            "Đăng ký thành công. Kiểm tra email để kích hoạt tài khoản"
+        );
+        navigate("/login");
       }
-      if (user?.data.field === "email") {
-        setErrorEmail(user?.data.message);
-        return;
-      }
-    } else {
-      toast.success("Đăng ký thành công.");
+    } catch (error) {
+      console.log("error", error);
+
+      toast.error(
+        error?.data?.message ||
+          "Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại sau."
+      );
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleBlur = (fieldName) => {
+    trigger(fieldName);
   };
 
   return (
@@ -92,27 +89,32 @@ export default function Register() {
         </div>
 
         {/* Form Section - Right */}
-        <div className="md:w-3/5 p-8">
+        <div className="md:w-3/5 p-8 overflow-y-auto max-h-screen">
           <div className="max-w-md mx-auto">
             <h2 className="text-orange-600 text-center text-2xl font-bold mb-6 animate-slideDown">
               Đăng ký tài khoản
             </h2>
-            <form onSubmit={handleRegister} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
               <div
                 className="animate-slideIn"
                 style={{ animationDelay: "0.2s" }}
               >
-                <label className="text-gray-800 text-sm block mb-2">
+                <label className="text-gray-800 text-sm block mb-1">
                   Tên người dùng
                 </label>
                 <div className="relative flex items-center">
                   <input
-                    name="username"
+                    {...register("username", {
+                      required: "Username is required",
+                      minLength: {
+                        value: 3,
+                        message: "Username must be at least 3 characters",
+                      },
+                    })}
                     type="text"
-                    onChange={(e) => setUsername(e.target.value)}
-                    required=""
-                    className="w-full text-sm text-gray-800 border-b border-orange-200 focus:border-orange-500 px-2 py-3 outline-none transition-colors duration-300"
+                    className="w-full text-sm text-gray-800 border-b border-orange-200 focus:border-orange-500 px-2 py-2 outline-none transition-colors duration-300"
                     placeholder="Nhập tên người dùng"
+                    onBlur={() => handleBlur("username")}
                   />
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -123,23 +125,31 @@ export default function Register() {
                     <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5zm0 2c-4.418 0-8 1.791-8 4v2h16v-2c0-2.209-3.582-4-8-4z" />
                   </svg>
                 </div>
-                <small className="text-red-500">{errorUsername}</small>
+                <small className="text-red-500 text-xs block h-5">
+                  {errors.username?.message ||
+                    (serverError.field === "username" && serverError.message)}
+                </small>
               </div>
               <div
                 className="animate-slideIn"
                 style={{ animationDelay: "0.4s" }}
               >
-                <label className="text-gray-800 text-sm block mb-2">
+                <label className="text-gray-800 text-sm block mb-1">
                   Email
                 </label>
                 <div className="relative flex items-center">
                   <input
-                    name="email"
+                    {...register("email", {
+                      required: "Email is required",
+                      validate: {
+                        validFormat: (value) =>
+                          validateEmail(value) || "Invalid email format",
+                      },
+                    })}
                     type="text"
-                    onChange={(e) => setEmail(e.target.value)}
-                    required=""
-                    className="w-full text-sm text-gray-800 border-b border-orange-200 focus:border-orange-500 px-2 py-3 outline-none transition-colors duration-300"
+                    className="w-full text-sm text-gray-800 border-b border-orange-200 focus:border-orange-500 px-2 py-2 outline-none transition-colors duration-300"
                     placeholder="Nhập email"
+                    onBlur={() => handleBlur("email")}
                   />
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -171,23 +181,31 @@ export default function Register() {
                     </g>
                   </svg>
                 </div>
-                <small className="text-red-500">{errorEmail}</small>
+                <small className="text-red-500 text-xs block h-5">
+                  {errors.email?.message ||
+                    (serverError.field === "email" && serverError.message)}
+                </small>
               </div>
               <div
                 className="animate-slideIn"
                 style={{ animationDelay: "0.6s" }}
               >
-                <label className="text-gray-800 text-sm block mb-2">
+                <label className="text-gray-800 text-sm block mb-1">
                   Mật khẩu
                 </label>
                 <div className="relative flex items-center">
                   <input
-                    name="password"
+                    {...register("password", {
+                      required: "Password is required",
+                      minLength: {
+                        value: 6,
+                        message: "Password must be at least 6 characters",
+                      },
+                    })}
                     type={showPassword ? "text" : "password"}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required=""
-                    className="w-full text-sm text-gray-800 border-b border-orange-200 focus:border-orange-500 px-2 py-3 outline-none transition-colors duration-300"
+                    className="w-full text-sm text-gray-800 border-b border-orange-200 focus:border-orange-500 px-2 py-2 outline-none transition-colors duration-300"
                     placeholder="Nhập mật khẩu"
+                    onBlur={() => handleBlur("password")}
                   />
                   {showPassword ? (
                     <FaEye
@@ -201,23 +219,29 @@ export default function Register() {
                     />
                   )}
                 </div>
-                <small className="text-red-500">{errorPassword}</small>
+                <small className="text-red-500 text-xs block h-5">
+                  {errors.password?.message}
+                </small>
               </div>
               <div
                 className="animate-slideIn"
                 style={{ animationDelay: "0.8s" }}
               >
-                <label className="text-gray-800 text-sm block mb-2">
+                <label className="text-gray-800 text-sm block mb-1">
                   Xác nhận mật khẩu
                 </label>
                 <div className="relative flex items-center">
                   <input
-                    name="confirm-password"
+                    {...register("confirmPassword", {
+                      required: "Please confirm your password",
+                      validate: (value) =>
+                        value === watch("password") ||
+                        "The confirmation password does not match",
+                    })}
                     type={showConfirmPassword ? "text" : "password"}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required=""
-                    className="w-full text-sm text-gray-800 border-b border-orange-200 focus:border-orange-500 px-2 py-3 outline-none transition-colors duration-300"
+                    className="w-full text-sm text-gray-800 border-b border-orange-200 focus:border-orange-500 px-2 py-2 outline-none transition-colors duration-300"
                     placeholder="Xác nhận mật khẩu"
+                    onBlur={() => handleBlur("confirmPassword")}
                   />
                   {showConfirmPassword ? (
                     <FaEye
@@ -231,21 +255,31 @@ export default function Register() {
                     />
                   )}
                 </div>
-                <small className="text-red-500">{errorConfirmPassword}</small>
+                <small className="text-red-500 text-xs block h-5">
+                  {errors.confirmPassword?.message}
+                </small>
               </div>
               <div
-                className="mt-8 animate-slideIn"
+                className="mt-6 animate-slideIn"
                 style={{ animationDelay: "1s" }}
               >
                 <button
                   type="submit"
-                  className="w-full py-2.5 px-4 text-sm tracking-wide rounded-md text-white bg-orange-500 hover:bg-orange-600 focus:outline-none transform transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
+                  disabled={isLoading}
+                  className="w-full py-2.5 px-4 text-sm tracking-wide rounded-md text-white bg-orange-500 hover:bg-orange-600 focus:outline-none transform transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Đăng ký
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <FaSpinner className="animate-spin" />
+                      Đang xử lý...
+                    </span>
+                  ) : (
+                    "Đăng ký"
+                  )}
                 </button>
               </div>
               <p
-                className="text-gray-800 text-sm mt-6 text-center animate-slideIn"
+                className="text-gray-800 text-sm mt-4 text-center animate-slideIn"
                 style={{ animationDelay: "1.2s" }}
               >
                 Đã có tài khoản?{" "}
@@ -339,6 +373,21 @@ style.textContent = `
   
   .animate-slideDown {
     animation: slideDown 0.8s ease-out forwards;
+  }
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-slideIn {
+    animation: slideIn 0.8s ease-out forwards;
   }
   
   .bg-pattern {

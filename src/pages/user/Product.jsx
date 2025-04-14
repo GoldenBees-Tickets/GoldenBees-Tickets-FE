@@ -12,22 +12,33 @@ export default function Product() {
   const [filterGenre, setFilterGenre] = useState("");
   
   let ListMovie = List?.movies || [];
-  console.log("Movies list:", ListMovie);
+  
+  // Filter movies by status first
+  const nowShowingMovies = ListMovie?.filter(movie => 
+    movie.status === "now_showing" || movie.status === "opening_soon"
+  ) || [];
+  
+  const comingSoonMovies = ListMovie?.filter(movie => 
+    movie.status === "coming_soon"
+  ) || [];
+  
+  // Choose which list to use based on active tab
+  const moviesForCurrentTab = activeTab === "nowShowing" ? nowShowingMovies : comingSoonMovies;
 
   // Lấy danh sách năm và thể loại từ danh sách phim
   const { uniqueYears, uniqueGenres } = useMemo(() => {
-    if (!ListMovie.length) {
+    if (!moviesForCurrentTab.length) {
       return { uniqueYears: [], uniqueGenres: [] };
     }
     
     // Extract unique years
-    const years = [...new Set(ListMovie.map(movie => movie.year))]
+    const years = [...new Set(moviesForCurrentTab.map(movie => movie.year))]
       .filter(Boolean)
       .sort((a, b) => b - a);
     
     // Extract unique genres
     const genres = [];
-    ListMovie.forEach(movie => {
+    moviesForCurrentTab.forEach(movie => {
       if (movie.MovieGenres) {
         movie.MovieGenres.forEach(mg => {
           if (mg.Genre && !genres.some(g => g.id === mg.Genre.id)) {
@@ -38,13 +49,13 @@ export default function Product() {
     });
     
     return { uniqueYears: years, uniqueGenres: genres };
-  }, [ListMovie]);
+  }, [moviesForCurrentTab]);
   
   // Lọc phim theo các tiêu chí
   const filteredMovies = useMemo(() => {
-    if (!ListMovie.length) return [];
+    if (!moviesForCurrentTab.length) return [];
     
-    return ListMovie.filter(movie => {
+    return moviesForCurrentTab.filter(movie => {
       // Lọc theo tên phim
       if (searchTitle && !movie.name.toLowerCase().includes(searchTitle.toLowerCase())) {
         return false;
@@ -64,7 +75,7 @@ export default function Product() {
       
       return true;
     });
-  }, [ListMovie, searchTitle, filterYear, filterGenre]);
+  }, [moviesForCurrentTab, searchTitle, filterYear, filterGenre]);
   
   // Reset bộ lọc
   const handleReset = () => {
@@ -97,6 +108,39 @@ export default function Product() {
 
         {!isLoading && !error && (
           <div className="font-[sans-serif] p-4 mx-auto">
+            {/* Tab Navigation */}
+            <div className="flex items-center justify-center border-b border-gray-200 mb-6">
+              <div className="flex items-center mr-12">
+                <div className="w-1 h-8 bg-yellow-500 mr-3"></div>
+                <h2 className="text-xl font-bold text-yellow-500 uppercase">
+                  Danh sách phim
+                </h2>
+              </div>
+              
+              <div className="flex">
+                <button
+                  onClick={() => setActiveTab("nowShowing")}
+                  className={`py-2 px-4 font-medium text-lg ${
+                    activeTab === "nowShowing" 
+                      ? "text-yellow-500 border-b-2 border-yellow-500" 
+                      : "text-gray-400"
+                  }`}
+                >
+                  Đang chiếu
+                </button>
+                <button
+                  onClick={() => setActiveTab("comingSoon")}
+                  className={`py-2 px-4 font-medium text-lg ${
+                    activeTab === "comingSoon" 
+                      ? "text-yellow-500 border-b-2 border-yellow-500" 
+                      : "text-gray-400"
+                  }`}
+                >
+                  Sắp chiếu
+                </button>
+              </div>
+            </div>
+            
             {/* Bộ lọc phim */}
             <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
               <div className="flex flex-wrap gap-4 mb-4">
@@ -160,18 +204,8 @@ export default function Product() {
               
               {/* Thông tin hiển thị */}
               <div className="text-sm text-gray-500">
-                Hiển thị <span className="font-semibold text-yellow-500">{filteredMovies.length}</span> trên <span className="font-semibold">{ListMovie.length}</span> phim
+                Hiển thị <span className="font-semibold text-yellow-500">{filteredMovies.length}</span> trên <span className="font-semibold">{activeTab === "nowShowing" ? nowShowingMovies.length : comingSoonMovies.length}</span> phim
                 {(searchTitle || filterYear || filterGenre) && <span className="text-yellow-500 ml-1">(đã lọc)</span>}
-              </div>
-            </div>
-            
-            {/* Tiêu đề */}
-            <div className="flex items-center justify-center border-b border-gray-200 mb-6">
-              <div className="flex items-center mr-12">
-                <div className="w-1 h-8 bg-yellow-500 mr-3"></div>
-                <h2 className="text-xl font-bold text-yellow-500 uppercase">
-                  Danh sách phim
-                </h2>
               </div>
             </div>
             

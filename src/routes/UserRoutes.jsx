@@ -35,7 +35,7 @@ const UserRoutes = {
     { path: "about", element: <About /> },
     { path: "contact", element: <Contacts /> },
     { path: "blog", element: <Blog /> },
-    { path: "product", element: <Product /> },
+    { path: "movies", element: <Product /> },
     { path: "detail/:id", element: <Detail /> },
     { path: "chair", element: <ListChair /> },
     { path: "filterhome", element: <FilterHome /> },
