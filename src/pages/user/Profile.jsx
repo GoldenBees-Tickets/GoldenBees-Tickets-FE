@@ -5,6 +5,7 @@ import LeftAccount from "../../components/user/account/LeftAccount";
 import RightAccount from "../../components/user/account/RightAccount";
 import { useNavigate } from "react-router-dom";
 import { message } from "antd";
+import { FaSpinner } from "react-icons/fa";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -22,17 +23,17 @@ export default function UserProfile() {
     }
   }, []);
 
-  const { data: userData, error } = useGetUserQuery(userid, {
+  const { data: userData, error, isLoading } = useGetUserQuery(userid, {
     skip: !userid,
   });
 
   useEffect(() => {
-    if (userid && !userData) {
+    if (userid && !isLoading && !userData && !error) {
       message.info("Please login to continue");
       localStorage.clear();
       navigate("/login");
     }
-  }, [userid, userData, navigate]);
+  }, [userid, userData, navigate, isLoading, error]);
   
   const user = useMemo(() => {
     if (userData && userData.user) {
@@ -46,11 +47,33 @@ export default function UserProfile() {
   if (error) {
     console.error("Error fetching user:", error);
   }
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[500px]">
+        <FaSpinner className="animate-spin text-blue-500 text-4xl" />
+      </div>
+    );
+  }
   
   return (
-    <div className="flex bg-gray-100 min-h-screen p-6">
-      <LeftAccount user={user} />
-      <RightAccount user={user} />
+    <div className="bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">
+          Tài khoản của tôi
+        </h1>
+        
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left side */}
+          <div className="w-full lg:w-1/3 xl:w-1/4">
+            <LeftAccount user={user} />
+          </div>
+          
+          {/* Right side */}
+          <div className="w-full lg:w-2/3 xl:w-3/4">
+            <RightAccount user={user} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

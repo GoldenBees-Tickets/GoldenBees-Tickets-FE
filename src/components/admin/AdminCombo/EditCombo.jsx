@@ -330,9 +330,5 @@ const EditCombo = ({ combo, setEditForm }) => {
   );
 };
 
-EditCombo.propTypes = {
-  combo: PropTypes.object.isRequired,
-  setEditForm: PropTypes.func.isRequired,
-};
 
 export default EditCombo;

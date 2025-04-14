@@ -131,10 +131,10 @@ export default function Header() {
                 
                 <li>
                   <Link
-                    to="/product"
+                    to="/movies"
                     onClick={handleClick}
                     className={`block px-6 py-3 lg:py-2.5 lg:px-4 text-base border-b lg:border-b-0 border-gray-100 ${
-                      isActive("/product")
+                      isActive("/movies")
                         ? "text-yellow-500 font-medium"
                         : "hover:text-yellow-500"
                     }`}

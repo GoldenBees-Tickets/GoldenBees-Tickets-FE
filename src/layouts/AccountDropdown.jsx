@@ -39,8 +39,14 @@ export default function AccountDropdown() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
+    setIsOpen(false);
     navigate("/login");
   }, [navigate]);
+  
+  // Hàm xử lý đóng dropdown khi click vào link
+  const handleLinkClick = () => {
+    setIsOpen(false);
+  };
   
   if (!accessToken || error?.status === 401) {
     return (
@@ -103,6 +109,7 @@ export default function AccountDropdown() {
         <div className="absolute right-0 w-72 mt-2 z-50 origin-top-right bg-white border border-gray-100 rounded-xl shadow-lg py-1 focus:outline-none transform transition-all duration-200 ease-out scale-100 opacity-100">
           {/* User info section */}
           <div className="p-4 border-b border-gray-100">
+            <Link to="/account" onClick={handleLinkClick}>
             <div className="flex items-center">
               {userData?.image ? (
                 <img
@@ -121,6 +128,7 @@ export default function AccountDropdown() {
                 <p className="text-xs text-gray-500 truncate max-w-[180px]">{userData?.email}</p>
               </div>
             </div>
+            </Link>
           </div>
 
           {/* Menu items */}
@@ -129,7 +137,8 @@ export default function AccountDropdown() {
             <>
               <Link
                 to="/account"
-                  className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                onClick={handleLinkClick}
+                className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
               >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -138,7 +147,8 @@ export default function AccountDropdown() {
               </Link>
               <Link
                 to="/my-orders"
-                  className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                onClick={handleLinkClick}
+                className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
               >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -149,7 +159,8 @@ export default function AccountDropdown() {
           ) : (
             <Link
               to="/admin"
-                className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+              onClick={handleLinkClick}
+              className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -163,7 +174,7 @@ export default function AccountDropdown() {
           {/* Sign out button */}
           <div className="border-t border-gray-100 mt-1">
             <button
-            onClick={handleLogout}
+              onClick={handleLogout}
               className="flex items-center w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

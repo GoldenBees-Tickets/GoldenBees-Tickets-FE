@@ -1,7 +1,7 @@
 import Login from "@/components/auth/Login";
 import Register from "@/components/auth/Register";
 import ResetPassword from "@/components/auth/ResetPassword";
-import NewPassword from "@/pages/NewPassword";
+import NewPassword from "@/components/auth/NewPassword";
 import ForbiddenPage from "@/components/ForbiddenPage";
 import ActiveAccount from "@/components/auth/ActiveAccount";
 

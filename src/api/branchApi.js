@@ -1,8 +1,14 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import axiosBaseQuery from "./authQuery/axiosBaseQuery";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const branchApi = createApi({
   reducerPath: "branchApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:3000/v1/api/branch" }),
+  baseQuery: axiosBaseQuery({
+    baseUrl: `${API_BASE_URL}branch`,
+    useHttpClient: true,
+  }),
+  tagTypes: ["Branch"],
   endpoints: (builder) => ({
     // Thêm chi nhánh mới
     createBranch: builder.mutation({

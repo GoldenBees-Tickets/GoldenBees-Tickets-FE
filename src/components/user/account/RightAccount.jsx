@@ -7,11 +7,11 @@ export default function RightAccount({ user }) {
 
   return (
     <>
-      <div className="w-full md:w-2/3 mt-6 md:mt-0 md:ml-6 bg-white shadow-lg rounded-lg p-6">
-        <div className="border-b pb-4 mb-4 flex space-x-4 text-gray-700">
+      <div className="w-full bg-white shadow-lg rounded-lg p-4 sm:p-6">
+        <div className="border-b pb-3 sm:pb-4 mb-3 sm:mb-4 flex overflow-x-auto sm:flex-wrap gap-2 sm:gap-4 text-gray-700 no-scrollbar">
           <button
             onClick={() => setActiveTab("infor")}
-            className={`${
+            className={`text-sm sm:text-base whitespace-nowrap py-1 ${
               activeTab === "infor"
                 ? "border-b-2 border-blue-500 font-medium"
                 : "text-gray-500 font-medium"
@@ -21,7 +21,7 @@ export default function RightAccount({ user }) {
           </button>
           <button
             onClick={() => setActiveTab("transaction")}
-            className={`${
+            className={`text-sm sm:text-base whitespace-nowrap py-1 ${
               activeTab === "transaction"
                 ? "border-b-2 border-blue-500 font-medium"
                 : "text-gray-500 font-medium"
@@ -31,7 +31,7 @@ export default function RightAccount({ user }) {
           </button>
           <button
             onClick={() => setActiveTab("notification")}
-            className={`${
+            className={`text-sm sm:text-base whitespace-nowrap py-1 ${
               activeTab === "notification"
                 ? "border-b-2 border-blue-500 font-medium"
                 : "text-gray-500 font-medium"
@@ -41,7 +41,7 @@ export default function RightAccount({ user }) {
           </button>
           <button
             onClick={() => setActiveTab("gift")}
-            className={`${
+            className={`text-sm sm:text-base whitespace-nowrap py-1 ${
               activeTab === "gift"
                 ? "border-b-2 border-blue-500 font-medium"
                 : "text-gray-500 font-medium"
@@ -51,7 +51,7 @@ export default function RightAccount({ user }) {
           </button>
           <button
             onClick={() => setActiveTab("policy")}
-            className={`${
+            className={`text-sm sm:text-base whitespace-nowrap py-1 ${
               activeTab === "policy"
                 ? "border-b-2 border-blue-500 font-medium"
                 : "text-gray-500 font-medium"
@@ -62,11 +62,13 @@ export default function RightAccount({ user }) {
         </div>
 
         {/* Render nội dung tương ứng */}
-        {activeTab === "infor" && <Infor user={user} />}
-        {activeTab === "transaction" && <TransactionHistory user={user} />}
-        {activeTab === "notification" && <div>Thông báo</div>}
-        {activeTab === "gift" && <div>Quà tặng</div>}
-        {activeTab === "policy" && <div>Chính sách</div>}
+        <div className="mt-2 sm:mt-4">
+          {activeTab === "infor" && <Infor user={user} />}
+          {activeTab === "transaction" && <TransactionHistory user={user} />}
+          {activeTab === "notification" && <div>Thông báo</div>}
+          {activeTab === "gift" && <div>Quà tặng</div>}
+          {activeTab === "policy" && <div>Chính sách</div>}
+        </div>
       </div>
     </>
   );

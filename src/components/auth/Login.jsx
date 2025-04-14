@@ -4,90 +4,139 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import {
   useLoginMutation,
   useVerifyGoogleTokenMutation,
-} from "../../api/authApi";
+} from "@/api/authApi";
 import { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaSpinner, FaEnvelope } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { useForm } from "react-hook-form";
+import { validateEmail } from "@/utils/auth";
+import { useResendActiveAccountMutation } from "../../api/authApi";
 
 export default function Login() {
   const navigate = useNavigate();
+  const [resendActive] = useResendActiveAccountMutation();
 
   const [loginByGoogle] = useVerifyGoogleTokenMutation();
   const [login] = useLoginMutation();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [isShowBtnActive, setIsShowBtnActive] = useState(false);
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    trigger,
+    getValues,
+  } = useForm({ 
+    mode: "all", 
+    criteriaMode: "all",
+  });
+
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
 
-  const [errorEmail, setErrorEmail] = useState("");
-  const [errorPassword, setErrorPassword] = useState("");
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-
-    setErrorEmail("");
-    setErrorPassword("");
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (email.trim() === "") {
-      setErrorEmail("Email is required");
-      return;
-    } else if (!emailRegex.test(email)) {
-      setErrorEmail("Invalid email format");
-      return;
-    }
-    if (password.trim() === "") {
-      setErrorPassword("Password is required");
-      return;
-    }
-
-    const data = await login({ email, password });
-
-    if (data.data.status === 200) {
-      localStorage.setItem("accessToken", data.data.data.accessToken);
-      localStorage.setItem("refreshToken", data.data.data.refreshToken);
-      const user = {
-        role: data.data.data.role,
-        id: data.data.data.id,
-      };
-      localStorage.setItem("user", JSON.stringify(user));
-
-      toast.success("Đăng nhập thành công!");
-
-      if (data.data.data.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/");
+  const onSubmit = async (data) => {
+    setIsLoading(true);
+    setServerError("");
+    
+    try {
+      const response = await login({ 
+        email: data.email, 
+        password: data.password 
+      });
+      if (response?.data?.error && response?.data?.status === 403) {
+        setIsShowBtnActive(true);
+        return toast.error(response?.data?.message || "Tài khoản chưa được kích hoạt!");
       }
-    } else {
-      setErrorEmail("Sai tài khoản hoặc mật khẩu!");
+      if(response?.data?.error) {
+        return toast.error(response?.data?.message || "Lỗi hệ thống");;
+      }
+      
+      if (response.data.success && response.data.status === 200) {
+        localStorage.setItem("accessToken", response.data.data.accessToken);
+        localStorage.setItem("refreshToken", response.data.data.refreshToken);
+        const user = {
+          role: response.data.data.role,
+          id: response.data.data.id,
+        };
+        localStorage.setItem("user", JSON.stringify(user));
+
+        toast.success("Đăng nhập thành công!");
+
+        if (response.data.data.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
+      }
+    } catch (error) {
+      console.log("error", error);
+      toast.error(
+        error?.data?.message ||
+          "Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại sau."
+      );
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleBlur = (fieldName) => {
+    trigger(fieldName);
   };
 
   const handleGoogleLogin = async (response) => {
-    const token = response.credential;
-    const data = await loginByGoogle(token);
+    setIsLoading(true);
+    try {
+      const token = response.credential;
+      const data = await loginByGoogle(token);
 
-    if (data.data.status === 200) {
-      localStorage.setItem("accessToken", data.data.data.accessToken);
-      localStorage.setItem("refreshToken", data.data.data.refreshToken);
-      const user = {
-        role: data.data.data.role,
-        id: data.data.data.id,
-      };
-      localStorage.setItem("user", JSON.stringify(user));
+      if (data.data.status === 200) {
+        localStorage.setItem("accessToken", data.data.data.accessToken);
+        localStorage.setItem("refreshToken", data.data.data.refreshToken);
+        const user = {
+          role: data.data.data.role,
+          id: data.data.data.id,
+        };
+        localStorage.setItem("user", JSON.stringify(user));
 
-      toast.success("Đăng nhập thành công!");
+        toast.success("Đăng nhập thành công!");
 
-      if (data.data.data.role === "admin") {
-        navigate("/admin");
+        if (data.data.data.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       } else {
-        navigate("/");
+        setServerError("Sai tài khoản hoặc mật khẩu!");
       }
-    } else {
-      setErrorEmail("Sai tài khoản hoặc mật khẩu!");
+    } catch (error) {
+      console.error("Google login error:", error);
+      toast.error("Đăng nhập bằng Google thất bại. Vui lòng thử lại sau.");
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const handleActive = async () => {
+    const email = getValues("email");
+    if (!email) {
+      return toast.error("Vui lòng nhập email để kích hoạt tài khoản");
+    }
+    
+    try {
+      const response = await resendActive({email});
+      console.log(response);
+      if(response?.data.success) {
+        return toast.success(response?.data.message || "Kiểm tra email"); 
+      }
+      toast.error(response?.data.message || "Lỗi hệ thống");
+    } catch (error) {
+      toast.error(error?.data?.message || "Lỗi hệ thống");
+      console.error("Resend active error:", error);
+    }
+  }
+  
   return (
     <GoogleOAuthProvider clientId="801128580146-d3t12jvle3isqd29edoicc98f1imf44f.apps.googleusercontent.com">
       <div className="bg-orange-50 font-[sans-serif] min-h-screen flex items-center justify-center p-4">
@@ -117,27 +166,32 @@ export default function Login() {
           </div>
 
           {/* Form Section - Right */}
-          <div className="md:w-3/5 p-8">
+          <div className="md:w-3/5 p-8 overflow-y-auto max-h-screen">
             <div className="max-w-md mx-auto">
               <h2 className="text-orange-600 text-center text-2xl font-bold mb-6 animate-slideDown">
                 Đăng nhập
               </h2>
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
                 <div
                   className="animate-slideIn"
                   style={{ animationDelay: "0.2s" }}
                 >
-                  <label className="text-gray-800 text-sm block mb-2">
+                  <label className="text-gray-800 text-sm block mb-1">
                     Email
                   </label>
                   <div className="relative flex items-center">
                     <input
-                      name="email"
+                      {...register("email", {
+                        required: "Email is required",
+                        validate: {
+                          validFormat: (value) =>
+                            validateEmail(value) || "Invalid email format",
+                        },
+                      })}
                       type="text"
-                      onChange={(e) => setEmail(e.target.value)}
-                      required=""
-                      className="w-full text-sm text-gray-800 border-b border-orange-200 focus:border-orange-500 px-2 py-3 outline-none transition-colors duration-300"
+                      className="w-full text-sm text-gray-800 border-b border-orange-200 focus:border-orange-500 px-2 py-2 outline-none transition-colors duration-300"
                       placeholder="Nhập email"
+                      onBlur={() => handleBlur("email")}
                     />
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -169,23 +223,30 @@ export default function Login() {
                       </g>
                     </svg>
                   </div>
-                  <small className="text-red-500">{errorEmail}</small>
+                  <small className="text-red-500 text-xs block h-5">
+                    {errors.email?.message || serverError}
+                  </small>
                 </div>
                 <div
                   className="animate-slideIn"
                   style={{ animationDelay: "0.4s" }}
                 >
-                  <label className="text-gray-800 text-sm mb-2 block">
+                  <label className="text-gray-800 text-sm mb-1 block">
                     Mật khẩu
                   </label>
                   <div className="relative flex items-center">
                     <input
-                      name="password"
+                      {...register("password", {
+                        required: "Password is required",
+                        minLength: {
+                          value: 6,
+                          message: "Password must be at least 6 characters",
+                        },
+                      })}
                       type={showPassword ? "text" : "password"}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required=""
-                      className="w-full text-gray-800 text-sm border border-orange-200 px-4 py-3 rounded-md outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-300 transition-colors duration-300"
+                      className="w-full text-gray-800 text-sm border-b border-orange-200 px-2 py-2 outline-none focus:border-orange-500 transition-colors duration-300"
                       placeholder="Nhập mật khẩu"
+                      onBlur={() => handleBlur("password")}
                     />
                     {showPassword ? (
                       <FaEye
@@ -199,13 +260,23 @@ export default function Login() {
                       />
                     )}
                   </div>
-                  <small className="text-red-500">{errorPassword}</small>
+                  <small className="text-red-500 text-xs block h-5">
+                    {errors.password?.message}
+                  </small>
                 </div>
                 <div
-                  className="flex flex-wrap items-center justify-between gap-4 animate-slideIn"
+                  className="flex flex-wrap items-center justify-end gap-4 animate-slideIn"
                   style={{ animationDelay: "0.6s" }}
                 >
-                  <div className="flex items-center"></div>
+                  {isShowBtnActive && (
+                    <button
+                      type="button"
+                      onClick={handleActive}
+                      className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
+                    >
+                      <FaEnvelope className="mr-1" /> Gửi lại email kích hoạt
+                    </button>
+                  )}
                   <div className="text-sm">
                     <Link
                       to="/resetPass"
@@ -216,18 +287,26 @@ export default function Login() {
                   </div>
                 </div>
                 <div
-                  className="!mt-8 animate-slideIn"
+                  className="mt-6 animate-slideIn"
                   style={{ animationDelay: "0.8s" }}
                 >
                   <button
                     type="submit"
-                    className="w-full py-3 px-4 text-sm tracking-wide rounded-lg text-white bg-orange-500 hover:bg-orange-600 focus:outline-none transform transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
+                    disabled={isLoading}
+                    className="w-full py-2.5 px-4 text-sm tracking-wide rounded-md text-white bg-orange-500 hover:bg-orange-600 focus:outline-none transform transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed"
                   >
-                    Đăng nhập
+                    {isLoading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <FaSpinner className="animate-spin" />
+                        Đang xử lý...
+                      </span>
+                    ) : (
+                      "Đăng nhập"
+                    )}
                   </button>
                 </div>
                 <p
-                  className="text-gray-800 text-sm !mt-8 text-center animate-slideIn"
+                  className="text-gray-800 text-sm mt-4 text-center animate-slideIn"
                   style={{ animationDelay: "1s" }}
                 >
                   Chưa có tài khoản?{" "}
@@ -239,7 +318,7 @@ export default function Login() {
                   </Link>
                 </p>
                 <div
-                  className="my-6 flex items-center gap-4 animate-slideIn"
+                  className="my-5 flex items-center gap-4 animate-slideIn"
                   style={{ animationDelay: "1.2s" }}
                 >
                   <hr className="w-full border-orange-200" />
