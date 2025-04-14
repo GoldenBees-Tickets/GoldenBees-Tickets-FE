@@ -107,6 +107,14 @@ export const movieApi = createApi({
       }),
       invalidatesTags: [{ type: "Movie", id: "LISTMOVIE" }],
     }),
+
+    getAllMoviesByAdmin: builder.query({
+      query: () => ({
+        url: `/getAllByAdmin`,
+      }),
+      providesTags: [{ type: "Movie", id: "LISTMOVIE" }],
+    }),
+
   }),
 });
 
@@ -118,4 +126,5 @@ export const {
   useGetMovieByIdQuery,
   useUpdateStatusMutation,
   useGetAllMoviesByUserQuery,
+  useGetAllMoviesByAdminQuery
 } = movieApi;

@@ -1,11 +1,11 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import axiosBaseQuery from "./authQuery/axiosBaseQuery";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const branchApi = createApi({
   reducerPath: "branchApi",
   baseQuery: axiosBaseQuery({
-    baseUrl: `${API_BASE_URL}branch`,
+    baseUrl: `${VITE_API_BASE_URL}branch`,
     useHttpClient: true,
   }),
   tagTypes: ["Branch"],
@@ -76,9 +76,15 @@ export const branchApi = createApi({
         let url = '/';
         if (queryParams.length > 0) {
           url += `?${queryParams.join('&')}`;
+        } else {
+          url += ``;
         }
+        console.log("URL", url);
         
-        return url;
+        return {
+          url: url,
+          method: "GET",
+        };
       },
       providesTags: [{ type: "Branch", id: "LISTBRANCH" }],
     }),

@@ -43,6 +43,14 @@ export const genreApi = createApi({
       }),
       invalidatesTags: () => [{ type: "Genre", id: "LIST" }],
     }),
+
+    getAllGenresForDashboard: builder.query({
+      query: () => ({
+        url: `/getAll`,
+        method: "GET",
+      }),
+      providesTags: () => [{ type: "Genre", id: "LIST" }],
+    }),
   }),
 });
 
@@ -52,4 +60,5 @@ export const {
   useCreateGenreMutation,
   useUpdateGenreMutation,
   useDeleteGenreMutation,
+  useGetAllGenresForDashboardQuery
 } = genreApi;
