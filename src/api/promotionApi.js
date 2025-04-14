@@ -50,7 +50,7 @@ export const promotionApi = createApi({
     // Lấy danh sách khuyến mãi (Get all promotions)
     getPromotions: builder.query({
       query: (params) => {
-        const { page = 1, limit = 10, search = "", sort_order = "desc" } = params || {};
+        const { page, limit = 10, search = "", sort_order = "desc" } = params || {};
         
         // Xây dựng query params
         const queryParams = [];

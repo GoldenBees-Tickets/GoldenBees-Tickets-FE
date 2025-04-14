@@ -52,7 +52,6 @@ export default function AddDirector() {
       if (fileList.length > 0 && fileList[0].originFileObj) {
         formData.append("profile_picture", fileList[0].originFileObj);
       }
-      console.log("1");
       
       await createDirector(formData).unwrap();
       message.success("Thêm đạo diễn thành công!");

@@ -26,9 +26,7 @@ export default function EditDirector() {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const { data: directorData, isLoading } = useGetDirectorByIdQuery(id);
-  const [updateDirector, { isLoading: isUpdating }] = useUpdateDirectorMutation();
-    console.log("directorData", directorData);
-    
+  const [updateDirector, { isLoading: isUpdating }] = useUpdateDirectorMutation();    
   const currentDirector = directorData?.director;
 
   const [fileList, setFileList] = useState([]);
@@ -37,7 +35,6 @@ export default function EditDirector() {
 
   useEffect(() => {
     if (currentDirector) {
-      console.log("Director data loaded:", currentDirector);
       form.setFieldsValue({
         name: currentDirector.name,
         dob: currentDirector.dob ? dayjs(currentDirector.dob) : null,
@@ -52,18 +49,11 @@ export default function EditDirector() {
   }, [currentDirector, form]);
 
   const handleFileChange = (info) => {
-    console.log("File Change Event:", info);
     const { fileList: newFileList } = info;
     setFileList(newFileList);
     
     if (newFileList.length > 0 && newFileList[0].originFileObj) {
       const file = newFileList[0].originFileObj;
-      console.log("Selected file:", {
-        name: file.name, 
-        type: file.type, 
-        size: file.size,
-        lastModified: new Date(file.lastModified).toISOString()
-      });
       
       // Lưu file để gửi lên server
       setSelectedFile(file);
@@ -75,14 +65,12 @@ export default function EditDirector() {
       };
       reader.readAsDataURL(file);
     } else {
-      console.log("No file selected or file removed");
       setSelectedFile(null);
     }
   };
 
   const handleSubmit = async (values) => {
     try {
-      console.log("Form values:", values);
       
       const formData = new FormData();
       formData.append("name", values.name);
@@ -90,49 +78,27 @@ export default function EditDirector() {
       if (values.dob) {
         const dobString = values.dob.format("YYYY-MM-DD");
         formData.append("dob", dobString);
-        console.log("Added DOB:", dobString);
       }
       
       if (values.bio) {
         formData.append("bio", values.bio);
-        console.log("Added bio:", values.bio);
       }
       
       formData.append("gender", values.gender || "Male");
-      console.log("Added gender:", values.gender || "Male");
       
       // Thêm file nếu có
       if (selectedFile) {
-        console.log("Adding file to FormData:", {
-          name: selectedFile.name,
-          type: selectedFile.type,
-          size: selectedFile.size
-        });
         formData.append("profile_picture", selectedFile);
-      } else {
-        console.log("No file selected for upload");
-      }
-
-      // Log FormData để debug
-      console.log("=== FormData contents ===");
-      for (let [key, value] of formData.entries()) {
-        if (key === 'profile_picture' && value instanceof File) {
-          console.log(`${key}: File(${value.name}, ${value.type}, ${value.size} bytes)`);
-        } else {
-          console.log(`${key}: ${value}`);
-        }
       }
 
       // Đảm bảo ID là số
       const directorId = parseInt(id, 10);
-      console.log("Submitting update for director ID:", directorId);
       
       const result = await updateDirector({
         id: directorId,
         formData: formData
       }).unwrap();
       
-      console.log("API Response:", result);
       message.success("Cập nhật đạo diễn thành công!");
       navigate("/admin/directors");
     } catch (error) {

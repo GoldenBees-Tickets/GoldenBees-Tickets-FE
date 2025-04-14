@@ -1,24 +1,23 @@
-import { useGetMoviesQuery } from "@/api/movieApi";
+import { useGetAllMoviesByUserQuery } from "@/api/movieApi";
 import HomeItemMovie from "./HomeItemMovie";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { formatImage } from "@/utils/formatImage";
+import { filterMoviesByStatus } from "@/utils/movieFilters";
 
 export default function HomeItem() {
   const [activeTab, setActiveTab] = useState("nowShowing"); // "nowShowing" or "comingSoon"
-  const { data: List } = useGetMoviesQuery();
-  let ListMovie = List?.movies;
+  const { data: List } = useGetAllMoviesByUserQuery();
   
-  // Filter movies based on status
-  const nowShowingMovies = ListMovie?.filter(movie => 
-    movie.status === "now_showing" || movie.status === "opening_soon"
-  ) || [];
+  // Process movies only when List changes
+  const { nowShowingMovies, comingSoonMovies } = useMemo(() => {
+    const ListMovie = List?.data || [];
+    return filterMoviesByStatus(ListMovie);
+  }, [List]);
   
-  const comingSoonMovies = ListMovie?.filter(movie => 
-    movie.status === "coming_soon"
-  ) || [];
-  
-  // Display movies based on active tab
-  const moviesToDisplay = activeTab === "nowShowing" ? nowShowingMovies : comingSoonMovies;
+  // Select which movies to display based on active tab
+  const moviesToDisplay = useMemo(() => {
+    return activeTab === "nowShowing" ? nowShowingMovies : comingSoonMovies;
+  }, [activeTab, nowShowingMovies, comingSoonMovies]);
   
   const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL;
   return (

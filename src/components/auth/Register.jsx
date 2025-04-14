@@ -46,8 +46,6 @@ export default function Register() {
         navigate("/login");
       }
     } catch (error) {
-      console.log("error", error);
-
       toast.error(
         error?.data?.message ||
           "Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại sau."

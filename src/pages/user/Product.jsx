@@ -2,30 +2,27 @@ import { useGetMoviesQuery } from "@/api/movieApi";
 import HomeItemMovie from "@/components/user/Home/HomeItemMovie";
 import { useState, useMemo } from "react";
 import { formatImage } from "@/utils/formatImage";
+import { filterMoviesByStatus, filterMoviesBySearchCriteria } from "@/utils/movieFilters";
 
 export default function Product() {
   const [activeTab, setActiveTab] = useState("nowShowing"); // "nowShowing" or "comingSoon"
-  const { data: List, isLoading, error } = useGetMoviesQuery();
-  
+  const { data: List, isLoading, error } = useGetMoviesQuery();    
   const [searchTitle, setSearchTitle] = useState("");
   const [filterYear, setFilterYear] = useState("");
   const [filterGenre, setFilterGenre] = useState("");
   
-  let ListMovie = List?.movies || [];
+  // Get filtered movies by status - only recalculates when List changes
+  const { nowShowingMovies, comingSoonMovies } = useMemo(() => {
+    const ListMovie = List?.movies || [];
+    return filterMoviesByStatus(ListMovie);
+  }, [List]);
   
-  // Filter movies by status first
-  const nowShowingMovies = ListMovie?.filter(movie => 
-    movie.status === "now_showing" || movie.status === "opening_soon"
-  ) || [];
-  
-  const comingSoonMovies = ListMovie?.filter(movie => 
-    movie.status === "coming_soon"
-  ) || [];
-  
-  // Choose which list to use based on active tab
-  const moviesForCurrentTab = activeTab === "nowShowing" ? nowShowingMovies : comingSoonMovies;
+  // Choose which list to use based on active tab - only recalculates when tab or movie lists change
+  const moviesForCurrentTab = useMemo(() => {
+    return activeTab === "nowShowing" ? nowShowingMovies : comingSoonMovies;
+  }, [activeTab, nowShowingMovies, comingSoonMovies]);
 
-  // Lấy danh sách năm và thể loại từ danh sách phim
+  // Extract unique years and genres - only recalculates when moviesForCurrentTab changes
   const { uniqueYears, uniqueGenres } = useMemo(() => {
     if (!moviesForCurrentTab.length) {
       return { uniqueYears: [], uniqueGenres: [] };
@@ -51,29 +48,12 @@ export default function Product() {
     return { uniqueYears: years, uniqueGenres: genres };
   }, [moviesForCurrentTab]);
   
-  // Lọc phim theo các tiêu chí
+  // Apply additional filtering - recalculates when any filter or source data changes
   const filteredMovies = useMemo(() => {
-    if (!moviesForCurrentTab.length) return [];
-    
-    return moviesForCurrentTab.filter(movie => {
-      // Lọc theo tên phim
-      if (searchTitle && !movie.name.toLowerCase().includes(searchTitle.toLowerCase())) {
-        return false;
-      }
-      
-      // Lọc theo năm
-      if (filterYear && movie.year !== parseInt(filterYear)) {
-        return false;
-      }
-      
-      // Lọc theo thể loại
-      if (filterGenre && !movie.MovieGenres?.some(mg => 
-        mg.Genre?.id === parseInt(filterGenre)
-      )) {
-        return false;
-      }
-      
-      return true;
+    return filterMoviesBySearchCriteria(moviesForCurrentTab, {
+      searchTitle,
+      filterYear,
+      filterGenre
     });
   }, [moviesForCurrentTab, searchTitle, filterYear, filterGenre]);
   

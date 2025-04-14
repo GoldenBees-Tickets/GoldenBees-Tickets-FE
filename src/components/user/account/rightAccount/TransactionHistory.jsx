@@ -7,6 +7,7 @@ import { useGetOrderByUserQuery } from "@/api/orderApi";
 import { formatImage } from "@/utils/formatImage";
 import { formatDate, formatTime } from "@/utils/format";
 import { Link } from "react-router-dom";
+import { formatCurrency } from "@/utils/format";
 
 export default function TransactionHistory({ user }) {
   const [toggleShowTicket, setToggleShowTicket] = useState(false);
@@ -15,7 +16,7 @@ export default function TransactionHistory({ user }) {
 
   const { data: Orders, isLoading } = useGetOrderByUserQuery(id, {
     skip: !id,
-  });
+  });  
 
   const handleShowDetail = (order) => {
     setSelectedOrder(order);
@@ -61,7 +62,7 @@ export default function TransactionHistory({ user }) {
           <div className="mt-4 md:mt-0 md:ml-4 flex justify-between items-center w-full md:w-auto">
             <div className="text-center md:text-right">
               <div className="text-sm text-gray-600">Tổng tiền</div>
-              <div className="text-lg font-bold text-orange-600">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order?.total_price || 0)}</div>
+              <div className="text-lg font-bold text-orange-600">{formatCurrency(order?.total)}</div>
             </div>
             <button 
               onClick={() => handleShowDetail(order)} 

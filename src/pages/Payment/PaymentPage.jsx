@@ -5,17 +5,12 @@ import MomoPayment from "../../components/Payment/MomoPayment";
 const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats }) => {
   const location = useLocation();
   const navigate = useNavigate();
-console.log("showtimeData payment", showtimeData);
-
 
   // Lấy dữ liệu từ localStorage
   const dataPage = JSON.parse(localStorage.getItem("reservation") || "{}");
   const dataTotal = JSON.parse(localStorage.getItem("payment_info") || "{}");
   const promotion_id = localStorage.getItem("promotion_id") || null;
   const finalPrice = localStorage.getItem("finalPrice") || 0;
-  // Log để debug
-  console.log("PaymentPage - dataPage:", dataPage);
-  console.log("PaymentPage - showtimeData:", showtimeData);
   
   // Lấy thông tin ghế và tính giá
   const seat_ids = selectedSeats?.map((seat) => {
@@ -65,9 +60,7 @@ console.log("showtimeData payment", showtimeData);
     combos: dataPage?.foodItems,
     promotion_id,
     orderInfo: orderInfo,
-  };
-  console.log("dataApi", dataApi);
-  
+  };  
   // Xử lý khi thanh toán thành công
   const handlePaymentSuccess = (payUrl) => {
     // Chuyển hướng đến trang thanh toán MOMO

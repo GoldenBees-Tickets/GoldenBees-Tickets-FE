@@ -38,7 +38,6 @@ export default function Branch() {
     search: searchValue,
     sort_order: sortOrder
   });
-  console.log("citiesData", citiesData);
   
   const [deleteBranch] = useDeleteBranchMutation();
   const [createBranch] = useCreateBranchMutation();
