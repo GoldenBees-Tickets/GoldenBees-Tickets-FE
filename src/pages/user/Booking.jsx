@@ -46,9 +46,7 @@ export default function Booking() {
 
   const { data: showtimeData } = useGetShowtimeByIdQuery(showtime_id, {
     skip: !showtime_id,
-  });
-  console.log("showtimeData", showtimeData);
-  
+  });  
 
   const { data: listSeatTypes } = useGetListSeatTypesQuery();
 
@@ -341,15 +339,18 @@ export default function Booking() {
   }, [selectedPaymentMethod, handlePayment]);
 
   // Xử lý áp dụng mã giảm giá
-  const handleApplyDiscount = useCallback(async () => {
-    if (!discountCode.trim()) {
+  const handleApplyDiscount = useCallback(async (code) => {
+    // If a code is provided directly, use it instead of the state value
+    const promotionCode = code || discountCode;
+    
+    if (!promotionCode.trim()) {
       toast.error("Vui lòng nhập mã giảm giá");
       return;
     }
 
     setIsCheckingDiscount(true);
 
-    const data = { user_id, code: discountCode };
+    const data = { user_id, code: promotionCode };
     const response = await checkPromotion(data);
     if (response?.data?.error === true) {
       toast.error(response?.data?.message);
@@ -393,7 +394,7 @@ export default function Booking() {
 
       setIsCheckingDiscount(false);
     }
-  }, [discountCode]);
+  }, [discountCode, user_id, checkPromotion]);
 
   // =========== TÍNH TOÁN VÀ HIỂN THỊ ===========
 

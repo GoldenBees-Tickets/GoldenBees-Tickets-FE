@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useGetPromotionsQuery } from '@/api/promotionApi';
 
 const DiscountSection = ({
   appliedDiscount,
@@ -8,55 +9,219 @@ const DiscountSection = ({
   handleApplyDiscount,
   isCheckingDiscount
 }) => {
+  // Get all promotions without pagination to show all available options
+  const {data: ListPromotions, isLoading} = useGetPromotionsQuery({
+    limit: 100 // Request more promotions to show all available options
+  });
+  
+  const promotions = useMemo(() => {
+    const now = new Date();
+    return (ListPromotions?.data?.map(promotion => ({
+      ...promotion,
+      key: promotion.id,
+    }))
+    // Filter out expired promotions
+    .filter(promotion => 
+      !promotion.end_date || new Date(promotion.end_date) > now
+    )
+    || []);
+  }, [ListPromotions]);
+
+  const handleSelectPromotion = (promotion) => {
+    setDiscountCode(promotion.code);
+    handleApplyDiscount(promotion.code);
+  };
+  
+  // Generate concise promotion text based on promotion details
+  const getPromotionSummary = (promotion) => {
+    let summary = '';
+    
+    // Base on discount type
+    if (promotion.discount_type === 'fixed_amount') {
+      summary = `Giảm ${Number(promotion.discount_value).toLocaleString('vi-VN')}₫`;
+    } else {
+      summary = `Giảm ${promotion.discount_value}%`;
+      if (promotion.max_discount) {
+        summary += ` (tối đa ${Number(promotion.max_discount).toLocaleString('vi-VN')}₫)`;
+      }
+    }
+    
+    // What it applies to
+    switch (promotion.applicable_to) {
+      case 'ticket':
+        summary += ' cho vé xem phim';
+        break;
+      case 'food':
+        summary += ' cho đồ ăn';
+        break;
+      case 'total_bill':
+      case 'other':
+        summary += ' cho tổng hóa đơn';
+        break;
+    }
+    
+    // Add min order value if applicable (handle both field names)
+    const minValue = promotion.min_order_value || promotion.min_price;
+    if (minValue && Number(minValue) > 0) {
+      summary += ` khi mua từ ${Number(minValue).toLocaleString('vi-VN')}₫`;
+    }
+    
+    return summary;
+  };
+  
+  // Get applied discount summary
+  const getAppliedDiscountSummary = () => {
+    if (!appliedDiscount) return '';
+    
+    let summary = '';
+    
+    // Base on discount type
+    if (appliedDiscount.discount_type === 'fixed_amount') {
+      summary = `Giảm ${Number(appliedDiscount.discount_value).toLocaleString('vi-VN')}₫`;
+    } else {
+      summary = `Giảm ${appliedDiscount.discount_value}%`;
+      if (appliedDiscount.max_discount) {
+        summary += ` (tối đa ${Number(appliedDiscount.max_discount).toLocaleString('vi-VN')}₫)`;
+      }
+    }
+    
+    // What it applies to
+    switch (appliedDiscount.applicable_to) {
+      case 'ticket':
+        summary += ' cho vé xem phim';
+        break;
+      case 'food':
+        summary += ' cho đồ ăn';
+        break;
+      case 'total_bill':
+      case 'other':
+        summary += ' cho tổng hóa đơn';
+        break;
+    }
+    
+    // Add min order value if applicable (handle both field names)
+    const minValue = appliedDiscount.min_order_value || appliedDiscount.min_price;
+    if (minValue && Number(minValue) > 0) {
+      summary += ` khi mua từ ${Number(minValue).toLocaleString('vi-VN')}₫`;
+    }
+    
+    return summary;
+  };
+  
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-lg text-left font-semibold mb-4">Mã giảm giá</h2>
+    <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+      <h2 className="text-lg font-semibold mb-3">Mã giảm giá</h2>
       
       {appliedDiscount ? (
-        <div className="mb-4">
-          <div className="flex items-center justify-between py-2 px-4 bg-green-50 border border-green-200 rounded-lg">
+        <div className="mb-2">
+          <div className="flex items-center justify-between py-1.5 px-3 bg-green-50 border border-green-200 rounded-md">
             <div>
               <span className="font-medium text-green-700">{appliedDiscount.code}</span>
-              <p className="text-sm text-green-600">{appliedDiscount.description}</p>
+              <p className="text-sm text-green-600 mt-0.5">{getAppliedDiscountSummary()}</p>
             </div>
             <button 
               onClick={() => setAppliedDiscount(null)} 
               className="text-gray-500 hover:text-red-500"
             >
-              Hủy
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </div>
       ) : (
-        <div className="flex space-x-2">
-          <input 
-            type="text" 
-            value={discountCode}
-            onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
-            placeholder="Nhập mã khuyến mãi (nếu có)" 
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
-          />
-          <button 
-            className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition disabled:opacity-50"
-            onClick={handleApplyDiscount}
-            disabled={isCheckingDiscount}
-          >
-            {isCheckingDiscount ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-1 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <>
+          <div className="flex space-x-1 mb-3">
+            <input 
+              type="text" 
+              value={discountCode}
+              onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+              placeholder="Nhập mã khuyến mãi" 
+              className="flex-1 px-3 py-1.5 text-base border border-gray-300 rounded-md focus:outline-none focus:border-orange-500"
+            />
+            <button 
+              className="bg-orange-500 text-white px-3 py-1.5 text-base rounded-md hover:bg-orange-600 transition disabled:opacity-50"
+              onClick={() => handleApplyDiscount()}
+              disabled={isCheckingDiscount || !discountCode.trim()}
+            >
+              {isCheckingDiscount ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-0.5 mr-1 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Kiểm tra
+                </span>
+              ) : (
+                "Áp dụng"
+              )}
+            </button>
+          </div>
+          
+          {/* Available Promotions Section */}
+          <div>
+            <p className="text-sm font-medium text-gray-600 mb-2">Khuyến mãi hiện có:</p>
+            
+            {isLoading ? (
+              <div className="flex justify-center py-2">
+                <svg className="animate-spin h-5 w-5 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Đang kiểm tra
-              </span>
+              </div>
+            ) : promotions?.length > 0 ? (
+              <div className="grid grid-cols-1 gap-2 max-h-[180px] overflow-y-auto pr-1">
+                {promotions.map((promotion) => (
+                  <div 
+                    key={promotion.id} 
+                    className="border border-orange-100 rounded-md p-2 bg-orange-50 hover:shadow-sm transition cursor-pointer"
+                    onClick={() => handleSelectPromotion(promotion)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center">
+                          <span className="inline-block bg-orange-500 text-white px-2 py-0.5 rounded text-sm font-medium">
+                            {promotion.code}
+                          </span>
+                          <span className="text-base font-bold ml-auto text-orange-600">
+                            {promotion.discount_type === 'percentage' || promotion.discount_type === 'percent'
+                              ? `-${promotion.discount_value}%` 
+                              : `-${Number(promotion.discount_value).toLocaleString('vi-VN')}₫`}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-800 font-medium mt-1 truncate">{promotion.name}</p>
+                        <p className="text-sm text-gray-600 mt-0.5">{getPromotionSummary(promotion)}</p>
+                        <div className="flex justify-between items-center mt-1">
+                          <div className="text-sm text-gray-500">
+                            {promotion.start_date && promotion.end_date 
+                              ? `Đến ${new Date(promotion.end_date).toLocaleDateString('vi-VN')}`
+                              : 'Không giới hạn'}
+                          </div>
+                          <button 
+                            className="px-2 py-0.5 bg-orange-500 text-white text-sm rounded hover:bg-orange-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectPromotion(promotion);
+                            }}
+                          >
+                            Chọn
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : (
-              "Áp dụng"
+              <div className="text-center py-2 text-sm text-gray-500">
+                Không có khuyến mãi nào hiện tại
+              </div>
             )}
-          </button>
-        </div>
+          </div>
+        </>
       )}
       
-      <div className="mt-3 text-sm text-gray-600">
+      <div className="mt-2 text-sm text-gray-500">
         *Lưu ý: Mã giảm giá chỉ áp dụng cho giá vé, không áp dụng cho đồ ăn
       </div>
     </div>

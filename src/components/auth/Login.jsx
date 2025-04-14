@@ -71,7 +71,6 @@ export default function Login() {
         }
       }
     } catch (error) {
-      console.log("error", error);
       toast.error(
         error?.data?.message ||
           "Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại sau."
@@ -126,7 +125,6 @@ export default function Login() {
     
     try {
       const response = await resendActive({email});
-      console.log(response);
       if(response?.data.success) {
         return toast.success(response?.data.message || "Kiểm tra email"); 
       }

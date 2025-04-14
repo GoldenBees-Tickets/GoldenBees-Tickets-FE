@@ -23,9 +23,7 @@ export default function LeftAccount({ user }) {
     
     setIsUploading(true);
     try {
-      const response = await changeImage({ id: user.id, image });  
-      console.log("Response:", response);
-        
+      const response = await changeImage({ id: user.id, image });          
       if(response?.data.error) {
         return toast.error(response?.data.error || "Lỗi khi cập nhật ảnh");
       }

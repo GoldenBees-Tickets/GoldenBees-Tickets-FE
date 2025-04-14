@@ -41,19 +41,7 @@ const MomoPayment = ({ data, onSuccess, onError }) => {
       if (!amount || amount <= 0) {
         throw new Error("Số tiền thanh toán không hợp lệ.");
       }
-      
-      // Log dữ liệu gửi lên để debug
-      console.log('Payment data being sent:', { 
-        user_id, 
-        total, 
-        amount, 
-        seat_ids, 
-        showtime_id, 
-        combos, 
-        promotion_id, 
-        orderInfo 
-      });
-      
+
       // Gọi API MOMO với unwrap() để lấy dữ liệu chuẩn
       const response = await addOrder({ 
         user_id, 
@@ -66,8 +54,6 @@ const MomoPayment = ({ data, onSuccess, onError }) => {
         orderInfo 
       }).unwrap(); 
       
-      console.log('MoMo API response:', response);
-
       if (response.payUrl) {
         localStorage.removeItem("payment_info");
         localStorage.removeItem("reservation");

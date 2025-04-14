@@ -101,9 +101,7 @@ const BookingSidebar = ({
   
   // Effect to handle expiration and clear storage
   useEffect(() => {
-    if (isExpired) {
-      console.log("Reservation expired, clearing data...");
-      
+    if (isExpired) {      
       // Store the showtime_id and room_id before clearing
       const showtimeId = reservation?.showtime?.id;
       const roomId = reservation?.showtime?.room_id;

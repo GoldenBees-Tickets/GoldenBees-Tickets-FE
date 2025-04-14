@@ -32,7 +32,6 @@ export default function EditProducer() {
 
   useEffect(() => {
     if (currentProducer) {
-      console.log("Producer data loaded:", currentProducer);
       form.setFieldsValue({
         name: currentProducer.name,
         description: currentProducer.description || "",
@@ -45,18 +44,11 @@ export default function EditProducer() {
   }, [currentProducer, form]);
 
   const handleFileChange = (info) => {
-    console.log("File Change Event:", info);
     const { fileList: newFileList } = info;
     setFileList(newFileList);
     
     if (newFileList.length > 0 && newFileList[0].originFileObj) {
       const file = newFileList[0].originFileObj;
-      console.log("Selected file:", {
-        name: file.name, 
-        type: file.type, 
-        size: file.size,
-        lastModified: new Date(file.lastModified).toISOString()
-      });
       
       // Lưu file để gửi lên server
       setSelectedFile(file);
@@ -68,55 +60,32 @@ export default function EditProducer() {
       };
       reader.readAsDataURL(file);
     } else {
-      console.log("No file selected or file removed");
       setSelectedFile(null);
     }
   };
 
   const handleSubmit = async (values) => {
-    try {
-      console.log("Form values:", values);
-      
+    try {      
       const formData = new FormData();
       formData.append("name", values.name);
       
       if (values.description) {
         formData.append("description", values.description);
-        console.log("Added description:", values.description);
       }
       
       // Thêm file nếu có
       if (selectedFile) {
-        console.log("Adding file to FormData:", {
-          name: selectedFile.name,
-          type: selectedFile.type,
-          size: selectedFile.size
-        });
         formData.append("profile_picture", selectedFile);
-      } else {
-        console.log("No file selected for upload");
-      }
-
-      // Log FormData để debug
-      console.log("=== FormData contents ===");
-      for (let [key, value] of formData.entries()) {
-        if (key === 'profile_picture' && value instanceof File) {
-          console.log(`${key}: File(${value.name}, ${value.type}, ${value.size} bytes)`);
-        } else {
-          console.log(`${key}: ${value}`);
-        }
       }
 
       // Đảm bảo ID là số
       const producerId = parseInt(id, 10);
-      console.log("Submitting update for producer ID:", producerId);
 
       const result = await updateProducer({
         id: producerId,
         formData
       }).unwrap();
       
-      console.log("API Response:", result);
       message.success("Cập nhật nhà sản xuất thành công!");
       navigate("/admin/producers");
     } catch (error) {

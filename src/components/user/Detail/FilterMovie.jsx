@@ -41,7 +41,6 @@ export default function FilterMovie() {
     };
 
     const refreshTimer = setTimeout(() => {
-      console.log("Đang làm mới dữ liệu xuất chiếu...");
       refetch();
       setRefreshKey(prev => prev + 1);
     }, getTimeToNextMinute());

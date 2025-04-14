@@ -43,7 +43,6 @@ const PaymentResult = () => {
       try {
         // Chỉ gọi nếu có resultCode (từ MoMo chuyển về)
         if (resultCode) {
-          console.log("Calling client callback with:", { orderId, resultCode, message, extraData });
           await clientCallback({ 
             orderId, 
             resultCode, 
