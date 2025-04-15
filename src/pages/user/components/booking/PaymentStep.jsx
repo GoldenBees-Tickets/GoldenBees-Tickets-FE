@@ -13,7 +13,9 @@ const PaymentStep = ({
   isCheckingDiscount,  selectedFoodItems,
   calculateTotalPrice,
   onApplyStar,
-  setOnApplyStar
+  setOnApplyStar,
+  paymentMethod,
+  setPaymentMethod
 }) => {
   const [showMomoPaymentUI, setShowMomoPaymentUI] = useState(false);
 
@@ -88,7 +90,7 @@ const PaymentStep = ({
       />
 
       {/* Phương thức thanh toán */}
-      <Payment />
+      <Payment paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} />
     </div>
   );
 };
