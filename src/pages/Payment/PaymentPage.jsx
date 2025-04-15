@@ -2,10 +2,10 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import MomoPayment from "../../components/Payment/MomoPayment";
 
-const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats }) => {
+const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats, paymentMethod }) => {
   const location = useLocation();
   const navigate = useNavigate();
-
+  
   // Lấy dữ liệu từ localStorage
   const dataPage = JSON.parse(localStorage.getItem("reservation") || "{}");
   const dataTotal = JSON.parse(localStorage.getItem("payment_info") || "{}");
@@ -143,11 +143,18 @@ const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats }) =>
         </table>
 
         <div>
-          <MomoPayment
+          
+          {
+            paymentMethod == 'vnpay' ? (
+                <button>Thanh toan vn pay</button>
+            ) : (
+              <MomoPayment
             data={dataApi}
             onSuccess={handlePaymentSuccess}
             onError={handlePaymentError}
           />
+            )
+          }
         </div>
       </div>
     </div>

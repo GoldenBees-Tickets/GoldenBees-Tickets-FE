@@ -25,6 +25,8 @@ export default function Booking() {
   const navigate = useNavigate();
   const { showtime_id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [paymentMethod, setPaymentMethod] = useState("");
+  
   const room_id = searchParams.get("room_id");
   const step = searchParams.get("step") || "seats"; // seats, food, payment
 
@@ -92,8 +94,6 @@ export default function Booking() {
     clearExpiredReservation,
     refetchSeats
   );
-
-  console.log("onApplyStar", onApplyStar);
   
   const {
     calculateTicketPrice,
@@ -489,6 +489,8 @@ export default function Booking() {
             handlePayment={handlePayment}
             onApplyStar={onApplyStar}
             setOnApplyStar={setOnApplyStar}
+            paymentMethod={paymentMethod}
+            setPaymentMethod={setPaymentMethod}
           />
         );
       case "seats":
@@ -578,6 +580,8 @@ export default function Booking() {
           listSeatTypes={listSeatTypes}
           showtimeData={showtimeData}
           selectedSeats={selectedSeats}
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
         />
       )}
     </>

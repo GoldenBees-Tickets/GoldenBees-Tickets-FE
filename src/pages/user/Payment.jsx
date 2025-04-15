@@ -9,18 +9,17 @@ import MomoPayment from '../../components/Payment/MomoPayment';
 const API_URL = import.meta.env.VITE_API_URL;
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
-export default function Payment() {
+export default function Payment({paymentMethod, setPaymentMethod}) {
   const navigate = useNavigate();
   const { showtime_id } = useParams();
   
   // State hooks
-  const [paymentMethod, setPaymentMethod] = useState('cash');
   const [isLoading, setIsLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentData, setPaymentData] = useState(null);
   const [socket, setSocket] = useState(null);
   const [showMomoPayment, setShowMomoPayment] = useState(false);
-
+  const [localMethod, setLocalMethod] = useState("");
   // =========== QUẢN LÝ DỮ LIỆU ĐẶT VÉ ===========
   
   // Lấy dữ liệu đặt vé từ localStorage
@@ -99,6 +98,11 @@ export default function Payment() {
       }
     });
   };
+
+  const handleChangeMethod = (value) => {
+    setLocalMethod(value);
+    setPaymentMethod(value);
+  }
 
   // =========== XỬ LÝ THANH TOÁN ===========
   
@@ -368,13 +372,13 @@ export default function Payment() {
               <input
                 type="radio"
                 name="paymentMethod"
-                value="cash"
-                checked={paymentMethod === 'cash'}
-                onChange={() => setPaymentMethod('cash')}
+                value="vnpay"
+                checked={localMethod === 'vnpay'}
+                onChange={() => handleChangeMethod('vnpay')}
                 className="mr-3"
               />
               <div className='text-left'>
-                <p className="font-medium">Thanh toán tiền mặt</p>
+                <p className="font-medium">Thanh toán VN PAY</p>
                 <p className="text-sm text-gray-500">Thanh toán tại quầy khi đến rạp</p>
               </div>
             </label>
@@ -384,8 +388,8 @@ export default function Payment() {
                 type="radio"
                 name="paymentMethod"
                 value="momo"
-                checked={paymentMethod === 'momo'}
-                onChange={() => setPaymentMethod('momo')}
+                checked={localMethod === 'momo'}
+                onChange={() => handleChangeMethod('momo')}
                 className="mr-3"
               />
               <div>
@@ -399,8 +403,8 @@ export default function Payment() {
                 type="radio"
                 name="paymentMethod"
                 value="bank"
-                checked={paymentMethod === 'bank'}
-                onChange={() => setPaymentMethod('bank')}
+                checked={localMethod === 'bank'}
+                onChange={() => handleChangeMethod('bank')}
                 className="mr-3"
               />
               <div className='text-left'>
