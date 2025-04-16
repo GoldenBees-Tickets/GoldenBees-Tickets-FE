@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import MomoPayment from "../../components/Payment/MomoPayment";
+import TestVNPay from "./TestVNPay";
 
 const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats, paymentMethod }) => {
   const location = useLocation();
@@ -146,13 +147,17 @@ const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats, paym
           
           {
             paymentMethod == 'vnpay' ? (
-                <button>Thanh toan vn pay</button>
+              <TestVNPay
+                data={dataApi}
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+              />
             ) : (
               <MomoPayment
-            data={dataApi}
-            onSuccess={handlePaymentSuccess}
-            onError={handlePaymentError}
-          />
+                data={dataApi}
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+              />
             )
           }
         </div>

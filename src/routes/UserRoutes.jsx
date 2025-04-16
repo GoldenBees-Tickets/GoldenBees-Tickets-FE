@@ -20,6 +20,7 @@ import Payment from "@/pages/user/Payment";
 import PaymentSuccess from "@/pages/user/PaymentSuccess";
 import TestVNPay from "../pages/Payment/TestVNPay";
 import VNPayResult from "../pages/Payment/VNPayResult";
+import VNPaySuccess from "../pages/Payment/VNPaySuccess";
 import VoiceConverterPage from "../pages/VoiceConverter/VoiceConverterPage";
 import Posts from "@/pages/user/Posts";
 import PostDetail from "@/pages/user/PostDetail";
@@ -52,6 +53,7 @@ const UserRoutes = {
     // VNPay Test Routes
     { path: "/test-vnpay", element: <TestVNPay /> },
     { path: "/vnpay-result", element: <VNPayResult /> },
+    { path: "/vnpay-success", element: <VNPaySuccess /> },
     // Voice Converter Route
     { path: "/voice-converter", element: <VoiceConverterPage /> },
     // Posts Routes

@@ -38,6 +38,40 @@ const ChatBox = () => {
   const [userId] = useState(1); // Tạm thời hardcode userId = 1
   const HISTORY_API_URL = 'http://localhost:3000/v1/api/chatbot/history';
 
+  // Tải tin nhắn từ localStorage khi component mount
+  useEffect(() => {
+    const savedData = localStorage.getItem('chatMessages');
+    if (savedData) {
+      try {
+        const { messages, timestamp } = JSON.parse(savedData);
+        const oneWeekInMs = 7 * 24 * 60 * 60 * 1000; // 1 tuần tính bằng mili giây
+        const currentTime = new Date().getTime();
+        
+        // Kiểm tra xem dữ liệu có cũ hơn 1 tuần không
+        if (timestamp && currentTime - timestamp < oneWeekInMs) {
+          setMessages(messages);
+        } else {
+          // Nếu dữ liệu cũ hơn 1 tuần, xóa khỏi localStorage
+          localStorage.removeItem('chatMessages');
+        }
+      } catch (error) {
+        console.error('Error parsing saved messages:', error);
+        localStorage.removeItem('chatMessages');
+      }
+    }
+  }, []);
+  
+  // Lưu tin nhắn vào localStorage khi messages thay đổi
+  useEffect(() => {
+    if (messages.length > 0) {
+      const dataToSave = {
+        messages,
+        timestamp: new Date().getTime() // Lưu thời điểm lưu dữ liệu
+      };
+      localStorage.setItem('chatMessages', JSON.stringify(dataToSave));
+    }
+  }, [messages]);
+
   // Hàm xử lý thay đổi kích thước
   const toggleLogoSize = (e) => {
     e.stopPropagation(); // Ngăn không cho sự kiện lan đến nút Mở chatbox
@@ -239,22 +273,6 @@ const ChatBox = () => {
     setVoiceOnlyMode(!voiceOnlyMode);
   };
 
-  // Load messages from API khi component mount
-  useEffect(() => {
-    const loadChatHistory = async () => {
-      try {
-        const response = await axios.get(`${HISTORY_API_URL}/${userId}`);
-        if (response.data.success) {
-          setMessages(response.data.data);
-        }
-      } catch (error) {
-        console.error('Error loading chat history:', error);
-      }
-    };
-
-    loadChatHistory();
-  }, [userId]);
-
   // Focus input khi mở chatbox
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -280,13 +298,6 @@ const ChatBox = () => {
       setSpeakingMessageId(null);
     }
   }, [isOpen, currentAudio]);
-
-  // Save messages to localStorage khi messages thay đổi
-  useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem('chatbox_messages', JSON.stringify(messages));
-    }
-  }, [messages]);
 
   // Tự động cuộn đến tin nhắn mới nhất
   useEffect(() => {
@@ -374,16 +385,6 @@ const ChatBox = () => {
       timestamp: new Date().toISOString()
     };
     
-    // Lưu tin nhắn người dùng vào database
-    try {
-      await axios.post(HISTORY_API_URL + '/message', {
-        userId,
-        message: userMessage
-      });
-    } catch (error) {
-      console.error('Error saving user message:', error);
-    }
-
     // Chỉ hiển thị tin nhắn trong chế độ chat thông thường
     if (!voiceOnlyMode) {
     setMessages(prevMessages => [...prevMessages, userMessage]);
@@ -426,16 +427,6 @@ const ChatBox = () => {
           timestamp: new Date().toISOString()
         };
 
-        // Lưu tin nhắn AI vào database
-        try {
-          await axios.post(HISTORY_API_URL + '/message', {
-            userId,
-            message: aiMessage
-          });
-        } catch (error) {
-          console.error('Error saving AI message:', error);
-        }
-
         // Chỉ hiển thị tin nhắn trong chế độ chat thông thường
         if (!voiceOnlyMode) {
         setMessages(prevMessages => [...prevMessages, aiMessage]);
@@ -467,16 +458,6 @@ const ChatBox = () => {
         timestamp: new Date().toISOString()
       };
       
-      // Lưu tin nhắn lỗi vào database
-      try {
-        await axios.post(HISTORY_API_URL + '/message', {
-          userId,
-          message: errorMessage
-        });
-      } catch (error) {
-        console.error('Error saving error message:', error);
-      }
-
       // Chỉ hiển thị tin nhắn trong chế độ chat thông thường
       if (!voiceOnlyMode) {
       setMessages(prevMessages => [...prevMessages, errorMessage]);
@@ -514,10 +495,11 @@ const ChatBox = () => {
         setSpeakingMessageId(null);
       }
       
-      await axios.delete(`${HISTORY_API_URL}/${userId}`);
+      // Xóa tin nhắn trong state và localStorage
       setMessages([]);
+      localStorage.removeItem('chatMessages');
     } catch (error) {
-      console.error('Error clearing chat history:', error);
+      console.error('Error clearing chat:', error);
     }
   };
 
