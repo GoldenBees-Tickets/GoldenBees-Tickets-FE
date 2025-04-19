@@ -368,7 +368,7 @@ export default function Payment({paymentMethod, setPaymentMethod}) {
           <h2 className="text-lg font-semibold mb-3">Chọn phương thức thanh toán</h2>
           
           <div className="space-y-3">
-            {/* <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
               <input
                 type="radio"
                 name="paymentMethod"
@@ -381,7 +381,7 @@ export default function Payment({paymentMethod, setPaymentMethod}) {
                 <p className="font-medium">Thanh toán VN PAY</p>
                 <p className="text-sm text-gray-500">Thanh toán tại quầy khi đến rạp</p>
               </div>
-            </label> */}
+            </label>
             
             <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
               <input

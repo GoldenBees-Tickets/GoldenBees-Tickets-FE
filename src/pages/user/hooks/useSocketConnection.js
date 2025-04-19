@@ -20,7 +20,6 @@ export const useSocketConnection = (SOCKET_URL, showtime_id, user_id, clearExpir
 
     // Xử lý sự kiện kết nối
     newSocket.on("connect", () => {
-      console.log("Đã kết nối với máy chủ socket");
       setSocket(newSocket);
     });
 

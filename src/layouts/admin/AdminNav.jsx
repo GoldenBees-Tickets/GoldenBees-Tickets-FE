@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AccountDropdown from "../AccountDropdown";
 import { IoNotifications, IoSearch, IoMenu, IoSettings } from "react-icons/io5";
+import { Link } from "react-router-dom";
 
 export default function AdminNav() {
   const [showSearch, setShowSearch] = useState(false);
@@ -11,7 +12,7 @@ export default function AdminNav() {
         <div className="flex items-center justify-between w-full">
           {/* Left side - Title for desktop */}
           <div className="hidden md:block text-lg font-semibold text-gray-700">
-            Golden Bees Admin
+           <Link to="/">Golden Bees</Link>
           </div>
 
           {/* Middle - Search bar (responsive) */}

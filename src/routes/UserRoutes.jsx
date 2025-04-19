@@ -14,7 +14,6 @@ import Producer from "@/pages/user/Producer";
 import Director from "../pages/user/Director";
 import PaymentPage from "../pages/Payment/PaymentPage";
 import PaymentResult from "../pages/Payment/PaymentResult";
-import QrCodePage from "../pages/user/QrCodePage";
 import Booking from "@/pages/user/Booking";
 import Payment from "@/pages/user/Payment";
 import PaymentSuccess from "@/pages/user/PaymentSuccess";
@@ -46,7 +45,6 @@ const UserRoutes = {
     { path: "/director/:id", element: <Director /> },
     { path: "/payment", element: <PaymentPage /> },
     { path: "/payment-result", element: <PaymentResult /> },
-    { path: "/qr-code", element: <QrCodePage /> },
     { path: "/booking/:showtime_id", element: <Booking /> },
     { path: "/payment/:showtime_id", element: <Payment /> },
     { path: "/payment-success", element: <PaymentSuccess /> },

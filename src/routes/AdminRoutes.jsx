@@ -48,6 +48,7 @@ import PostsEdit from "@/pages/admin/PostsEdit";
 import UserManagement from "@/pages/admin/UserManagement";
 import Cinema from "@/pages/admin/cinema";
 import ScanQrCodePage from "@/pages/staff/ScanQrCodePage";
+import Order from "@/pages/admin/Order";
 
 const AdminRoutes = {
   path: "/admin",
@@ -89,6 +90,7 @@ const AdminRoutes = {
     { path: "editcombo", element: <EditCombo /> },
     { path: "comboitem", element: <ComboItem /> },
     { path: "seat-types", element: <SeatType /> },
+    { path: "orders", element: <Order /> },
     
    
     { path: "showtimes", element: <Showtime /> },
