@@ -78,9 +78,7 @@ export const branchApi = createApi({
           url += `?${queryParams.join('&')}`;
         } else {
           url += ``;
-        }
-        console.log("URL", url);
-        
+        }        
         return {
           url: url,
           method: "GET",

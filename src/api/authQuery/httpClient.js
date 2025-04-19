@@ -16,12 +16,17 @@ httpClient.interceptors.request.use(
     }    
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error("Request Error:", error);
+    return Promise.reject(error);
+  }
 );
 
 httpClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
+  (response) => {
+    return response;
+  },
+  async (error) => {  
     const originalRequest = error.config;    
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -39,6 +44,7 @@ httpClient.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return httpClient(originalRequest); 
         } catch (refreshError) {          
+          console.error("Refresh Token Error:", refreshError);
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
           return Promise.reject(refreshError);

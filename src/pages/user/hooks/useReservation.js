@@ -118,9 +118,7 @@ export const useReservation = (showtime_id, room_id, user_id, setSearchParams) =
   }, [activeReservationInfo, setSearchParams, room_id]);
   
   // Lưu dữ liệu đặt vé vào localStorage
-  const saveReservationData = useCallback((preparedSeats, response, showtimeData) => {
-    console.log("SaveReservationData - showtimeData received:", showtimeData);
-    
+  const saveReservationData = useCallback((preparedSeats, response, showtimeData) => {    
     // Tạo đối tượng reservation
     const reservationData = {
       seats: preparedSeats,
@@ -131,7 +129,6 @@ export const useReservation = (showtime_id, room_id, user_id, setSearchParams) =
       foodItems: []
     };
     
-    console.log("SaveReservationData - data being saved:", reservationData);
     localStorage.setItem("reservation", JSON.stringify(reservationData));
 
     setHasActiveReservation(false);

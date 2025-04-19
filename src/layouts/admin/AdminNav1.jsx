@@ -16,7 +16,8 @@ import {
   AiOutlineGift,
   AiOutlineTeam,
   AiOutlinePercentage,
-  AiOutlineMessage
+  AiOutlineMessage,
+  AiOutlineShopping 
 } from "react-icons/ai";
 
 const MenuItem = ({ icon: Icon, text, to, isCollapsed, isActive, onClick }) => (
@@ -98,7 +99,7 @@ const MenuGroup = ({ id, icon: Icon, title, children, isCollapsed, isActive }) =
             <Icon className={`text-xl ${isActive ? 'text-white' : 'text-white/80 group-hover:text-white'} transition-colors duration-200`} />
           </span>
           {!isCollapsed && (
-            <span className={`ml-3 text-sm font-medium ${isActive ? 'text-white' : 'text-white/90 group-hover:text-white'} tracking-wide uppercase`}>
+            <span className={`ml-3 text-sm font-medium ${isActive ? 'text-white' : 'text-white/90 group-hover:text-white'} tracking-wide`}>
               {title}
             </span>
           )}
@@ -308,6 +309,15 @@ export default function AdminNav1({ isCollapsed, onNavLinkClick, userRole = "adm
             onClick={onNavLinkClick}
           />
         </MenuGroup>
+
+        <MenuItem 
+          icon={AiOutlineShopping} 
+          text="Đơn hàng" 
+          to="orders" 
+          isCollapsed={isCollapsed} 
+          isActive={currentPath.includes("orders")}
+          onClick={onNavLinkClick}
+        />
 
         <MenuItem 
           icon={AiOutlineMessage} 

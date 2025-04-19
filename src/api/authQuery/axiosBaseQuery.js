@@ -25,10 +25,7 @@ const axiosBaseQuery =
       });
       
       return { data: result.data };
-    } catch (error) {
-      console.log("Error in axiosBaseQuery:", error);
-      
-      
+    } catch (error) {      
       if (error.response?.status == 403) {
         authEvents.onForbidden();
       }

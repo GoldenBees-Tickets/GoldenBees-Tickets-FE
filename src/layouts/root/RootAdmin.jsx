@@ -125,7 +125,7 @@ export default function RootAdmin() {
           <div className="p-4 sticky top-0 bg-[#0c4da2] z-10">
             <button
               onClick={toggleSidebar}
-              className="bg-white/10 hover:bg-white/20 text-white rounded-lg w-full py-2 mb-6 flex items-center justify-center transition-all duration-300"
+              className="bg-white/10 hover:bg-white/20 text-white rounded-lg w-full py-2 flex items-center justify-center transition-all duration-300"
             >
               <span className={`transform ${isCollapsed && !isMobile ? "rotate-180" : ""}`}>
                 {isCollapsed && !isMobile ? "→" : "←"}

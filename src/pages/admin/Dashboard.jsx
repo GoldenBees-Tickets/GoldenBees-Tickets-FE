@@ -4,16 +4,18 @@ import { useGetBranchesQuery } from '@/api/branchApi';
 import { useGetAllMoviesByAdminQuery } from '@/api/movieApi';
 import { useGetAllGenresForDashboardQuery } from '@/api/genreApi';
 import { useGetAllCinemaNotPaginationQuery } from '@/api/cinemaApi';
-import { FaTicketAlt, FaFilm, FaMapMarkerAlt, FaUsers, FaTheaterMasks, FaCalendarAlt } from 'react-icons/fa';
-import { MdLocalMovies } from 'react-icons/md';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { FaTicketAlt, FaFilm, FaMapMarkerAlt, FaUsers, FaTheaterMasks, FaCalendarAlt, FaChartLine, FaPercentage } from 'react-icons/fa';
+import { MdLocalMovies, MdOutlineTheaterComedy, MdMovie } from 'react-icons/md';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart } from 'recharts';
+import { Card, Row, Col, Typography, Space, Tabs, Button, Table, Tag, Statistic, Spin, Badge, Avatar, Progress } from 'antd';
+import { motion } from 'framer-motion';
+
+const { Title, Text } = Typography;
 
 export default function Dashboard() {
   const {data: listOrder, isLoading} = useGetOrdersQuery()
   const {data: listbranch, isLoading: isLoadingBranch} = useGetBranchesQuery();
-  const {data: listMovie, isLoading: isLoadingMovie} = useGetAllMoviesByAdminQuery();
-  console.log("movie", listMovie);
-  
+  const {data: listMovie, isLoading: isLoadingMovie} = useGetAllMoviesByAdminQuery();  
   const {data: listGenres, isLoading: isLoadingGenre} = useGetAllGenresForDashboardQuery();
   const {data: listCinemas, isLoading: isLoadingCinemas} = useGetAllCinemaNotPaginationQuery();
   
@@ -222,8 +224,8 @@ export default function Dashboard() {
     return Object.values(branchRevenue);
   }, [listbranch, listOrder]);
 
-  // Màu sắc cho biểu đồ
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+  // Màu sắc cho biểu đồ - Cinema theme
+  const COLORS = ['#FF5252', '#FFCA28', '#4CAF50', '#2196F3', '#9C27B0'];
 
   // Số lượng rạp theo thành phố
   const cinemaByCity = useMemo(() => {
@@ -239,442 +241,589 @@ export default function Dashboard() {
       .map(([name, value]) => ({ name, value }));
   }, [listCinemas]);
 
+  // Cấu hình bảng đơn hàng gần đây
+  const recentOrderColumns = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      render: (id) => <Text ellipsis>{id.substring(0, 8)}...</Text>,
+    },
+    {
+      title: 'Ngày đặt',
+      dataIndex: 'order_date',
+      key: 'order_date',
+      render: (date) => new Date(date).toLocaleDateString('vi-VN'),
+    },
+    {
+      title: 'Tổng tiền',
+      dataIndex: 'total',
+      key: 'total',
+      render: (total) => formatCurrency(parseInt(total)),
+    },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => (
+        <Tag color={status === 'paid' ? 'success' : 'warning'}>
+          {status === 'paid' ? 'Đã thanh toán' : 'Chờ xử lý'}
+        </Tag>
+      ),
+    },
+  ];
+
   if (isLoading || isLoadingBranch || isLoadingMovie || isLoadingGenre || isLoadingCinemas) {
-    return <div className="flex justify-center items-center h-screen">
-      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
-    </div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" tip="Đang tải dữ liệu..." />
+      </div>
+    );
   }
 
   return (
-    <div className="">
-      {/* Header */}
-    
-      
+    <div className="p-6 bg-gray-50">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        {/* Total Revenue */}
-        <div className="bg-white p-6 rounded-2xl shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_35px_-15px_rgba(0,0,0,0.15)] transition-all duration-300 border border-gray-100">
-          <div className="flex justify-between items-start">
-            <div className="max-w-[70%]">
-              <p className="text-gray-500 text-xs md:text-sm font-medium uppercase tracking-wider">Tổng doanh thu</p>
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mt-1 text-gray-800 break-words">{formatCurrency(totalRevenue)}</h3>
-              <div className="mt-2 inline-flex items-center text-xs text-green-600 font-medium">
-                <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 2.5V9.5M6 2.5L9 5.5M6 2.5L3 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                8.2% so với tháng trước
-              </div>
-            </div>
-            <div className="p-2 md:p-3 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg md:rounded-xl shadow-lg shadow-emerald-200">
-              <FaUsers className="text-white text-lg md:text-xl" />
-            </div>
-          </div>
-          <div className="w-full h-1.5 bg-gray-100 rounded-full mt-4 overflow-hidden">
-            <div className="h-1.5 bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full w-3/4"></div>
-          </div>
-        </div>
+      <Row gutter={[16, 16]} className="mb-8">
+        {/* Tổng doanh thu */}
+        <Col xs={24} sm={12} lg={6}>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card 
+              className="h-full overflow-hidden"
+              bodyStyle={{ padding: '20px', position: 'relative' }}
+              bordered={false}
+              style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+            >
+              <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-emerald-400/20 to-emerald-600/20 rounded-bl-full -z-10"></div>
+              <Space direction="vertical" className="w-full">
+                <Space align="center" className="w-full justify-between">
+                  <span className="text-gray-500 text-sm font-medium uppercase tracking-wider">Tổng doanh thu</span>
+                  <div className="p-3 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-md">
+                    <FaChartLine className="text-white text-xl" />
+                  </div>
+                </Space>
+                <Statistic 
+                  value={totalRevenue} 
+                  formatter={(value) => formatCurrency(value)}
+                  valueStyle={{ fontWeight: 'bold', fontSize: '1.75rem', color: '#10b981' }}
+                />
+                <div className="flex items-center text-green-600 font-medium">
+                  <Badge status="success" />
+                  <span className="mr-1">8.2%</span>
+                  <FaPercentage className="text-xs" />
+                  <span className="ml-1 text-sm">so với tháng trước</span>
+                </div>
+                <Progress
+                  percent={82}
+                  size="small"
+                  strokeColor={{
+                    from: '#10b981',
+                    to: '#059669',
+                  }}
+                  showInfo={false}
+                  className="mt-2"
+                />
+              </Space>
+            </Card>
+          </motion.div>
+        </Col>
 
-        {/* Total Orders */}
-        <div className="bg-white p-6 rounded-2xl shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_35px_-15px_rgba(0,0,0,0.15)] transition-all duration-300 border border-gray-100">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">Tổng đơn hàng</p>
-              <h3 className="text-3xl font-bold mt-1 text-gray-800">{totalOrders}</h3>
-              <div className="mt-2 inline-flex items-center text-xs text-blue-600 font-medium">
-                <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 2.5V9.5M6 2.5L9 5.5M6 2.5L3 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                {Math.round(paidOrders/totalOrders*100)}% đã thanh toán
-              </div>
-            </div>
-            <div className="p-3 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-xl shadow-lg shadow-blue-200">
-              <FaTicketAlt className="text-white text-xl" />
-            </div>
-          </div>
-          <div className="w-full h-1.5 bg-gray-100 rounded-full mt-4 overflow-hidden">
-            <div className="h-1.5 bg-gradient-to-r from-blue-400 to-indigo-600 rounded-full w-1/2"></div>
-          </div>
-        </div>
+        {/* Tổng đơn hàng */}
+        <Col xs={24} sm={12} lg={6}>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            <Card 
+              className="h-full overflow-hidden"
+              bodyStyle={{ padding: '20px', position: 'relative' }}
+              bordered={false}
+              style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+            >
+              <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-blue-400/20 to-indigo-600/20 rounded-bl-full -z-10"></div>
+              <Space direction="vertical" className="w-full">
+                <Space align="center" className="w-full justify-between">
+                  <span className="text-gray-500 text-sm font-medium uppercase tracking-wider">Tổng đơn hàng</span>
+                  <div className="p-3 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 shadow-md">
+                    <FaTicketAlt className="text-white text-xl" />
+                  </div>
+                </Space>
+                <Statistic 
+                  value={totalOrders} 
+                  valueStyle={{ fontWeight: 'bold', fontSize: '1.75rem', color: '#3b82f6' }}
+                />
+                <div className="flex items-center text-blue-600 font-medium">
+                  <Badge status="processing" />
+                  <span className="mr-1">{Math.round(paidOrders/totalOrders*100)}%</span>
+                  <FaPercentage className="text-xs" />
+                  <span className="ml-1 text-sm">đã thanh toán</span>
+                </div>
+                <Progress
+                  percent={Math.round(paidOrders/totalOrders*100)}
+                  size="small"
+                  strokeColor={{
+                    from: '#3b82f6',
+                    to: '#4f46e5',
+                  }}
+                  showInfo={false}
+                  className="mt-2"
+                />
+              </Space>
+            </Card>
+          </motion.div>
+        </Col>
         
-        {/* Movie Status */}
-        <div className="bg-white p-6 rounded-2xl shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_35px_-15px_rgba(0,0,0,0.15)] transition-all duration-300 border border-gray-100">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">Phim</p>
-              <h3 className="text-3xl font-bold mt-1 text-gray-800">{totalMovies}</h3>
-              <div className="flex gap-2 mt-2 text-xs">
-                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full font-medium">{movieStats.nowShowing} đang chiếu</span>
-                <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded-full font-medium">{movieStats.comingSoon} sắp chiếu</span>
-              </div>
-            </div>
-            <div className="p-3 bg-gradient-to-br from-amber-400 to-orange-600 rounded-xl shadow-lg shadow-amber-200">
-              <FaFilm className="text-white text-xl" />
-            </div>
-          </div>
-          <div className="w-full h-1.5 bg-gray-100 rounded-full mt-4 overflow-hidden">
-            <div className="h-1.5 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full w-2/3"></div>
-          </div>
-        </div>
+        {/* Phim - Fixed alignment issue */}
+        <Col xs={24} sm={12} lg={6}>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+          >
+            <Card 
+              className="h-full overflow-hidden"
+              bodyStyle={{ padding: '20px', position: 'relative' }}
+              bordered={false}
+              style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+            >
+              <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-amber-400/20 to-orange-600/20 rounded-bl-full -z-10"></div>
+              <Space direction="vertical" className="w-full">
+                <Space align="center" className="w-full justify-between">
+                  <span className="text-gray-500 text-sm font-medium uppercase tracking-wider">Phim</span>
+                  <div className="p-3 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 shadow-md">
+                    <FaFilm className="text-white text-xl" />
+                  </div>
+                </Space>
+                <Statistic 
+                  value={totalMovies}
+                  valueStyle={{ fontWeight: 'bold', fontSize: '1.75rem', color: '#f59e0b' }}
+                />
+                <div className="flex gap-2 mt-1">
+                  <Tag color="success" className="rounded-full px-3 whitespace-nowrap">{movieStats.nowShowing} đang chiếu</Tag>
+                  <Tag color="warning" className="rounded-full px-3 whitespace-nowrap">{movieStats.comingSoon} sắp chiếu</Tag>
+                </div>
+                <Progress
+                  percent={(movieStats.nowShowing / totalMovies) * 100}
+                  size="small"
+                  strokeColor={{
+                    from: '#f59e0b',
+                    to: '#d97706',
+                  }}
+                  showInfo={false}
+                  className="mt-2"
+                />
+              </Space>
+            </Card>
+          </motion.div>
+        </Col>
         
-        {/* Cinemas */}
-        <div className="bg-white p-6 rounded-2xl shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_35px_-15px_rgba(0,0,0,0.15)] transition-all duration-300 border border-gray-100">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">Rạp chiếu</p>
-              <h3 className="text-3xl font-bold mt-1 text-gray-800">{totalCinemas}</h3>
-              <div className="mt-2 inline-flex items-center text-xs text-purple-600 font-medium">
-                <span className="flex items-center px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full">
-                  {totalBranches} chi nhánh
-                </span>
-              </div>
-            </div>
-            <div className="p-3 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl shadow-lg shadow-purple-200">
-              <MdLocalMovies className="text-white text-xl" />
-            </div>
-          </div>
-          <div className="w-full h-1.5 bg-gray-100 rounded-full mt-4 overflow-hidden">
-            <div className="h-1.5 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full w-4/5"></div>
-          </div>
-        </div>
-      </div>
+        {/* Rạp chiếu */}
+        <Col xs={24} sm={12} lg={6}>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+          >
+            <Card 
+              className="h-full overflow-hidden"
+              bodyStyle={{ padding: '20px', position: 'relative' }}
+              bordered={false}
+              style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+            >
+              <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-purple-400/20 to-purple-600/20 rounded-bl-full -z-10"></div>
+              <Space direction="vertical" className="w-full">
+                <Space align="center" className="w-full justify-between">
+                  <span className="text-gray-500 text-sm font-medium uppercase tracking-wider">Rạp chiếu</span>
+                  <div className="p-3 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 shadow-md">
+                    <MdLocalMovies className="text-white text-xl" />
+                  </div>
+                </Space>
+                <Statistic 
+                  value={totalCinemas}
+                  valueStyle={{ fontWeight: 'bold', fontSize: '1.75rem', color: '#8b5cf6' }}
+                />
+                <Tag color="purple" className="rounded-full px-3">{totalBranches} chi nhánh</Tag>
+                <Progress
+                  percent={(totalCinemas / 20) * 100} // Giả định mục tiêu là 20 rạp
+                  size="small"
+                  strokeColor={{
+                    from: '#8b5cf6',
+                    to: '#7c3aed',
+                  }}
+                  showInfo={false}
+                  className="mt-2"
+                />
+              </Space>
+            </Card>
+          </motion.div>
+        </Col>
+      </Row>
       
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+      <Row gutter={[16, 16]} className="mb-8">
         {/* Biểu đồ doanh thu theo thời gian */}
-        <div className="bg-white p-8 rounded-2xl shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_35px_-15px_rgba(0,0,0,0.15)] transition-all duration-300 border border-gray-100">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center">
-              <FaCalendarAlt className="mr-3 text-amber-500" />
-              Doanh thu theo thời gian
-            </h2>
-            <div className="flex space-x-2">
-              <button 
-                onClick={() => setTimeFrame('day')}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${timeFrame === 'day' 
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-orange-200' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-              >
-                Ngày
-              </button>
-              <button 
-                onClick={() => setTimeFrame('month')}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${timeFrame === 'month' 
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-orange-200' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-              >
-                Tháng
-              </button>
-              <button 
-                onClick={() => setTimeFrame('year')}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${timeFrame === 'year' 
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-orange-200' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-              >
-                Năm
-              </button>
-            </div>
-          </div>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={revenueByTime}
-                margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
-              >
-                <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.7}/>
-                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                <XAxis 
-                  dataKey="time"
-                  label={{ 
-                    value: timeFrame === 'day' ? 'Ngày' : timeFrame === 'month' ? 'Tháng' : 'Năm', 
-                    position: 'insideBottomRight', 
-                    offset: -10,
-                    fill: '#666'
-                  }}
-                  tick={{fill: '#666'}}
-                  axisLine={{stroke: '#e0e0e0'}}
-                  tickLine={{stroke: '#e0e0e0'}}
-                />
-                <YAxis 
-                  tickFormatter={(value) => value >= 1000000 
-                    ? `${(value / 1000000).toFixed(1)}M` 
-                    : value >= 1000 
-                      ? `${(value / 1000).toFixed(0)}K` 
-                      : value
-                  }
-                  tick={{fill: '#666'}}
-                  axisLine={{stroke: '#e0e0e0'}}
-                  tickLine={{stroke: '#e0e0e0'}}
-                />
-                <Tooltip 
-                  formatter={(value) => [`${formatCurrency(value)}`, 'Doanh thu']}
-                  contentStyle={{
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
-                  }}
-                  cursor={{stroke: '#8884d8', strokeWidth: 1, strokeDasharray: '5 5'}}
-                />
-                <Legend 
-                  iconType="circle"
-                  iconSize={10}
-                  wrapperStyle={{paddingTop: 10}}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  name="Doanh thu" 
-                  stroke="#8884d8" 
-                  strokeWidth={3}
-                  activeDot={{ r: 8, fill: '#8884d8', stroke: 'white', strokeWidth: 2 }} 
-                  dot={{ r: 4, fill: '#8884d8', stroke: 'white', strokeWidth: 2 }}
-                  fill="url(#colorRevenue)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <Col xs={24} lg={14}>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Card 
+              className="h-full"
+              title={
+                <Space size="middle">
+                  <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
+                    <FaCalendarAlt className="text-xl" />
+                  </div>
+                  <span className="font-bold text-gray-800">Doanh thu theo thời gian</span>
+                </Space>
+              }
+              extra={
+                <Space className="bg-gray-100 p-1 rounded-lg">
+                  <Button 
+                    type={timeFrame === 'day' ? 'primary' : 'text'} 
+                    size="small"
+                    onClick={() => setTimeFrame('day')}
+                    className={timeFrame !== 'day' ? 'text-gray-600' : ''}
+                  >
+                    Ngày
+                  </Button>
+                  <Button 
+                    type={timeFrame === 'month' ? 'primary' : 'text'} 
+                    size="small"
+                    onClick={() => setTimeFrame('month')}
+                    className={timeFrame !== 'month' ? 'text-gray-600' : ''}
+                  >
+                    Tháng
+                  </Button>
+                  <Button 
+                    type={timeFrame === 'year' ? 'primary' : 'text'} 
+                    size="small"
+                    onClick={() => setTimeFrame('year')}
+                    className={timeFrame !== 'year' ? 'text-gray-600' : ''}
+                  >
+                    Năm
+                  </Button>
+                </Space>
+              }
+              bordered={false}
+              style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+            >
+              <div style={{ height: 320 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={revenueByTime}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+                  >
+                    <defs>
+                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#FF5252" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#FF5252" stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                    <XAxis 
+                      dataKey="time"
+                      tick={{fill: '#666'}}
+                      axisLine={{stroke: '#e0e0e0'}}
+                      tickLine={{stroke: '#e0e0e0'}}
+                    />
+                    <YAxis 
+                      tickFormatter={(value) => value >= 1000000 
+                        ? `${(value / 1000000).toFixed(1)}M` 
+                        : value >= 1000 
+                          ? `${(value / 1000).toFixed(0)}K` 
+                          : value
+                      }
+                      tick={{fill: '#666'}}
+                      axisLine={{stroke: '#e0e0e0'}}
+                      tickLine={{stroke: '#e0e0e0'}}
+                    />
+                    <Tooltip 
+                      formatter={(value) => [`${formatCurrency(value)}`, 'Doanh thu']}
+                      contentStyle={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+                      }}
+                      cursor={{stroke: '#FF5252', strokeWidth: 1, strokeDasharray: '5 5'}}
+                    />
+                    <Legend 
+                      iconType="circle"
+                      iconSize={10}
+                      wrapperStyle={{paddingTop: 10}}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="revenue" 
+                      name="Doanh thu" 
+                      stroke="#FF5252" 
+                      strokeWidth={3}
+                      activeDot={{ r: 8, fill: '#FF5252', stroke: 'white', strokeWidth: 2 }} 
+                      fill="url(#colorRevenue)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </motion.div>
+        </Col>
         
-        {/* Biểu đồ cột - Doanh thu theo chi nhánh */}
-        <div className="bg-white p-8 rounded-2xl shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_35px_-15px_rgba(0,0,0,0.15)] transition-all duration-300 border border-gray-100">
-          <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center">
-            <FaMapMarkerAlt className="mr-3 text-blue-500" />
-            Doanh thu theo chi nhánh
-          </h2>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={branchRevenueData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={true} vertical={false} />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{fill: '#666'}}
-                  axisLine={{stroke: '#e0e0e0'}}
-                  tickLine={{stroke: '#e0e0e0'}}
-                />
-                <YAxis 
-                  tickFormatter={(value) => value >= 1000000 
-                    ? `${(value / 1000000).toFixed(1)}M` 
-                    : value >= 1000 
-                      ? `${(value / 1000).toFixed(0)}K` 
-                      : value
-                  }
-                  tick={{fill: '#666'}}
-                  axisLine={{stroke: '#e0e0e0'}}
-                  tickLine={{stroke: '#e0e0e0'}}
-                />
-                <Tooltip 
-                  formatter={(value) => [`${formatCurrency(value)}`, 'Doanh thu']}
-                  contentStyle={{
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
-                  }}
-                  cursor={{fill: 'rgba(136, 132, 216, 0.1)'}}
-                />
-                <Legend 
-                  iconType="circle"
-                  iconSize={10}
-                  wrapperStyle={{paddingTop: 10}}
-                />
-                <Bar 
-                  dataKey="revenue" 
-                  name="Doanh thu" 
-                  fill="url(#colorGradient)" 
-                  radius={[6, 6, 0, 0]}
-                  barSize={40}
-                />
-                <defs>
-                  <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.9}/>
-                    <stop offset="95%" stopColor="#818cf8" stopOpacity={0.6}/>
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
+        {/* Biểu đồ tròn - Phân bố thể loại phim */}
+        <Col xs={24} lg={10}>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            <Card 
+              className="h-full"
+              title={
+                <Space size="middle">
+                  <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
+                    <MdOutlineTheaterComedy className="text-xl" />
+                  </div>
+                  <span className="font-bold text-gray-800">Phân bố thể loại phim</span>
+                </Space>
+              }
+              bordered={false}
+              style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+            >
+              <div style={{ height: 320 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={genreChartData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={95}
+                      innerRadius={55}
+                      fill="#8884d8"
+                      dataKey="value"
+                      paddingAngle={4}
+                    >
+                      {genreChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={36}
+                      iconType="circle"
+                      iconSize={10}
+                      formatter={(value, entry) => <span style={{color: '#666', fontWeight: 500}}>{value}</span>}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </motion.div>
+        </Col>
+      </Row>
       
       {/* Secondary Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-        {/* Biểu đồ tròn - Phân bố thể loại phim */}
-        <div className="bg-white p-8 rounded-2xl shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_35px_-15px_rgba(0,0,0,0.15)] transition-all duration-300 border border-gray-100">
-          <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center">
-            <FaFilm className="mr-3 text-amber-500" />
-            Phân bố thể loại phim
-          </h2>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={genreChartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={95}
-                  innerRadius={50}
-                  fill="#8884d8"
-                  dataKey="value"
-                  paddingAngle={4}
-                >
-                  {genreChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-                <Legend 
-                  verticalAlign="bottom" 
-                  height={36}
-                  iconType="circle"
-                  iconSize={10}
-                  formatter={(value, entry) => <span style={{color: '#666', fontWeight: 500}}>{value}</span>}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+      <Row gutter={[16, 16]} className="mb-8">
+        {/* Biểu đồ cột - Doanh thu theo chi nhánh */}
+        <Col xs={24} lg={12}>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            <Card 
+              className="h-full"
+              title={
+                <Space size="middle">
+                  <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+                    <FaMapMarkerAlt className="text-xl" />
+                  </div>
+                  <span className="font-bold text-gray-800">Doanh thu theo chi nhánh</span>
+                </Space>
+              }
+              bordered={false}
+              style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+            >
+              <div style={{ height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={branchRevenueData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={true} vertical={false} />
+                    <XAxis 
+                      dataKey="name" 
+                      tick={{fill: '#666'}}
+                      axisLine={{stroke: '#e0e0e0'}}
+                      tickLine={{stroke: '#e0e0e0'}}
+                    />
+                    <YAxis 
+                      tickFormatter={(value) => value >= 1000000 
+                        ? `${(value / 1000000).toFixed(1)}M` 
+                        : value >= 1000 
+                          ? `${(value / 1000).toFixed(0)}K` 
+                          : value
+                      }
+                      tick={{fill: '#666'}}
+                      axisLine={{stroke: '#e0e0e0'}}
+                      tickLine={{stroke: '#e0e0e0'}}
+                    />
+                    <Tooltip 
+                      formatter={(value) => [`${formatCurrency(value)}`, 'Doanh thu']}
+                      contentStyle={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+                      }}
+                      cursor={{fill: 'rgba(22, 119, 255, 0.1)'}}
+                    />
+                    <Legend 
+                      iconType="circle"
+                      iconSize={10}
+                      wrapperStyle={{paddingTop: 10}}
+                    />
+                    <Bar 
+                      dataKey="revenue" 
+                      name="Doanh thu" 
+                      fill="#2196F3" 
+                      radius={[6, 6, 0, 0]}
+                      barSize={40}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </motion.div>
+        </Col>
         
         {/* Biểu đồ cột - Rạp theo thành phố */}
-        <div className="bg-white p-8 rounded-2xl shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_35px_-15px_rgba(0,0,0,0.15)] transition-all duration-300 border border-gray-100">
-          <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center">
-            <MdLocalMovies className="mr-3 text-purple-500" />
-            Rạp chiếu theo thành phố
-          </h2>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={cinemaByCity}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                layout="vertical"
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={true} vertical={false} />
-                <XAxis 
-                  type="number" 
-                  tick={{fill: '#666'}}
-                  axisLine={{stroke: '#e0e0e0'}}
-                  tickLine={{stroke: '#e0e0e0'}}
-                />
-                <YAxis 
-                  dataKey="name" 
-                  type="category" 
-                  width={150} 
-                  tick={{fill: '#666'}}
-                  axisLine={{stroke: '#e0e0e0'}}
-                  tickLine={{stroke: '#e0e0e0'}}
-                />
-                <Tooltip 
-                  formatter={(value) => [`${value} rạp`, 'Số lượng']}
-                  contentStyle={{
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
-                  }}
-                  cursor={{fill: 'rgba(130, 202, 157, 0.1)'}}
-                />
-                <Legend 
-                  iconType="circle"
-                  iconSize={10}
-                  wrapperStyle={{paddingTop: 10}}
-                />
-                <Bar 
-                  dataKey="value" 
-                  name="Số lượng rạp" 
-                  fill="url(#greenGradient)" 
-                  radius={[0, 6, 6, 0]}
-                  barSize={30}
-                />
-                <defs>
-                  <linearGradient id="greenGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.9}/>
-                    <stop offset="95%" stopColor="#34d399" stopOpacity={0.6}/>
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
+        <Col xs={24} lg={12}>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
+            <Card 
+              className="h-full"
+              title={
+                <Space size="middle">
+                  <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
+                    <MdLocalMovies className="text-xl" />
+                  </div>
+                  <span className="font-bold text-gray-800">Rạp chiếu theo thành phố</span>
+                </Space>
+              }
+              bordered={false}
+              style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+            >
+              <div style={{ height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={cinemaByCity}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    layout="vertical"
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={true} vertical={false} />
+                    <XAxis 
+                      type="number" 
+                      tick={{fill: '#666'}}
+                      axisLine={{stroke: '#e0e0e0'}}
+                      tickLine={{stroke: '#e0e0e0'}}
+                    />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      width={150} 
+                      tick={{fill: '#666'}}
+                      axisLine={{stroke: '#e0e0e0'}}
+                      tickLine={{stroke: '#e0e0e0'}}
+                    />
+                    <Tooltip 
+                      formatter={(value) => [`${value} rạp`, 'Số lượng']}
+                      contentStyle={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+                      }}
+                      cursor={{fill: 'rgba(130, 202, 157, 0.1)'}}
+                    />
+                    <Legend 
+                      iconType="circle"
+                      iconSize={10}
+                      wrapperStyle={{paddingTop: 10}}
+                    />
+                    <Bar 
+                      dataKey="value" 
+                      name="Số lượng rạp" 
+                      fill="#9C27B0" 
+                      radius={[0, 6, 6, 0]}
+                      barSize={30}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </motion.div>
+        </Col>
+      </Row>
       
       {/* Recent Orders */}
-      <div className="bg-white p-8 rounded-2xl shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_35px_-15px_rgba(0,0,0,0.15)] transition-all duration-300 border border-gray-100 mb-10">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center">
-            <FaTicketAlt className="mr-3 text-blue-500" />
-            Đơn hàng gần đây
-          </h2>
-          <button className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
-            Xem tất cả
-            <svg className="w-4 h-4 ml-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 rounded-tl-lg">
-                  ID
-                </th>
-                <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">
-                  Ngày đặt
-                </th>
-                <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">
-                  Tổng tiền
-                </th>
-                <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 rounded-tr-lg">
-                  Trạng thái
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {listOrder?.data?.slice(0, 5).map((order, index) => (
-                <tr key={order.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors duration-150`}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {order.id.substring(0, 8)}...
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(order.order_date).toLocaleDateString('vi-VN')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {formatCurrency(parseInt(order.total))}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      order.status === 'paid'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-amber-100 text-amber-800'
-                    }`}>
-                      {order.status === 'paid' ? 'Đã thanh toán' : 'Chờ xử lý'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.4 }}
+      >
+        <Card 
+          className="mb-8"
+          title={
+            <Space size="middle">
+              <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+                <FaTicketAlt className="text-xl" />
+              </div>
+              <span className="font-bold text-gray-800">Đơn hàng gần đây</span>
+            </Space>
+          }
+          extra={
+            <Button type="primary" ghost>
+              Xem tất cả
+            </Button>
+          }
+          bordered={false}
+          style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}
+        >
+          <Table
+            columns={recentOrderColumns}
+            dataSource={listOrder?.data?.slice(0, 5) || []}
+            rowKey="id"
+            pagination={false}
+            size="middle"
+            className="responsive-table"
+            rowClassName={(record, index) => 
+              index % 2 === 0 ? 'bg-white hover:bg-blue-50' : 'bg-gray-50 hover:bg-blue-50'
+            }
+          />
+        </Card>
+      </motion.div>
       
       {/* Footer */}
-      <div className="text-center text-gray-500 text-sm mb-8">
+      <div className="text-center text-gray-500 text-sm border-t border-gray-200 pt-6">
         <p>© {new Date().getFullYear()} Golden Bees Cinema. All rights reserved.</p>
         <p className="mt-1 text-xs">Phiên bản 1.0.0</p>
       </div>

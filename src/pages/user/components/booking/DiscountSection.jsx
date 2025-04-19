@@ -526,20 +526,20 @@ const DiscountSection = ({
       ) : (
         <>
           <div className="flex space-x-1 mb-1">
-            <input 
-              type="text" 
-              value={discountCode}
-              onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+          <input 
+            type="text" 
+            value={discountCode}
+            onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
               placeholder="Nhập mã khuyến mãi" 
               className="flex-1 px-3 py-1.5 text-base border border-gray-300 rounded-md focus:outline-none focus:border-orange-500"
-            />
-            <button 
+          />
+          <button 
               className="bg-orange-500 text-white px-3 py-1.5 text-base rounded-md hover:bg-orange-600 transition disabled:opacity-50"
               onClick={handleManualApply}
               disabled={isCheckingDiscount || !discountCode.trim()}
-            >
-              {isCheckingDiscount ? (
-                <span className="flex items-center justify-center">
+          >
+            {isCheckingDiscount ? (
+              <span className="flex items-center justify-center">
                   <svg className="animate-spin -ml-0.5 mr-1 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -593,7 +593,7 @@ const DiscountSection = ({
                               {promotion.discount_type === 'percentage' || promotion.discount_type === 'percent'
                                 ? `-${promotion.discount_value}%` 
                                 : `-${Number(promotion.discount_value).toLocaleString('vi-VN')}₫`}
-                            </span>
+              </span>
                           </div>
                           <p className="text-sm text-gray-800 font-medium mt-1 truncate">{promotion.name}</p>
                           <p className="text-sm text-gray-600 mt-0.5">{getPromotionSummary(promotion)}</p>
@@ -631,7 +631,7 @@ const DiscountSection = ({
                 Không có khuyến mãi nào hiện tại
               </div>
             )}
-          </div>
+        </div>
         </>
       )}
       
@@ -642,4 +642,4 @@ const DiscountSection = ({
   );
 };
 
-export default DiscountSection;
+export default DiscountSection; 

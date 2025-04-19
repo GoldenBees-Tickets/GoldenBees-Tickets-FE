@@ -239,9 +239,7 @@ export default function Booking() {
         (response) => {
           setIsLoading(false);
 
-          if (response.success) {
-            console.log("Lưu thông tin reservation với showtimeData:", showtimeData);
-            
+          if (response.success) {            
             // Lưu thông tin vào localStorage
             saveReservationData(preparedSeats, response, showtimeData);
 
@@ -276,8 +274,6 @@ export default function Booking() {
 
       // Cập nhật đồ ăn trong reservation
       if (activeReservationInfo) {
-        console.log("activeReservationInfo", activeReservationInfo);
-
         const updatedReservation = {
           ...activeReservationInfo,
           foodItems,
@@ -366,8 +362,6 @@ export default function Booking() {
     }
 
     if (response?.data?.success === true) {
-      console.log("response", response);
-
       toast.success(response?.data?.message);
       localStorage.setItem(
         "promotion_id",

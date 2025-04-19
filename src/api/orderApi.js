@@ -6,7 +6,7 @@ export const orderApi = createApi({
   reducerPath: "orderApi",
   baseQuery: axiosBaseQuery({
     baseUrl: `${API_BASE_URL}order`,
-    useHttpClient: true,
+    useHttpClient: true, // Sử dụng httpClient có token
   }),
   tagTypes: ["Order"],
   endpoints: (builder) => ({
@@ -58,7 +58,30 @@ export const orderApi = createApi({
         url: `/` 
       }),
       providesTags: ["Order"],
-    })
+    }),
+
+    getOrdersPagination: builder.query({
+      query: (params) => {
+        const { page, limit = 10, search = "", sort_order = "desc" } = params || {};
+        
+        // Xây dựng query params
+        const queryParams = [];
+        if (page) queryParams.push(`page=${page}`);
+        if (limit) queryParams.push(`limit=${limit}`);
+        if (search) queryParams.push(`search=${encodeURIComponent(search)}`);
+        if (sort_order) queryParams.push(`sort_order=${sort_order}`);
+        
+        // Thêm timestamp để tránh cache
+        queryParams.push(`_t=${Date.now()}`);
+        
+        let url = '/getAllPagination';
+        if (queryParams.length > 0) {
+          url += `?${queryParams.join('&')}`;
+        }
+        return { url };
+      },
+      providesTags: [{ type: "Order", id: "ORDER" }],
+    }),
   }),  
 });
 
@@ -68,5 +91,6 @@ export const {
  useClientCallbackMutation,
  useCheckOrderQuery,
  useGetOrderByUserQuery,
- useGetOrdersQuery
+ useGetOrdersQuery,
+ useGetOrdersPaginationQuery
 } = orderApi;
