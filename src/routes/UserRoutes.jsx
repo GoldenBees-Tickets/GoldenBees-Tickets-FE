@@ -24,6 +24,7 @@ import VoiceConverterPage from "../pages/VoiceConverter/VoiceConverterPage";
 import Posts from "@/pages/user/Posts";
 import PostDetail from "@/pages/user/PostDetail";
 import TicketPurchasePage from "@/pages/user/TicketPurchasePage";
+import { Navigate } from "react-router-dom";
 
 
 const UserRoutes = {
@@ -55,7 +56,7 @@ const UserRoutes = {
     // Voice Converter Route
     { path: "/voice-converter", element: <VoiceConverterPage /> },
     // Posts Routes
-    { path: "/posts", element: <Posts /> },
+    { path: "/posts", element: <Navigate to="/blog" replace /> },
     { path: "/posts/:id", element: <PostDetail /> },
     // Ticket Purchase Page
     { path: "/ticket-purchase", element: <TicketPurchasePage /> }

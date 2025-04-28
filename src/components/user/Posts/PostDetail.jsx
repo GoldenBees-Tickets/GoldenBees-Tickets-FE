@@ -11,32 +11,62 @@ export default function PostDetail() {
   });
   
   useEffect(() => {
-    // Scroll to top when component mounts
-    window.scrollTo(0, 0);
-    
     if (!id) {
-      navigate('/posts');
+      navigate('/blog');
     }
   }, [id, navigate]);
+
+  // Trích xuất URL của ảnh đầu tiên từ nội dung HTML
+  const extractImageFromContent = (content) => {
+    if (!content) return null;
+    
+    // Tìm URL ảnh đầu tiên trong thẻ img 
+    const imgRegex = /<img[^>]+src="([^">]+)"/;
+    const match = content.match(imgRegex);
+    
+    // Trả về URL ảnh nếu tìm thấy
+    return match ? match[1] : null;
+  };
+
+  // Lấy URL ảnh từ bài viết
+  const getPostImage = (post) => {
+    // Ưu tiên sử dụng thumbnail nếu có
+    if (post.thumbnail) return post.thumbnail;
+    
+    // Thử lấy ảnh từ trường image
+    if (post.image) return post.image;
+    
+    // Trích xuất ảnh từ nội dung bài viết
+    const contentImage = extractImageFromContent(post.content);
+    if (contentImage) return contentImage;
+    
+    // Nếu không có ảnh, trả về null để không hiển thị phần ảnh
+    return null;
+  };
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-amber-500 border-r-2"></div>
       </div>
     );
   }
 
   if (isError || !postData?.post) {
     return (
-      <div className="container mx-auto px-4 py-16 max-w-4xl">
-        <div className="text-center text-red-500 p-8 bg-white rounded-lg shadow">
-          <p className="mb-4">Không tìm thấy bài viết hoặc đã xảy ra lỗi</p>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="text-center p-8 bg-white rounded-lg shadow-sm">
+          <div className="w-16 h-16 mx-auto bg-amber-50 rounded-full flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <p className="mb-6 text-gray-800 font-medium">Không tìm thấy bài viết hoặc đã xảy ra lỗi</p>
           <button
-            onClick={() => navigate('/posts')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            onClick={() => navigate('/blog')}
+            className="px-5 py-2.5 bg-amber-500 text-white rounded-md font-medium hover:bg-amber-600"
           >
-            Quay lại danh sách bài viết
+            Quay lại trang blog
           </button>
         </div>
       </div>
@@ -45,96 +75,55 @@ export default function PostDetail() {
 
   const { post } = postData;
   
-  // Lấy một số từ đầu tiên từ nội dung bài viết (không có thẻ HTML)
-  const getContentPreview = (content) => {
-    if (!content) return "";
-    // Loại bỏ tất cả các thẻ HTML
-    const plainText = content.replace(/<[^>]*>/g, ' ');
-    // Lấy các từ đầu tiên
-    const words = plainText.trim().split(/\s+/);
-    return words.slice(0, 7).join(' ') + (words.length > 7 ? '...' : '');
-  };
-  
-  const contentPreview = getContentPreview(post.content);
-  
   const formattedDate = post.createdAt 
-    ? new Date(post.createdAt).toLocaleDateString("vi-VN", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+    ? new Date(post.createdAt).toLocaleDateString("vi-VN")
     : "Không có thông tin ngày";
 
+  // Lấy ảnh bài viết
+  const postImage = getPostImage(post);
+
   return (
-    <div className="bg-gray-50 py-16">
-      <div className="container mx-auto px-4 max-w-4xl">
-        {/* Breadcrumbs */}
-        <div className="mb-8">
-          <nav className="flex">
-            <ol className="flex items-center space-x-1 text-sm text-gray-500">
-              <li>
-                <Link to="/" className="hover:text-blue-600">Trang chủ</Link>
-              </li>
-              <li className="flex items-center">
-                <svg className="w-4 h-4 mx-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-                <Link to="/posts" className="hover:text-blue-600">Bài viết</Link>
-              </li>
-              <li className="flex items-center">
-                <svg className="w-4 h-4 mx-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-                <span className="text-gray-700 truncate max-w-[200px]">{post.title}</span>
-              </li>
-            </ol>
-          </nav>
+    <div className="bg-gray-50 py-8">
+      <div className="container mx-auto px-4 max-w-3xl">
+        {/* Navigation link */}
+        <div className="mb-6">
+          <Link to="/blog" className="text-amber-600 hover:text-amber-700 flex items-center font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Quay lại trang blog
+          </Link>
         </div>
 
         {/* Post header */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-          <div className="p-6 md:p-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">{post.title}</h1>
-            <div className="flex items-center text-gray-600 mb-6">
-              <span className="mr-4 flex items-center">
-                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-                {post.author || "Admin"}
-              </span>
-              <span className="flex items-center">
-                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                </svg>
-                {formattedDate}
-              </span>
-            </div>
-            
-            {/* Post summary */}
-            {contentPreview && (
-              <div className="text-gray-700 mb-4 italic">
-                {contentPreview}
-              </div>
-            )}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">{post.title}</h1>
+          <div className="flex items-center text-gray-600 text-sm mb-4">
+            <span className="mr-4 flex items-center">
+              {post.author || "Admin"}
+            </span>
+            <span className="flex items-center">
+              {formattedDate}
+            </span>
           </div>
           
-          {/* Post banner image */}
-          {post.image && (
-            <div className="w-full">
+          {/* Post banner image - display only if post has an image */}
+          {postImage && (
+            <div className="mt-4 -mx-6 mb-6">
               <img 
-                src={post.image} 
+                src={postImage} 
                 alt={post.title} 
-                className="w-full h-auto object-cover max-h-[500px]"
+                className="w-full h-auto max-h-[500px] object-contain"
               />
             </div>
           )}
         </div>
 
         {/* Post content */}
-        <div className="bg-white rounded-lg shadow-md p-6 md:p-8 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
           {post.content ? (
             <div 
-              className="prose prose-lg max-w-none"
+              className="prose prose-sm sm:prose lg:prose-lg mx-auto prose-headings:text-gray-800 prose-a:text-amber-600"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
           ) : (
@@ -142,17 +131,21 @@ export default function PostDetail() {
           )}
         </div>
 
-        {/* Navigation buttons */}
-        <div className="flex justify-center mb-8">
-          <Link
-            to="/posts"
-            className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Quay lại danh sách bài viết
-          </Link>
+        {/* Post tags and share */}
+        <div className="bg-white rounded-lg shadow-sm p-5 flex flex-wrap justify-between items-center">
+          <div className="flex flex-wrap gap-2">
+            <span className="px-3 py-1 bg-amber-50 text-amber-700 text-xs font-medium rounded-full">Blog</span>
+            <span className="px-3 py-1 bg-yellow-50 text-yellow-700 text-xs font-medium rounded-full">Điện Ảnh</span>
+          </div>
+          
+          <div className="mt-3 sm:mt-0">
+            <Link
+              to="/blog"
+              className="inline-block px-5 py-2 bg-amber-500 text-white rounded-md text-sm font-medium hover:bg-amber-600"
+            >
+              Quay lại trang blog
+            </Link>
+          </div>
         </div>
       </div>
     </div>

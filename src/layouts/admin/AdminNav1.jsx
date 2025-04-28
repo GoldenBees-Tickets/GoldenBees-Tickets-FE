@@ -17,7 +17,8 @@ import {
   AiOutlineTeam,
   AiOutlinePercentage,
   AiOutlineMessage,
-  AiOutlineShopping 
+  AiOutlineShopping,
+  AiOutlineFileText
 } from "react-icons/ai";
 
 const MenuItem = ({ icon: Icon, text, to, isCollapsed, isActive, onClick }) => (
@@ -220,6 +221,16 @@ export default function AdminNav1({ isCollapsed, onNavLinkClick, userRole = "adm
             onClick={onNavLinkClick}
           />
         </MenuGroup>
+
+        {/* Thêm menu Bài Viết mới */}
+        <MenuItem 
+          icon={AiOutlineFileText} 
+          text="Bài viết" 
+          to="/admin/posts" 
+          isCollapsed={isCollapsed} 
+          isActive={currentPath.includes("posts")}
+          onClick={onNavLinkClick}
+        />
 
         <MenuGroup 
           id="branches" 
