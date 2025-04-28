@@ -11,7 +11,6 @@ export default function WebSocketComponent() {
     const socket = io('http://localhost:3000');
 
     socket.on('countdown_start', (time) => {
-      console.log('Countdown started with time:', time);
       dispatch(setCountdown(time));
     });
 

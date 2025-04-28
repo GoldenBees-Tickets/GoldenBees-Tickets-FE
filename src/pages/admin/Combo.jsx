@@ -246,7 +246,7 @@ const Combo = () => {
             )
           }}
         />
-      </div>
+                      </div>
 
       {/* Phân trang */}
       {combos.length > 0 && (

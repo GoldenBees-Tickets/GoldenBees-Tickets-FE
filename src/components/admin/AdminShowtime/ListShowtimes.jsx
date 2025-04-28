@@ -1,27 +1,19 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useGetShowtimesQuery } from "@/api/showtimeApi";
-import { Table, Button, Modal, Spin, Tag, message, Input, Select, Space } from "antd";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
-import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
+import { Table, Button, Modal, Spin, Tag, Input, Select, Space } from "antd";
+import { FiEdit } from "react-icons/fi";
+import { CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import PaginationDefault from "@/components/PaginationDefault";
 import { formatImage } from "@/utils/formatImage";
 import { formatDate, formatTime, formatCurrency } from "@/utils/format";
 
 const { Search } = Input;
 
-// Hàm bỏ dấu tiếng Việt
-const removeAccents = (str) => {
-  return str.normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/g, 'd').replace(/Đ/g, 'D');
-};
-
 export default function ListShowtimes({ branch_id }) {
-  const [selectedShowtime, setSelectedShowtime] = useState(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("desc");
 
@@ -30,11 +22,10 @@ export default function ListShowtimes({ branch_id }) {
     branch_id,
     page: currentPage,
     limit: pageSize,
-    search: searchText,
+    search: searchValue,
     status: statusFilter,
     sort_order: sortOrder
-  });
-
+  });  
   const getShowtimeStatus = (record) => {
     const now = new Date();
     const showDate = new Date(record.show_date);
@@ -65,11 +56,15 @@ export default function ListShowtimes({ branch_id }) {
   };
 
   const handleSearch = (value) => {
-    setSearchText(value);
+    setSearchValue(value);
     setCurrentPage(1);
   };
 
-  const handleStatusChange = (value) => {
+  const handleInputChange = (e) => {
+    setSearchText(e.target.value);
+  };
+
+  const handleStatusChange = (value) => {    
     setStatusFilter(value);
     setCurrentPage(1);
   };
@@ -80,6 +75,12 @@ export default function ListShowtimes({ branch_id }) {
   };
 
   const columns = [
+    {
+      title: "STT",
+      key: "index",
+      width: 60,
+      render: (_, __, index) => (currentPage - 1) * pageSize + index + 1,
+    },
     {
       title: "Phim",
       dataIndex: ["Movie", "title"],
@@ -180,7 +181,8 @@ export default function ListShowtimes({ branch_id }) {
             placeholder="Tìm kiếm theo tên phim"
             allowClear
             onSearch={handleSearch}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={handleInputChange}
+            value={searchText}
             style={{ width: 250 }}
           />
           <Select
@@ -189,9 +191,9 @@ export default function ListShowtimes({ branch_id }) {
             style={{ width: 150 }}
           >
             <Select.Option value="all">Tất cả trạng thái</Select.Option>
-            <Select.Option value="Sắp chiếu">Sắp chiếu</Select.Option>
-            <Select.Option value="Đang chiếu">Đang chiếu</Select.Option>
-            <Select.Option value="Đã chiếu">Đã chiếu</Select.Option>
+            <Select.Option value="upcoming">Sắp chiếu</Select.Option>
+            <Select.Option value="showing">Đang chiếu</Select.Option>
+            <Select.Option value="past">Đã chiếu</Select.Option>
           </Select>
         </Space>
       </div>

@@ -14,7 +14,7 @@ import {
   DatePicker,
 } from "antd";
 import { FiPlus, FiX, FiTrash2 } from "react-icons/fi";
-import { useGetCinemaByBranchIdQuery } from "@/api/cinemaApi";
+import { useGetCinemaByBranchIdQuery, useGetAllCinemaNotPaginationQuery } from "@/api/cinemaApi";
 import { useGetRoomsByCinemaIdQuery } from "@/api/roomApi";
 import { useGetMoviesQuery } from "@/api/movieApi";
 import {
@@ -109,8 +109,21 @@ export default function AddShowtime() {
   const { data: priceSettings } = useGetPriceSettingsQuery(branch_id, {
     skip: !branch_id,
   });
-  const { data: cinemasData, isLoading: cinemasLoading } =
-    useGetCinemaByBranchIdQuery(branch_id);
+  
+  // Lấy dữ liệu rạp phim dựa trên branch_id
+  const { data: cinemasDataByBranch, isLoading: cinemasLoadingByBranch } =
+    useGetCinemaByBranchIdQuery(branch_id, {
+      skip: !branch_id
+    });
+    
+  // Lấy tất cả rạp phim khi không có branch_id
+  const { data: allCinemasData, isLoading: allCinemasLoading } =
+    useGetAllCinemaNotPaginationQuery({
+      skip: !!branch_id
+    });
+
+    
+    
   const { data: moviesData, isLoading: moviesLoading } = useGetMoviesQuery();
   const { data: roomsData, isLoading: roomsLoading } =
     useGetRoomsByCinemaIdQuery(selectedCinema, {
@@ -120,13 +133,21 @@ export default function AddShowtime() {
   const [addShowtime, { isLoading: submitting }] = useCreateShowtimeMutation();
 
   // Dữ liệu đã xử lý
-  const cinemas = useMemo(() => cinemasData?.cinemas || [], [cinemasData]);
+  const cinemas = useMemo(() => {
+    // Nếu có branch_id, sử dụng dữ liệu từ cinemasDataByBranch
+    if (branch_id !== "null") {      
+      return cinemasDataByBranch?.cinemas || [];
+    }
+    // Nếu không có branch_id, sử dụng dữ liệu từ allCinemasData
+    return allCinemasData?.data || [];
+  }, [branch_id, cinemasDataByBranch, allCinemasData]);
+  
   const movies = useMemo(() => moviesData?.movies || [], [moviesData]);
   const rooms = useMemo(() => roomsData?.data || [], [roomsData]);
   const basePrice = useMemo(
     () => priceSettings?.data?.base_ticket_price || 55000,
     [priceSettings]
-  );
+  );  
 
   useEffect(() => {
     if (selectedMovie) {
@@ -417,7 +438,9 @@ export default function AddShowtime() {
   ];
 
   const isDataLoading =
-    cinemasLoading || moviesLoading || (selectedCinema && roomsLoading);
+    (branch_id ? cinemasLoadingByBranch : allCinemasLoading) || 
+    moviesLoading || 
+    (selectedCinema && roomsLoading);
 
   return (
     <div className="p-6 max-w-6xl mx-auto">

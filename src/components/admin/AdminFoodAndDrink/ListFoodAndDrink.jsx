@@ -215,7 +215,7 @@ const ListFoodAndDrink = () => {
           Thêm Món Mới
         </Button>
       </div>
-      
+
       {/* Thanh tìm kiếm và bộ lọc */}
       <div className="mb-4 flex flex-wrap gap-3">
         <Search
@@ -254,20 +254,20 @@ const ListFoodAndDrink = () => {
           locale={{
             emptyText: (
               <div className="py-5">
-                <p className="text-gray-500 text-base">Chưa có món ăn hoặc đồ uống nào</p>
+                    <p className="text-gray-500 text-base">Chưa có món ăn hoặc đồ uống nào</p>
                 <Button
                   type="link"
-                  onClick={() => setShowAddForm(true)}
+                      onClick={() => setShowAddForm(true)}
                   className="mt-2 text-blue-600 hover:text-blue-700"
-                >
-                  Thêm món mới ngay
+                    >
+                      Thêm món mới ngay
                 </Button>
-              </div>
+                      </div>
             )
           }}
         />
       </div>
-      
+
       {/* Phân trang */}
       {foodAndDrinks.length > 0 && (
         <div className="mt-4">
