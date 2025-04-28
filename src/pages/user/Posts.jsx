@@ -1,5 +1,5 @@
-import PostsList from "@/components/User/Posts/PostsList";
+import UserBlogNew from "@/components/user/blog/UserBlogNew";
 
 export default function Posts() {
-  return <PostsList />;
+  return <UserBlogNew />;
 } 

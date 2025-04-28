@@ -76,9 +76,6 @@ export default function PostsList() {
                   Tiêu đề
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Hình thu nhỏ
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Trạng thái
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -99,17 +96,6 @@ export default function PostsList() {
                     <div className="text-sm font-medium text-gray-900">
                       {post.title}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {post.thumbnail ? (
-                      <img
-                        src={post.thumbnail}
-                        alt={post.title}
-                        className="h-10 w-16 object-cover rounded"
-                      />
-                    ) : (
-                      <span className="text-gray-400 text-sm">Không có</span>
-                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span

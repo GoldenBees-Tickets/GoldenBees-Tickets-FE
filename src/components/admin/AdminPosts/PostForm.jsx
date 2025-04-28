@@ -26,8 +26,6 @@ export default function PostForm({ postId }) {
   } = useForm();
   
   const [content, setContent] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState("");
   const [status, setStatus] = useState("active");
   
   const isLoading = isCreating || isUpdating;
@@ -64,24 +62,8 @@ export default function PostForm({ postId }) {
       
       setContent(post.content);
       setStatus(post.status);
-      
-      if (post.thumbnail) {
-        setPreviewUrl(post.thumbnail);
-      }
     }
   }, [isEditMode, postData, reset]);
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const onSubmit = async (data) => {
     try {
@@ -92,10 +74,6 @@ export default function PostForm({ postId }) {
       
       if (data.author) {
         formData.append("author", data.author);
-      }
-      
-      if (selectedFile) {
-        formData.append("thumbnail", selectedFile);
       }
       
       if (isEditMode) {
@@ -159,27 +137,6 @@ export default function PostForm({ postId }) {
           </div>
           {!content && (
             <p className="text-red-500 text-xs mt-1">Nội dung không được để trống</p>
-          )}
-        </div>
-        
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Hình thu nhỏ
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-          />
-          {previewUrl && (
-            <div className="mt-3">
-              <img
-                src={previewUrl}
-                alt="Thumbnail preview"
-                className="w-32 h-32 object-cover rounded-md"
-              />
-            </div>
           )}
         </div>
         
