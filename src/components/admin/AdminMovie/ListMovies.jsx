@@ -46,6 +46,10 @@ export default function ListMovies() {
     setCurrentPage(1);
   };
 
+  const handleInputChange = (e) => {
+    setSearchText(e.target.value);
+  };
+
   const handleStatusFilterChange = (value) => {
     setStatusFilter(value);
     setCurrentPage(1);
@@ -87,6 +91,12 @@ export default function ListMovies() {
   };
 
   const columns = [
+    {
+      title: "STT",
+      key: "index",
+      width: 60,
+      render: (_, __, index) => (currentPage - 1) * pageSize + index + 1,
+    },
     {
       title: "Tên phim",
       dataIndex: "name",
@@ -159,7 +169,7 @@ export default function ListMovies() {
             placeholder="Tìm kiếm phim..."
             onSearch={handleSearch}
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            onChange={handleInputChange}
             style={{ width: 250 }}
             prefix={<SearchOutlined className="text-gray-400" />}
             allowClear

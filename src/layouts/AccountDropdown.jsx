@@ -36,9 +36,12 @@ export default function AccountDropdown() {
   }, []);
 
   const handleLogout = useCallback(() => {
+    
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
+    localStorage.clear();
+    sessionStorage.clear();
     setIsOpen(false);
     navigate("/login");
   }, [navigate]);
@@ -144,16 +147,6 @@ export default function AccountDropdown() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   Thông tin tài khoản
-              </Link>
-              <Link
-                to="/my-orders"
-                onClick={handleLinkClick}
-                className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-              >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                  </svg>
-                  Đơn hàng của tôi
               </Link>
             </>
           ) : (

@@ -86,6 +86,12 @@ export default function ListActors() {
 
   const columns = [
     {
+      title: "STT",
+      key: "index",
+      width: 60,
+      render: (_, __, index) => (currentPage - 1) * pageSize + index + 1,
+    },
+    {
       title: "Hình ảnh",
       dataIndex: "profile_picture",
       key: "profile_picture",

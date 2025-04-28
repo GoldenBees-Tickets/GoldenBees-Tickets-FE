@@ -38,13 +38,11 @@ export const useSocketConnection = (SOCKET_URL, showtime_id, user_id, clearExpir
 
     // Xử lý sự kiện khi có ghế được giải phóng
     newSocket.on("seatUnbooked", () => {
-      console.log("Có ghế đã được giải phóng, tải lại danh sách ghế");
       refetchSeats();
     });
 
     // Xử lý sự kiện khi có ghế được đặt
     newSocket.on("seatBooked", () => {
-      console.log("Có ghế đã được đặt, tải lại danh sách ghế");
       refetchSeats();
     });
     

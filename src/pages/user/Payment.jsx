@@ -83,7 +83,6 @@ export default function Payment({paymentMethod, setPaymentMethod}) {
     });
 
     newSocket.on("connect", () => {
-      console.log("Đã kết nối với máy chủ socket");
       setSocket(newSocket);
     });
 

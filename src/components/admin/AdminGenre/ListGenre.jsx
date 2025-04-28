@@ -60,7 +60,7 @@ export default function ListGenre() {
     setCurrentPage(1);
   };
 
-  const handleSearchChange = (e) => {
+  const handleInputChange = (e) => {
     setSearchText(e.target.value);
   };
 
@@ -115,7 +115,7 @@ export default function ListGenre() {
           allowClear
           onSearch={handleSearch}
           value={searchText}
-          onChange={handleSearchChange}
+          onChange={handleInputChange}
           style={{ width: 250 }}
           prefix={<SearchOutlined className="text-gray-400" />}
         />

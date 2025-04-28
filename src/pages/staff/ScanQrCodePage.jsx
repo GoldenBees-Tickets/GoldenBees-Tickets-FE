@@ -26,7 +26,7 @@ function ScanQrCodePage() {
       .getUserMedia({ video: true })
       .then(() => setCameraPermission(true))
       .catch(() => setCameraPermission(false));
-
+    
     // Clean up popups when component unmounts
     return () => {
       setShowSuccessPopup(false);
@@ -109,19 +109,19 @@ function ScanQrCodePage() {
   };
 
   const processQrCode = async (data) => {
-    try {
+    try {      
       if (!data || data.trim() === "") {
         throw new Error("Dữ liệu QR trống hoặc không hợp lệ");
       }
-
+      
       let orderId = data.trim();
-
+      
       // Kiểm tra xem dữ liệu có phải là số không
       if (isNaN(orderId)) {
-        // Thử parse JSON
-        try {
-          const jsonData = JSON.parse(data);
-          if (jsonData) {
+      // Thử parse JSON
+      try {
+        const jsonData = JSON.parse(data);
+        if (jsonData) {
             if (jsonData.orderId) orderId = jsonData.orderId;
             else if (jsonData.id) orderId = jsonData.id;
             else if (
@@ -129,22 +129,22 @@ function ScanQrCodePage() {
               (typeof jsonData === "string" && !isNaN(jsonData))
             ) {
               orderId = jsonData.toString();
-            }
           }
-        } catch (e) {
-          // Không phải JSON, tiếp tục xử lý
         }
-
-        // Kiểm tra URL
-        try {
+      } catch (e) {
+        // Không phải JSON, tiếp tục xử lý
+      }
+      
+      // Kiểm tra URL
+      try {
           const urlObj = new URL(orderId);
           const idParam =
             urlObj.searchParams.get("orderId") || urlObj.searchParams.get("id");
-          if (idParam) {
+        if (idParam) {
             orderId = idParam;
-          }
-        } catch (e) {
-          // Không phải URL
+        }
+      } catch (e) {
+        // Không phải URL
         }
       }
 
@@ -230,8 +230,8 @@ function ScanQrCodePage() {
             };
 
             setScanResult(result);
-            setError(null);
-            setShowSuccessPopup(true);
+        setError(null);
+        setShowSuccessPopup(true);
           } catch (dataError) {
             console.error("Lỗi khi xử lý dữ liệu:", dataError);
             setError("Lỗi khi xử lý dữ liệu: " + dataError.message);
@@ -270,7 +270,7 @@ function ScanQrCodePage() {
       setShowErrorPopup(true);
     }
   };
-
+  
   const handleStartAgain = () => {
     setScanResult(null);
     setError(null);
@@ -286,7 +286,7 @@ function ScanQrCodePage() {
       setShowErrorPopup(true);
       return;
     }
-
+    
     setScanning(false);
     await processQrCode(manualOrderId);
   };
@@ -298,27 +298,27 @@ function ScanQrCodePage() {
         <h1 className="text-xl font-bold text-white flex items-center justify-center">
           <IoScanOutline className="text-blue-400 mr-2" />
           Quét Mã QR Vé
-        </h1>
+          </h1>
       </div>
 
-      {!scanResult && (
-        <div>
-          <div className="mb-6">
+          {!scanResult && (
+            <div>
+              <div className="mb-6">
             <div
               className="w-full mx-auto bg-black rounded-lg border border-blue-500/30 overflow-hidden relative"
               style={{ height: "400px" }}
             >
-              {scanning && cameraPermission ? (
-                <>
-                  <QrScanner
+                  {scanning && cameraPermission ? (
+                    <>
+                      <QrScanner
                     delay={500}
-                    onError={handleError}
-                    onScan={handleScan}
-                    constraints={{
-                      video: {
-                        facingMode: "environment",
-                        width: { min: 640, ideal: 1280, max: 1920 },
-                        height: { min: 480, ideal: 720, max: 1080 },
+                        onError={handleError}
+                        onScan={handleScan}
+                        constraints={{
+                          video: {
+                            facingMode: "environment",
+                            width: { min: 640, ideal: 1280, max: 1920 },
+                            height: { min: 480, ideal: 720, max: 1080 },
                         frameRate: { ideal: 10, max: 20 },
                       },
                     }}
@@ -327,26 +327,26 @@ function ScanQrCodePage() {
                       height: "100%",
                       objectFit: "cover",
                     }}
-                  />
-                  <div className="absolute inset-0 pointer-events-none">
+                      />
+                      <div className="absolute inset-0 pointer-events-none">
                     {/* Extremely simplified scanning frame - just corners */}
                     <div className="absolute top-1/2 left-1/2 w-[280px] h-[280px] transform -translate-x-1/2 -translate-y-1/2">
                       <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-blue-400"></div>
                       <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-blue-400"></div>
                       <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-blue-400"></div>
                       <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-blue-400"></div>
-                    </div>
-
+                        </div>
+                        
                     {/* Minimal scanning indicator */}
                     <div className="absolute top-4 left-4">
                       <div className="flex items-center px-2 py-1 bg-black/70 rounded-md">
-                        <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
+                          <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
                         <span className="text-blue-300 text-xs">ĐANG QUÉT</span>
                       </div>
-                    </div>
-                  </div>
-                </>
-              ) : !cameraPermission ? (
+                        </div>
+                      </div>
+                    </>
+                  ) : !cameraPermission ? (
                 <div className="flex flex-col items-center justify-center h-full bg-black/80">
                   <IoCloseCircle size={40} className="text-red-500 mb-4" />
                   <h3 className="text-lg text-white mb-2">
@@ -354,58 +354,58 @@ function ScanQrCodePage() {
                   </h3>
                   <p className="text-blue-200 text-center max-w-md mb-4 px-4">
                     Vui lòng cho phép truy cập camera trong cài đặt trình duyệt
-                  </p>
-                  <button
-                    onClick={() => window.location.reload()}
+                      </p>
+                      <button 
+                        onClick={() => window.location.reload()}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                  >
-                    Thử lại
-                  </button>
-                </div>
-              ) : (
+                      >
+                        Thử lại
+                      </button>
+                    </div>
+                  ) : (
                 <div className="flex flex-col items-center justify-center h-full bg-black/80">
                   <IoQrCodeOutline size={40} className="text-blue-400 mb-4" />
                   <h3 className="text-lg text-white">Đang xử lý...</h3>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-
-            <div className="mt-4 text-center">
-              {scanning && cameraPermission && (
+                
+                <div className="mt-4 text-center">
+                  {scanning && cameraPermission && (
                 <div className="text-sm text-gray-300">
                   Giữ mã QR ở khoảng cách 15-20cm và đủ ánh sáng
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-
+              </div>
+              
           <div className="mt-6 border-t border-gray-700 pt-6">
             <h3 className="text-base font-medium text-gray-300 mb-3 flex items-center">
               <IoTicketOutline className="mr-2 text-blue-400" />
               Nhập mã đơn hàng thủ công
-            </h3>
-            <form onSubmit={handleManualSubmit} className="flex">
-              <input
-                type="text"
+                </h3>
+                <form onSubmit={handleManualSubmit} className="flex">
+                  <input 
+                    type="text"
                 value={manualOrderId}
                 onChange={(e) => setManualOrderId(e.target.value)}
                 className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-l-md text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
                 placeholder="Nhập mã đơn hàng"
-              />
-              <button
-                type="submit"
+                  />
+                  <button
+                    type="submit"
                 className="bg-blue-600 text-white px-4 py-2 rounded-r-md hover:bg-blue-700 focus:outline-none"
-              >
-                Kiểm tra
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+                  >
+                    Kiểm tra
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
 
       {/* Simplified Success Popup - Changed to horizontal layout */}
-      {showSuccessPopup && scanResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {showSuccessPopup && scanResult && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/80"
             onClick={() => setShowSuccessPopup(false)}
@@ -414,13 +414,13 @@ function ScanQrCodePage() {
             <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
               <div className="bg-green-500 text-white p-2 rounded-full">
                 <IoCheckmarkCircle size={36} />
-              </div>
-            </div>
-
+                  </div>
+                </div>
+                
             <h3 className="text-lg font-bold text-white mt-6 mb-4 text-center">
-              Xác nhận vé thành công!
-            </h3>
-
+                  Xác nhận vé thành công!
+                </h3>
+                
             <div className="bg-gray-700 rounded-md p-4 mb-4">
               <div className="flex flex-col md:flex-row">
                 {/* Movie poster on the left */}
@@ -537,25 +537,25 @@ function ScanQrCodePage() {
                     )}
                   </div>
                 </div>
+                  </div>
+                </div>
+                
+            <div className="flex justify-center">
+                  <button
+                    onClick={handleStartAgain}
+                className="flex items-center justify-center bg-green-600 text-white font-medium py-2 px-4 rounded-md hover:bg-green-700"
+                  >
+                    <IoRefreshOutline className="mr-2" />
+                    Quét vé tiếp theo
+                  </button>
+                </div>
               </div>
             </div>
-
-            <div className="flex justify-center">
-              <button
-                onClick={handleStartAgain}
-                className="flex items-center justify-center bg-green-600 text-white font-medium py-2 px-4 rounded-md hover:bg-green-700"
-              >
-                <IoRefreshOutline className="mr-2" />
-                Quét vé tiếp theo
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          )}
 
       {/* Simplified Error Popup */}
-      {showErrorPopup && error && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {showErrorPopup && error && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/80"
             onClick={() => setShowErrorPopup(false)}
@@ -564,51 +564,51 @@ function ScanQrCodePage() {
             <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
               <div className="bg-red-500 text-white p-2 rounded-full">
                 <IoCloseCircle size={36} />
-              </div>
-            </div>
-
+                  </div>
+                </div>
+                
             <h3 className="text-lg font-bold text-white mt-6 mb-4 text-center">
-              Không thể xác nhận vé
-            </h3>
-
+                  Không thể xác nhận vé
+                </h3>
+                
             <div className="bg-gray-700 rounded-md p-4 mb-4">
               <div className="text-red-300 text-center">{error}</div>
-            </div>
-
+                </div>
+                
             <div className="flex justify-center">
-              <button
-                onClick={handleStartAgain}
+                  <button
+                    onClick={handleStartAgain}
                 className="flex items-center justify-center bg-red-600 text-white font-medium py-2 px-4 rounded-md hover:bg-red-700"
-              >
-                <IoRefreshOutline className="mr-2" />
-                Thử lại
-              </button>
+                  >
+                    <IoRefreshOutline className="mr-2" />
+                    Thử lại
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {error && !showErrorPopup && !showSuccessPopup && (
+          )}
+          
+          {error && !showErrorPopup && !showSuccessPopup && (
         <div className="bg-red-900/50 border border-red-500/30 text-red-200 p-3 rounded-md mt-4">
-          <div className="flex">
-            <IoCloseCircle className="h-5 w-5 text-red-400 mr-2 flex-shrink-0" />
-            <p>{error}</p>
-          </div>
-        </div>
-      )}
+              <div className="flex">
+                <IoCloseCircle className="h-5 w-5 text-red-400 mr-2 flex-shrink-0" />
+                  <p>{error}</p>
+              </div>
+            </div>
+          )}
 
       {/* Simplified Success Display - Changed to horizontal layout */}
-      {scanResult && !showSuccessPopup && (
-        <div className="mt-4">
+          {scanResult && !showSuccessPopup && (
+            <div className="mt-4">
           <div className="bg-gray-700 rounded-md border border-green-500/30 p-4">
             <div className="flex flex-col md:flex-row items-start">
               <div className="mr-3 bg-green-500 rounded-full p-2 mt-1 mb-2 md:mb-0">
                 <IoCheckmarkCircle className="h-5 w-5 text-white" />
-              </div>
-              <div className="flex-1">
+                  </div>
+                  <div className="flex-1">
                 <h3 className="text-base font-bold text-green-300 mb-3">
                   Đơn hàng đã được xác nhận thành công!
-                </h3>
+                    </h3>
 
                 <div className="flex flex-col md:flex-row mb-4">
                   {scanResult.moviePoster && (
@@ -651,7 +651,7 @@ function ScanQrCodePage() {
                       <span className="ml-1 font-medium text-white">
                         {scanResult.seats}
                       </span>
-                    </div>
+                      </div>
 
                     <div className="col-span-full mt-3 border-t border-gray-600 pt-3 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
                       <div>
@@ -686,37 +686,37 @@ function ScanQrCodePage() {
                   </div>
                 </div>
 
-                <div className="mt-4">
-                  <button
-                    onClick={handleStartAgain}
+                    <div className="mt-4">
+                      <button
+                        onClick={handleStartAgain}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none"
-                  >
-                    <IoRefreshOutline className="mr-2" />
+                      >
+                        <IoRefreshOutline className="mr-2" />
                     Quét Đơn Hàng Khác
-                  </button>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
+          )}
+          
       {(error || scanning === false) &&
         !scanResult &&
         !showErrorPopup &&
         !showSuccessPopup && (
           <div className="text-center mt-4">
-            <button
-              onClick={handleStartAgain}
+              <button
+                onClick={handleStartAgain}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
-            >
-              <IoRefreshOutline className="mr-2" />
-              Thử Lại
-            </button>
-          </div>
-        )}
+              >
+                <IoRefreshOutline className="mr-2" />
+                Thử Lại
+              </button>
+            </div>
+          )}
     </div>
   );
 }
 
-export default ScanQrCodePage;
+export default ScanQrCodePage; 
