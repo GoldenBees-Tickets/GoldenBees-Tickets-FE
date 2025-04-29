@@ -47,6 +47,7 @@
     "react-qr-scanner": "^1.0.0-alpha.11",
     "react-quill": "^2.0.0",
     "react-redux": "^9.2.0",
+    "react-responsive": "^10.0.1",
     "react-router-dom": "^7.1.1",
     "react-select": "^5.9.0",
     "react-toastify": "^11.0.2",

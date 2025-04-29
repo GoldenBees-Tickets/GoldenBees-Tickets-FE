@@ -159,6 +159,7 @@ export default function Dashboard() {
     if (!listGenres?.data || !listMovie?.data) return [];
 
     const genreCounts = {};
+    // Đếm số lượng phim theo thể loại
     listMovie.data.forEach(movie => {
       movie.MovieGenres.forEach(mg => {
         if (mg.Genre) {
@@ -168,11 +169,31 @@ export default function Dashboard() {
       });
     });
 
+    // Chuyển đổi dữ liệu thành mảng và sắp xếp theo số lượng giảm dần
     return Object.entries(genreCounts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 5); // Lấy 5 thể loại phổ biến nhất
   }, [listGenres, listMovie]);
+
+  // Thêm biểu đồ thể loại được đặt nhiều nhất (mô phỏng dữ liệu)
+  const genreOrderData = useMemo(() => {
+    if (!listOrder?.data || !listGenres?.data) return [];
+    
+    // Mô phỏng dữ liệu đặt vé theo thể loại
+    // Trong thực tế, bạn sẽ cần liên kết các đơn hàng với phim và thể loại
+    const genreOrders = {
+      'Hành động': Math.round(totalOrders * 0.35),
+      'Kinh dị': Math.round(totalOrders * 0.2),
+      'Hoạt hình': Math.round(totalOrders * 0.15),
+      'Viễn tưởng': Math.round(totalOrders * 0.15),
+      'Hài': Math.round(totalOrders * 0.15),
+    };
+    
+    return Object.entries(genreOrders)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [listOrder, listGenres, totalOrders]);
 
   // Dữ liệu cho biểu đồ doanh thu theo chi nhánh
   const branchRevenueData = useMemo(() => {
@@ -589,7 +610,7 @@ export default function Dashboard() {
                   <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
                     <MdOutlineTheaterComedy className="text-xl" />
                   </div>
-                  <span className="font-bold text-gray-800">Phân bố thể loại phim</span>
+                  <span className="font-bold text-gray-800">Thể loại phim được quan tâm nhiều nhất</span>
                 </Space>
               }
               bordered={false}
@@ -602,33 +623,18 @@ export default function Dashboard() {
                       data={genreChartData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
+                      labelLine={true}
                       label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={95}
-                      innerRadius={55}
+                      outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      paddingAngle={4}
                     >
                       {genreChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip 
-                      contentStyle={{
-                        background: 'rgba(255, 255, 255, 0.95)',
-                        border: 'none',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
-                      }}
-                    />
-                    <Legend 
-                      verticalAlign="bottom" 
-                      height={36}
-                      iconType="circle"
-                      iconSize={10}
-                      formatter={(value, entry) => <span style={{color: '#666', fontWeight: 500}}>{value}</span>}
-                    />
+                    <Tooltip formatter={(value, name, props) => [`${value} phim`, props.payload.name]} />
+                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
