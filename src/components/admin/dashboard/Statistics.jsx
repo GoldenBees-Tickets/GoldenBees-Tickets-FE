@@ -26,15 +26,29 @@ export default function TicketSalesDashboard() {
     ],
   };
 
-  // Dữ liệu cho biểu đồ tròn (Tỷ lệ phân phối các loại vé)
-  const doughnutData = {
-    labels: ['Standard', 'Premium', 'VIP'],
+  // Dữ liệu cho biểu đồ tròn (Thể loại phim được quan tâm)
+  const movieGenreData = {
+    labels: ['Hành động', 'Gia đình', 'Tình cảm - Lãng mạn', 'Lịch sử', 'Nhạc kịch'],
     datasets: [
       {
-        label: 'Ticket Type Distribution',
-        data: [40, 35, 25],
-        backgroundColor: ['#FF0000', '#0000FF', '#4CAF50'],
-        borderColor: ['#D32F2F', '#1976D2', '#388E3C'],
+        label: 'Tỷ lệ quan tâm',
+        data: [35, 15, 22, 13, 25],
+        backgroundColor: ['#FF5252', '#9C27B0', '#2196F3', '#4CAF50', '#FFCA28'],
+        borderColor: ['#D32F2F', '#7B1FA2', '#1976D2', '#388E3C', '#FFB300'],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Dữ liệu cho biểu đồ tròn (Thể loại phim được đặt nhiều nhất)
+  const topBookedGenres = {
+    labels: ['Hành động', 'Kinh dị', 'Hoạt hình', 'Viễn tưởng', 'Hài kịch'],
+    datasets: [
+      {
+        label: 'Số lượng đặt vé',
+        data: [40, 25, 15, 10, 10],
+        backgroundColor: ['#FF5252', '#9C27B0', '#2196F3', '#4CAF50', '#FFCA28'],
+        borderColor: ['#D32F2F', '#7B1FA2', '#1976D2', '#388E3C', '#FFB300'],
         borderWidth: 1,
       },
     ],
@@ -58,17 +72,35 @@ export default function TicketSalesDashboard() {
           />
         </div>
         
-        {/* Biểu đồ tròn - Tỷ lệ phân phối các loại vé */}
+        {/* Biểu đồ tròn - Thể loại phim được quan tâm nhiều nhất */}
         <div className="rounded-lg p-4 mx-auto">
-          <h3 className="text-lg font-semibold mb-4">Ticket Type Distribution</h3>
+          <h3 className="text-lg font-semibold mb-4">Thể loại phim được quan tâm nhiều nhất</h3>
           <Doughnut 
-            data={doughnutData} 
+            data={movieGenreData} 
             options={{ 
               responsive: true, 
               animation: {
                 animateRotate: true, // Chuyển động quay tròn
                 duration: 2000, // Thời gian quay
                 easing: 'easeInOutQuart', // Loại hiệu ứng quay
+              },
+            }} 
+          />
+        </div>
+      </div>
+
+      {/* Biểu đồ tròn - Thể loại phim được đặt nhiều nhất */}
+      <div className="mt-10">
+        <div className="rounded-lg p-4 max-w-md mx-auto">
+          <h3 className="text-lg font-semibold mb-4">Thể loại phim được đặt nhiều nhất</h3>
+          <Doughnut 
+            data={topBookedGenres} 
+            options={{ 
+              responsive: true, 
+              animation: {
+                animateRotate: true,
+                duration: 2000,
+                easing: 'easeInOutQuart',
               },
             }} 
           />
