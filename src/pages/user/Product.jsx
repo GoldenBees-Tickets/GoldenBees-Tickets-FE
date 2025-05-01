@@ -1,4 +1,4 @@
-import { useGetMoviesQuery } from "@/api/movieApi";
+import { useGetAllMoviesByUserQuery } from "@/api/movieApi";
 import HomeItemMovie from "@/components/user/Home/HomeItemMovie";
 import { useState, useMemo } from "react";
 import { formatImage } from "@/utils/formatImage";
@@ -6,14 +6,15 @@ import { filterMoviesByStatus, filterMoviesBySearchCriteria } from "@/utils/movi
 
 export default function Product() {
   const [activeTab, setActiveTab] = useState("nowShowing"); // "nowShowing" or "comingSoon"
-  const { data: List, isLoading, error } = useGetMoviesQuery();    
+  const { data: List, isLoading, error } = useGetAllMoviesByUserQuery();   
+   
   const [searchTitle, setSearchTitle] = useState("");
   const [filterYear, setFilterYear] = useState("");
   const [filterGenre, setFilterGenre] = useState("");
   
   // Get filtered movies by status - only recalculates when List changes
   const { nowShowingMovies, comingSoonMovies } = useMemo(() => {
-    const ListMovie = List?.movies || [];
+    const ListMovie = List?.data || [];
     return filterMoviesByStatus(ListMovie);
   }, [List]);
   

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Table, Button, Spin, message, Tag, Input, Select, Space } from "antd";
+import { Table, Button, Spin, Tag, Input, Select, Space } from "antd";
 import { FiEdit2, FiEye } from "react-icons/fi";
-import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import {
-  useGetMoviesQuery,
-  useUpdateStatusMutation
-} from "@/api/movieApi";
+  SearchOutlined,
+  CaretUpOutlined,
+  CaretDownOutlined,
+} from "@ant-design/icons";
+import { useGetMoviesQuery } from "@/api/movieApi";
 import PaginationDefault from "@/components/PaginationDefault";
 import { formatDate } from "@/utils/format";
 
@@ -22,24 +23,16 @@ export default function ListMovies() {
   const [sortOrder, setSortOrder] = useState("desc");
 
   // Gọi API với các tham số phân trang và lọc
-  const { data: movieData, error, isLoading } = useGetMoviesQuery({
+  const {
+    data: movieData,
+    error,
+    isLoading,
+  } = useGetMoviesQuery({
     page: currentPage,
     limit: pageSize,
     search: searchValue,
-    status: statusFilter,
-    sort_order: sortOrder
+    sort_order: sortOrder,
   });
-  
-  const [updateStatus, { isLoading: isUpdating }] = useUpdateStatusMutation();
-
-  const handleUpdateAllStatus = async () => {
-    try {
-      await updateStatus().unwrap();
-      message.success("Cập nhật trạng thái tất cả phim thành công!");
-    } catch (error) {
-      message.error("Không thể cập nhật trạng thái phim!");
-    }
-  };
 
   const handleSearch = (value) => {
     setSearchValue(value);
@@ -65,29 +58,14 @@ export default function ListMovies() {
 
   const handlePageChange = (page, newPageSize) => {
     if (newPageSize !== pageSize) {
-        setPageSize(newPageSize);
+      setPageSize(newPageSize);
     }
     setCurrentPage(page);
   };
 
   const toggleSortOrder = () => {
-    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
     setCurrentPage(1);
-  };
-
-  const getStatusTag = (status) => {
-    switch (status) {
-      case "coming_soon":
-        return <Tag color="blue">Sắp ra mắt</Tag>;
-      case "opening_soon":
-        return <Tag color="orange">Sắp chiếu</Tag>;
-      case "now_showing":
-        return <Tag color="green">Đang chiếu</Tag>;
-      case "ended":
-        return <Tag color="red">Đã kết thúc</Tag>;
-      default:
-        return <Tag color="default">{status}</Tag>;
-    }
   };
 
   const columns = [
@@ -110,18 +88,22 @@ export default function ListMovies() {
     },
     {
       title: (
-        <div 
-          className="flex items-center cursor-pointer select-none" 
+        <div
+          className="flex items-center cursor-pointer select-none"
           onClick={toggleSortOrder}
         >
           Ngày phát hành
           <div className="flex flex-col ml-1">
-            <CaretUpOutlined 
-              className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
+            <CaretUpOutlined
+              className={`text-[10px] ${
+                sortOrder === "asc" ? "text-blue-500" : "text-gray-400"
+              }`}
               style={{ marginBottom: -2 }}
             />
-            <CaretDownOutlined 
-              className={`text-[10px] ${sortOrder === "desc" ? "text-blue-500" : "text-gray-400"}`}
+            <CaretDownOutlined
+              className={`text-[10px] ${
+                sortOrder === "desc" ? "text-blue-500" : "text-gray-400"
+              }`}
             />
           </div>
         </div>
@@ -131,15 +113,15 @@ export default function ListMovies() {
       render: (release_date) => `${formatDate(release_date)}`,
     },
     {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => getStatusTag(status),
+      title: "Ngày kết thúc",
+      dataIndex: "end_date",
+      key: "end_date",
+      render: (end_date) =>  `${formatDate(end_date)}`,
     },
     {
-      title: "Năm sản xuất",
-      dataIndex: "year",
-      key: "year",
+      title: "Suất chiếu còn",
+      dataIndex: "total_showtimes",
+      key: "total_showtimes",
     },
     {
       title: "Thao tác",
@@ -158,8 +140,12 @@ export default function ListMovies() {
     },
   ];
 
-  if (isLoading) return <Spin className="flex justify-center mt-10" size="large" />;
-  if (error) return <div className="text-red-500">Lỗi khi tải dữ liệu: {error.message}</div>;
+  if (isLoading)
+    return <Spin className="flex justify-center mt-10" size="large" />;
+  if (error)
+    return (
+      <div className="text-red-500">Lỗi khi tải dữ liệu: {error.message}</div>
+    );
 
   return (
     <>
@@ -190,13 +176,6 @@ export default function ListMovies() {
             <Button onClick={handleReset}>Xóa bộ lọc</Button>
           )}
         </Space>
-        <Button 
-          type="primary" 
-          onClick={handleUpdateAllStatus}
-          loading={isUpdating}
-        >
-          Cập nhật trạng thái tất cả phim
-        </Button>
       </div>
 
       <div className="bg-white rounded-md shadow">

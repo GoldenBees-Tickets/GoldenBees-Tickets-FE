@@ -84,6 +84,13 @@ export const actorApi = createApi({
       }),
       providesTags: (result, error, id) => [{ type: "Actor", id }],
     }),
+
+    getActorsNotPage: builder.query({
+      query: () => ({
+        url: `/getAll`,
+      }),
+      providesTags: [{ type: "Actor", id: "LISTACTOR" }],
+    }),
   }),
 });
 
@@ -94,4 +101,5 @@ export const {
   useDeleteActorMutation,
   useGetActorsQuery,
   useGetActorByIdQuery,
+  useGetActorsNotPageQuery
 } = actorApi;

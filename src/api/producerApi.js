@@ -78,6 +78,13 @@ export const producerApi = createApi({
       }),
       providesTags: (result, error, id) => [{ type: "Producer", id }],
     }),
+
+    getProducersNotPage: builder.query({
+      query: () => ({
+        url: `/getAll`,
+      }),
+      providesTags: [{ type: "Producer", id: "LISTPRODUCER" }],
+    }),
   }),
 });
 
@@ -87,4 +94,5 @@ export const {
   useDeleteProducerMutation,
   useGetProducersQuery,
   useGetProducerByIdQuery,
+  useGetProducersNotPageQuery,
 } = producerApi;

@@ -30,6 +30,7 @@ import { priceSettingApi } from "@/api/priceSettingApi";
 import { orderApi } from "@/api/orderApi";
 import { voiceConverterApi } from '@/api/voiceConverterApi';
 import { postApi } from '@/api/postApi';
+import { reviewApi } from "@/api/reviewApi";
 
 const store = configureStore({
   reducer: {
@@ -63,6 +64,7 @@ const store = configureStore({
     notifications: notificationReducer,  
     [voiceConverterApi.reducerPath]: voiceConverterApi.reducer,
     [postApi.reducerPath]: postApi.reducer,
+    [reviewApi.reducerPath]: reviewApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -95,6 +97,7 @@ const store = configureStore({
       .concat(orderApi.middleware)
       .concat(voiceConverterApi.middleware)
       .concat(postApi.middleware)
+      .concat(reviewApi.middleware)
 });
 
 export default store;

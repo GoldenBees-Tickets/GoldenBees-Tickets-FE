@@ -4,23 +4,30 @@
  * @returns {Object} Object containing filtered movie arrays
  */
 export const filterMoviesByStatus = (movies) => {
-  if (!movies || !Array.isArray(movies)) {
+  if (!Array.isArray(movies)) {
     return { nowShowingMovies: [], comingSoonMovies: [] };
   }
-  
-  const nowShowingMovies = movies.filter(movie => 
-    movie.status === "now_showing" || movie.status === "opening_soon"
-  ) || [];
-  
-  const comingSoonMovies = movies.filter(movie => 
-    movie.status === "coming_soon"
-  ) || [];
-  
+
+  const now = new Date();
+  const sevenDaysFromNow = new Date();
+  sevenDaysFromNow.setDate(now.getDate() + 7);
+
+  const nowShowingMovies = movies.filter(movie => {
+    const releaseDate = new Date(movie.release_date);
+    return releaseDate <= sevenDaysFromNow;
+  });
+
+  const comingSoonMovies = movies.filter(movie => {
+    const releaseDate = new Date(movie.release_date);
+    return releaseDate > sevenDaysFromNow;
+  });
+
   return {
     nowShowingMovies,
     comingSoonMovies
   };
 };
+
 
 /**
  * Filters movies by search criteria (title, year, genre)
