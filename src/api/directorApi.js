@@ -81,6 +81,14 @@ export const directorApi = createApi({
       }),
       providesTags: (result, error, id) => [{ type: "Director", id }],
     }),
+
+    getDirectorsNotPage: builder.query({
+
+      query: () => ({
+        url: `/getAll`,
+      }),
+      providesTags: [{ type: "Director", id: "LISTDIRECTOR" }],
+    }),
   }),
 });
 
@@ -91,4 +99,5 @@ export const {
   useDeleteDirectorMutation,
   useGetDirectorsQuery,
   useGetDirectorByIdQuery,
+  useGetDirectorsNotPageQuery,
 } = directorApi;

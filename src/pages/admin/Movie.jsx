@@ -1,7 +1,7 @@
 import { Button } from "antd";
 import { FiPlus } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import ListMovies from '../../components/admin/AdminMovie/ListMovies';
+import ListMovies from '@/components/admin/AdminMovie/ListMovies';
 
 export default function Movie() {
   return (

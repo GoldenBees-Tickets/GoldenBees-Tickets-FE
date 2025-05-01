@@ -569,14 +569,17 @@ export default function Booking() {
       </div>
       {/* Xác nhận đặt vé */}
       {showPopupConfirm && (
-        <PaymentPage
-          user_id={user_id}
-          listSeatTypes={listSeatTypes}
-          showtimeData={showtimeData}
-          selectedSeats={selectedSeats}
-          paymentMethod={paymentMethod}
-          setPaymentMethod={setPaymentMethod}
-        />
+        <div className="relative">
+          <PaymentPage
+            user_id={user_id}
+            listSeatTypes={listSeatTypes}
+            showtimeData={showtimeData}
+            selectedSeats={selectedSeats}
+            paymentMethod={paymentMethod}
+            setPaymentMethod={setPaymentMethod}
+            setShowPopupConfirm={setShowPopupConfirm}
+          />
+        </div>
       )}
     </>
   );

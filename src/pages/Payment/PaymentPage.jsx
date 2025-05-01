@@ -2,32 +2,43 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import MomoPayment from "../../components/Payment/MomoPayment";
 import TestVNPay from "./TestVNPay";
+import { IoMdCloseCircleOutline } from "react-icons/io";
 
-const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats, paymentMethod }) => {
+const PaymentPage = ({
+  user_id,
+  listSeatTypes,
+  showtimeData,
+  selectedSeats,
+  paymentMethod,
+  setShowPopupConfirm,
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // Lấy dữ liệu từ localStorage
   const dataPage = JSON.parse(localStorage.getItem("reservation") || "{}");
   const dataTotal = JSON.parse(localStorage.getItem("payment_info") || "{}");
   const promotion_id = localStorage.getItem("promotion_id") || null;
   const finalPrice = localStorage.getItem("finalPrice") || 0;
-  
+
   // Lấy thông tin ghế và tính giá
   const seat_ids = selectedSeats?.map((seat) => {
     let basePrice = 0;
-    const price_offset = listSeatTypes?.seat_types?.find((type) => type.id === seat.type_id)?.price_offset;
+    const price_offset = listSeatTypes?.seat_types?.find(
+      (type) => type.id === seat.type_id
+    )?.price_offset;
 
     basePrice = Number(showtimeData?.base_price) + Number(price_offset);
-    return { id: seat.id, price: basePrice}  
+    return { id: seat.id, price: basePrice };
   });
-    
+
   // Chuẩn bị dữ liệu hiển thị
-  const movieName = showtimeData?.showtime?.Movie?.name || 
-                   showtimeData?.Movie?.name || 
-                   dataPage?.showtime?.Movie?.name || 
-                   "Không xác định";
-  
+  const movieName =
+    showtimeData?.showtime?.Movie?.name ||
+    showtimeData?.Movie?.name ||
+    dataPage?.showtime?.Movie?.name ||
+    "Không xác định";
+
   // Định dạng suất chiếu
   let showtimeText = "Không xác định";
   if (showtimeData?.start_time && showtimeData?.show_date) {
@@ -35,11 +46,12 @@ const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats, paym
   } else if (showtimeData?.showtime?.start_time) {
     showtimeText = showtimeData.showtime.start_time;
   } else if (dataPage?.showtime?.start_time) {
-    showtimeText = typeof dataPage.showtime.start_time === 'object'
-      ? `${dataPage.showtime.start_time.time} - ${dataPage.showtime.start_time.date}`
-      : dataPage.showtime.start_time;
+    showtimeText =
+      typeof dataPage.showtime.start_time === "object"
+        ? `${dataPage.showtime.start_time.time} - ${dataPage.showtime.start_time.date}`
+        : dataPage.showtime.start_time;
   }
-  
+
   const dataConfirm = {
     movie: movieName,
     showtime: showtimeText,
@@ -50,7 +62,7 @@ const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats, paym
   // Lấy thông tin thanh toán
   const amount = dataTotal?.total_amount || 0;
   const orderInfo = `Thanh toán vé xem phim ${movieName}`;
-  
+
   // Chuẩn bị dữ liệu gửi đến API
   const dataApi = {
     user_id,
@@ -61,7 +73,7 @@ const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats, paym
     combos: dataPage?.foodItems,
     promotion_id,
     orderInfo: orderInfo,
-  };  
+  };
   // Xử lý khi thanh toán thành công
   const handlePaymentSuccess = (payUrl) => {
     // Chuyển hướng đến trang thanh toán MOMO
@@ -95,58 +107,64 @@ const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats, paym
 
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="w-full max-w-xl mx-auto text-center bg-white rounded-xl shadow-md p-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Xác nhận đặt vé
-        </h1>
+      <div className="relative w-full max-w-xl mx-auto bg-white rounded-lg shadow-lg">
+        <button
+          onClick={() => setShowPopupConfirm(false)}
+          className="absolute top-4 right-4 z-50 text-gray-600 hover:text-red-500 transition-colors"
+        >
+          <IoMdCloseCircleOutline size={28} />
+        </button>
 
-        <table className="w-full border-collapse border border-gray-300 text-left">
-          <tbody>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2 font-semibold">
-                Tên phim:
-              </td>
-              <td className="border border-gray-300 px-4 py-2">
-                {dataConfirm?.movie}
-              </td>
-            </tr>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2 font-semibold">
-                Suất chiếu:
-              </td>
-              <td className="border border-gray-300 px-4 py-2">
-                {dataConfirm?.showtime}
-              </td>
-            </tr>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2 font-semibold">
-                Món ăn:
-              </td>
-              <td className="border border-gray-300 px-4 py-2">
-                {dataConfirm?.foodItems?.length > 0
-                  ? dataConfirm?.foodItems?.map((item, index) => (
-                      <p key={index}>
-                        {item.quantity} x {item.name}
-                      </p>
-                    ))
-                  : "Không có món ăn"}
-              </td>
-            </tr>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2 font-semibold">
-                Tổng tiền:
-              </td>
-              <td className="border border-gray-300 px-4 py-2">
-                {dataConfirm?.total.toLocaleString()} VNĐ
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div className="w-full max-w-xl mx-auto text-center bg-white rounded-xl shadow-md p-6">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            Xác nhận đặt vé
+          </h1>
 
-        <div>
-          
-          {
-            paymentMethod == 'vnpay' ? (
+          <table className="w-full border-collapse border border-gray-300 text-left">
+            <tbody>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2 font-semibold">
+                  Tên phim:
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {dataConfirm?.movie}
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2 font-semibold">
+                  Suất chiếu:
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {dataConfirm?.showtime}
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2 font-semibold">
+                  Món ăn:
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {dataConfirm?.foodItems?.length > 0
+                    ? dataConfirm?.foodItems?.map((item, index) => (
+                        <p key={index}>
+                          {item.quantity} x {item.name}
+                        </p>
+                      ))
+                    : "Không có món ăn"}
+                </td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2 font-semibold">
+                  Tổng tiền:
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {dataConfirm?.total.toLocaleString()} VNĐ
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div>
+            {paymentMethod == "vnpay" ? (
               <TestVNPay
                 data={dataApi}
                 onSuccess={handlePaymentSuccess}
@@ -158,8 +176,8 @@ const PaymentPage = ({ user_id, listSeatTypes, showtimeData, selectedSeats, paym
                 onSuccess={handlePaymentSuccess}
                 onError={handlePaymentError}
               />
-            )
-          }
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -100,14 +100,6 @@ export const movieApi = createApi({
       providesTags: (result, error, id) => [{ type: "Movie", id }],
     }),
 
-    updateStatus: builder.mutation({
-      query: () => ({
-        url: `/update-status`,
-        method: "POST",
-      }),
-      invalidatesTags: [{ type: "Movie", id: "LISTMOVIE" }],
-    }),
-
     getAllMoviesByAdmin: builder.query({
       query: () => ({
         url: `/getAllByAdmin`,
@@ -124,7 +116,6 @@ export const {
   useDeleteMovieMutation,
   useGetMoviesQuery,
   useGetMovieByIdQuery,
-  useUpdateStatusMutation,
   useGetAllMoviesByUserQuery,
   useGetAllMoviesByAdminQuery
 } = movieApi;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Form,
@@ -20,10 +20,10 @@ import {
   RollbackOutlined 
 } from "@ant-design/icons";
 import { useCreateMovieMutation } from "@/api/movieApi";
-import { useGetActorsQuery } from "@/api/actorApi";
-import { useGetDirectorsQuery } from "@/api/directorApi";
-import { useGetProducersQuery } from "@/api/producerApi";
-import { useGetGenresQuery } from "@/api/genreApi";
+import { useGetActorsNotPageQuery } from "@/api/actorApi";
+import { useGetDirectorsNotPageQuery } from "@/api/directorApi";
+import { useGetProducersNotPageQuery } from "@/api/producerApi";
+import { useGetAllGenresForDashboardQuery } from "@/api/genreApi";
 import { useGetCountriesQuery } from "@/api/countryApi";
 
 const { Title } = Typography;
@@ -36,21 +36,46 @@ export default function AddMovies() {
   const [posterFile, setPosterFile] = useState(null);
   const [posterPreview, setPosterPreview] = useState("");
   const [posterFileName, setPosterFileName] = useState("");
+  const [releaseDate, setReleaseDate] = useState(null);
   
-  const { data: directorData } = useGetDirectorsQuery();
-  const directors = directorData?.directors || [];
+  const { data: directorData } = useGetDirectorsNotPageQuery();
+  const directors = directorData?.data || [];
   
-  const { data: actorData } = useGetActorsQuery();
-  const actors = actorData?.actors || [];
+  const { data: actorData } = useGetActorsNotPageQuery();
+  const actors = actorData?.data || [];
   
-  const { data: producerData } = useGetProducersQuery();
-  const producers = producerData?.producers || [];
+  const { data: producerData } = useGetProducersNotPageQuery();
+  const producers = producerData?.data || [];
   
-  const { data: genreData } = useGetGenresQuery();
-  const genres = genreData?.genres || [];
+  const { data: genreData } = useGetAllGenresForDashboardQuery();
+  const genres = genreData?.data || [];
   
   const [createMovie, { isLoading: isSubmitting }] = useCreateMovieMutation();
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
+
+  // Xử lý khi release_date thay đổi
+  const handleReleaseDateChange = (date) => {
+    setReleaseDate(date);
+    
+    // Lấy giá trị end_date hiện tại
+    const currentEndDate = form.getFieldValue('end_date');
+    
+    // Nếu release_date bị xóa, tự động xóa end_date
+    if (!date) {
+      form.setFieldValue('end_date', null);
+      return;
+    }
+    
+    // Nếu đã có end_date và release_date > end_date, cập nhật end_date = release_date
+    if (currentEndDate && date.isAfter(currentEndDate)) {
+      form.setFieldValue('end_date', date);
+    }
+  };
+  
+  // Tạo hàm disabledDate cho end_date
+  const disabledEndDate = (current) => {
+    return releaseDate ? current && current.isBefore(releaseDate, 'day') : true;
+  };
 
   const handlePosterChange = (info) => {    
     if (info && info.file) {
@@ -104,6 +129,11 @@ export default function AddMovies() {
       // Thêm release_date nếu có
       if (values.release_date) {
         formData.append("release_date", values.release_date.format('YYYY-MM-DD'));
+      }
+      
+      // Thêm end_date nếu có
+      if (values.end_date) {
+        formData.append("end_date", values.end_date.format('YYYY-MM-DD'));
       }
       
       // Append multiple actors, producers, and genres
@@ -189,6 +219,21 @@ export default function AddMovies() {
                 className="w-full" 
                 format="DD/MM/YYYY"
                 placeholder="Chọn ngày khởi chiếu"
+                onChange={handleReleaseDateChange}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="end_date"
+              label="Ngày kết thúc chiếu"
+              tooltip="Phải lớn hơn hoặc bằng ngày khởi chiếu"
+            >
+              <DatePicker 
+                className="w-full" 
+                format="DD/MM/YYYY"
+                placeholder="Chọn ngày kết thúc chiếu"
+                disabled={!releaseDate}
+                disabledDate={disabledEndDate}
               />
             </Form.Item>
 

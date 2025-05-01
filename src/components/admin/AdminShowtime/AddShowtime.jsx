@@ -168,6 +168,18 @@ export default function AddShowtime() {
     form.setFieldsValue({ show_date: dayjs() });
   }, [form]);
 
+  // Tự động tính toán giờ kết thúc khi người dùng chọn giờ bắt đầu
+  useEffect(() => {
+    const startTime = form.getFieldValue('start_time');
+    if (startTime && movieDuration > 0) {
+      // Tính toán giờ kết thúc = giờ bắt đầu + thời lượng phim + 15 phút buffer
+      const endTime = dayjs(startTime).add(movieDuration + 15, 'minute');
+      
+      // Cập nhật giá trị trong form
+      form.setFieldsValue({ end_time: endTime });
+    }
+  }, [form.getFieldValue('start_time'), movieDuration]);
+
   const handleCinemaChange = (value) => {
     setSelectedCinema(value);
     form.setFieldsValue({ room_id: undefined });
@@ -187,6 +199,17 @@ export default function AddShowtime() {
           form.setFieldsValue({ show_date: releaseDate });
         }
       }
+    }
+  };
+
+  // Xử lý khi người dùng chọn giờ bắt đầu
+  const handleStartTimeChange = (time) => {
+    if (time && movieDuration > 0) {
+      // Tính toán giờ kết thúc = giờ bắt đầu + thời lượng phim + 15 phút buffer
+      const endTime = dayjs(time).add(movieDuration + 15, 'minute');
+      
+      // Cập nhật giá trị trong form
+      form.setFieldsValue({ end_time: endTime });
     }
   };
 
@@ -570,7 +593,13 @@ export default function AddShowtime() {
                   { required: true, message: "Vui lòng chọn giờ bắt đầu" },
                 ]}
               >
-                <TimePicker format="HH:mm" className="w-full" minuteStep={5} />
+                <TimePicker 
+                  format="HH:mm" 
+                  className="w-full" 
+                  minuteStep={5} 
+                  onChange={handleStartTimeChange}
+                  placeholder={movieDuration > 0 ? `Chọn giờ bắt đầu (Thời lượng: ${movieDuration} phút)` : "Chọn giờ bắt đầu"}
+                />
               </Form.Item>
 
               <Form.Item
@@ -581,11 +610,16 @@ export default function AddShowtime() {
                 ]}
                 tooltip={
                   movieDuration > 0
-                    ? `Thời lượng phim: ${movieDuration} phút`
+                    ? `Thời lượng phim: ${movieDuration} phút + 15 phút quảng cáo`
                     : undefined
                 }
               >
-                <TimePicker format="HH:mm" className="w-full" minuteStep={5} />
+                <TimePicker 
+                  format="HH:mm" 
+                  className="w-full" 
+                  minuteStep={5} 
+                  placeholder="Tự động tính toán khi chọn giờ bắt đầu"
+                />
               </Form.Item>
             </div>
 
