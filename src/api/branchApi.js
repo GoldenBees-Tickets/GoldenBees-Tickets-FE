@@ -15,7 +15,7 @@ export const branchApi = createApi({
       query: ({ name, city }) => ({
         url: `/`,
         method: "POST",
-        body: { name, city },
+        data: { name, city },
       }),
       invalidatesTags: [{ type: "Branch", id: "LISTBRANCH" }],
     }),
@@ -92,6 +92,14 @@ export const branchApi = createApi({
       query: (id) => `/${id}`,
       providesTags: (result, error, id) => [{ type: "Branch", id }],
     }),
+
+    getBranchesByAdmin: builder.query({
+      query: (adminId) => ({
+        url: `/by-admin/${adminId}`,
+        method: "GET",
+      }),
+      providesTags: ["Branch"],
+    }),
   }),
 });
 
@@ -101,4 +109,5 @@ export const {
   useDeleteBranchMutation,
   useGetBranchesQuery,
   useGetBranchByIdQuery,
+  useGetBranchesByAdminQuery
 } = branchApi;

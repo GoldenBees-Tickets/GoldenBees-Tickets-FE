@@ -126,17 +126,17 @@ export default function EditCinema({
 
     try {
       await updateCinema({ id, ...cinemaData });
-      message.success("Cập nhật cinema thành công!");
+      message.success("Cập nhật rạp thành công!");
       setToggleUpdateCinema(false);
     } catch (error) {
-      message.error("Cập nhật cinema thất bại. Vui lòng thử lại.");
+      message.error("Cập nhật rạp thất bại. Vui lòng thử lại.");
     }
   };
 
   return (
     <div className="bg-white rounded-lg p-6 max-w-3xl w-full">
       <div className="flex justify-between items-center mb-6 border-b pb-4">
-        <h1 className="text-xl font-bold text-gray-800">Chỉnh sửa Cinema</h1>
+        <h1 className="text-xl font-bold text-gray-800">Chỉnh sửa rạp chiếu</h1>
         <Button 
           type="text" 
           icon={<IoClose size={20} />} 
@@ -156,7 +156,7 @@ export default function EditCinema({
             <Input
               value={selectName}
               onChange={(e) => setSelectName(e.target.value)}
-              placeholder="Nhập tên cinema"
+              placeholder="Nhập tên rạp"
             />
           </Form.Item>
 

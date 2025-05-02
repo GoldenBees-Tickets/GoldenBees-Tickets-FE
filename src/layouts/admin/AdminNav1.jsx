@@ -222,16 +222,6 @@ export default function AdminNav1({ isCollapsed, onNavLinkClick, userRole = "adm
           />
         </MenuGroup>
 
-        {/* Thêm menu Bài Viết mới */}
-        <MenuItem 
-          icon={AiOutlineFileText} 
-          text="Bài viết" 
-          to="/admin/posts" 
-          isCollapsed={isCollapsed} 
-          isActive={currentPath.includes("posts")}
-          onClick={onNavLinkClick}
-        />
-
         <MenuGroup 
           id="branches" 
           icon={AiOutlineShop} 
@@ -330,6 +320,16 @@ export default function AdminNav1({ isCollapsed, onNavLinkClick, userRole = "adm
           onClick={onNavLinkClick}
         />
 
+        {/* Thêm menu Bài Viết mới */}
+        <MenuItem 
+          icon={AiOutlineFileText} 
+          text="Bài viết" 
+          to="/admin/posts" 
+          isCollapsed={isCollapsed} 
+          isActive={currentPath.includes("posts")}
+          onClick={onNavLinkClick}
+        />
+        
         <MenuItem 
           icon={AiOutlineMessage} 
           text="Quét mã QR" 

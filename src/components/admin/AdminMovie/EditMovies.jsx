@@ -3,10 +3,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   Form,
   Input,
+  InputNumber,
+  DatePicker,
+  Select,
   Button,
   Upload,
   message,
   Typography,
+  Divider,
   Space,
   Spin
 } from "antd";
@@ -19,10 +23,17 @@ import {
   useGetMovieByIdQuery,
   useUpdateMovieMutation,
 } from "@/api/movieApi";
+import { useGetActorsNotPageQuery } from "@/api/actorApi";
+import { useGetDirectorsNotPageQuery } from "@/api/directorApi";
+import { useGetProducersNotPageQuery } from "@/api/producerApi";
+import { useGetAllGenresForDashboardQuery } from "@/api/genreApi";
+import { useGetCountriesQuery } from "@/api/countryApi";
 import { formatImage } from "@/utils/formatImage";
+import moment from "moment";
 
 const { Title } = Typography;
 const { TextArea } = Input;
+const { Option } = Select;
 
 export default function EditMovies() {
   const { id } = useParams();
@@ -42,6 +53,43 @@ export default function EditMovies() {
   const [posterPreview, setPosterPreview] = useState("");
   const [posterFileName, setPosterFileName] = useState("");
   const [formInitialized, setFormInitialized] = useState(false);
+  const [releaseDate, setReleaseDate] = useState(null);
+
+  const { data: directorData } = useGetDirectorsNotPageQuery();
+  const directors = directorData?.data || [];
+  
+  const { data: actorData } = useGetActorsNotPageQuery();
+  const actors = actorData?.data || [];
+  
+  const { data: producerData } = useGetProducersNotPageQuery();
+  const producers = producerData?.data || [];
+  
+  const { data: genreData } = useGetAllGenresForDashboardQuery();
+  const genres = genreData?.data || [];
+
+  // Xử lý khi release_date thay đổi
+  const handleReleaseDateChange = (date) => {
+    setReleaseDate(date);
+    
+    // Lấy giá trị end_date hiện tại
+    const currentEndDate = form.getFieldValue('end_date');
+    
+    // Nếu release_date bị xóa, tự động xóa end_date
+    if (!date) {
+      form.setFieldValue('end_date', null);
+      return;
+    }
+    
+    // Nếu đã có end_date và release_date > end_date, cập nhật end_date = release_date
+    if (currentEndDate && date.isAfter(currentEndDate)) {
+      form.setFieldValue('end_date', date);
+    }
+  };
+  
+  // Tạo hàm disabledDate cho end_date
+  const disabledEndDate = (current) => {
+    return releaseDate ? current && current.isBefore(releaseDate, 'day') : true;
+  };
 
   useEffect(() => {
     if (movie?.poster && !posterPreview) {
@@ -55,10 +103,31 @@ export default function EditMovies() {
 
   useEffect(() => {
     if (movie && !formInitialized) {
+      const actorIds = movie.MovieActors?.map(ma => ma.Actor?.id || ma.actor_id) || [];
+      const genreIds = movie.MovieGenres?.map(mg => mg.Genre?.id || mg.genre_id) || [];
+      const producerIds = movie.MovieProducers?.map(mp => mp.Producer?.id || mp.producer_id) || [];
+      
+      const releaseDateMoment = movie.release_date ? moment(movie.release_date) : null;
+      const endDateMoment = movie.end_date ? moment(movie.end_date) : null;
+      
+      if (releaseDateMoment) {
+        setReleaseDate(releaseDateMoment);
+      }
+      
       const formValues = {
         name: movie.name,
         description: movie.description,
         trailer: movie.trailer,
+        year: movie.year,
+        country: movie.country,
+        age_rating: movie.age_rating || 0,
+        duration: movie.duration,
+        director_id: movie.Director?.id || movie.director_id,
+        actor_ids: actorIds,
+        genre_ids: genreIds,
+        producer_ids: producerIds,
+        release_date: releaseDateMoment,
+        end_date: endDateMoment
       };
       
       form.setFieldsValue(formValues);
@@ -83,44 +152,55 @@ export default function EditMovies() {
 
   const handleSubmit = async (values) => {
     try {
+      // Validate essential data
+      if (!values.director_id) {
+        message.error("Vui lòng chọn đạo diễn");
+        return;
+      }
+      
+      if (!values.actor_ids || values.actor_ids.length === 0) {
+        message.error("Vui lòng chọn ít nhất một diễn viên");
+        return;
+      }
+      
+      if (!values.producer_ids || values.producer_ids.length === 0) {
+        message.error("Vui lòng chọn ít nhất một nhà sản xuất");
+        return;
+      }
+      
       const formData = new FormData();
       formData.append("name", values.name);
+      formData.append("year", values.year);
+      formData.append("country", values.country || "");
       formData.append("description", values.description || "");
       formData.append("trailer", values.trailer || "");
+      formData.append("age_rating", values.age_rating || 0);
+      formData.append("duration", values.duration);
+      formData.append("director_id", values.director_id);
       
-      // Thêm các trường bắt buộc khác từ dữ liệu phim hiện tại
-      if (movie) {
-        formData.append("year", movie.year || "");
-        formData.append("country", movie.country || "");
-        formData.append("age_rating", movie.age_rating || 0);
-        formData.append("duration", movie.duration);
-        formData.append("director_id", movie.Director?.id || movie.director_id || "");
-        
-        if (movie.release_date) {
-          formData.append("release_date", movie.release_date);
-        }
-        
-        // Thêm actor_ids, producer_ids, genre_ids nếu có
-        if (movie.MovieActors) {
-          movie.MovieActors.forEach(ma => {
-            if (ma.Actor?.id) formData.append("actor_id", ma.Actor.id);
-            else if (ma.actor_id) formData.append("actor_id", ma.actor_id);
-          });
-        }
-        
-        if (movie.MovieProducers) {
-          movie.MovieProducers.forEach(mp => {
-            if (mp.Producer?.id) formData.append("producer_id", mp.Producer.id);
-            else if (mp.producer_id) formData.append("producer_id", mp.producer_id);
-          });
-        }
-        
-        if (movie.MovieGenres) {
-          movie.MovieGenres.forEach(mg => {
-            if (mg.Genre?.id) formData.append("genre_id", mg.Genre.id);
-            else if (mg.genre_id) formData.append("genre_id", mg.genre_id);
-          });
-        }
+      // Thêm release_date nếu có
+      if (values.release_date) {
+        formData.append("release_date", values.release_date.format('YYYY-MM-DD'));
+      }
+      
+      // Thêm end_date nếu có
+      if (values.end_date) {
+        formData.append("end_date", values.end_date.format('YYYY-MM-DD'));
+      }
+      
+      // Append multiple actors, producers, and genres
+      values.actor_ids.forEach(actorId => {
+        formData.append("actor_id", actorId);
+      });
+      
+      values.producer_ids.forEach(producerId => {
+        formData.append("producer_id", producerId);
+      });
+      
+      if (values.genre_ids && values.genre_ids.length > 0) {
+        values.genre_ids.forEach(genreId => {
+          formData.append("genre_id", genreId);
+        });
       }
       
       if (posterFile) {
@@ -181,13 +261,85 @@ export default function EditMovies() {
           onFinish={handleSubmit}
           requiredMark={false}
         >
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Form.Item
               name="name"
               label="Tên phim"
               rules={[{ required: true, message: "Vui lòng nhập tên phim" }]}
             >
               <Input placeholder="Nhập tên phim" />
+            </Form.Item>
+
+            <Form.Item
+              name="year"
+              label="Năm sản xuất"
+              rules={[
+                { required: true, message: "Vui lòng nhập năm sản xuất" },
+                {
+                  validator: (_, value) => {
+                    const currentYear = new Date().getFullYear();
+                    if (value && (value < 1900 || value > currentYear)) {
+                      return Promise.reject(`Năm sản xuất phải từ 1900 đến ${currentYear}`);
+                    }
+                    return Promise.resolve();
+                  }
+                }
+              ]}
+            >
+              <InputNumber min={1900} max={new Date().getFullYear()} className="w-full" />
+            </Form.Item>
+
+            <Form.Item
+              name="release_date"
+              label="Ngày khởi chiếu"
+              rules={[{ required: true, message: "Vui lòng chọn ngày khởi chiếu" }]}
+            >
+              <DatePicker 
+                className="w-full" 
+                format="DD/MM/YYYY"
+                placeholder="Chọn ngày khởi chiếu"
+                onChange={handleReleaseDateChange}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="end_date"
+              label="Ngày kết thúc chiếu"
+              tooltip="Phải lớn hơn hoặc bằng ngày khởi chiếu"
+            >
+              <DatePicker 
+                className="w-full" 
+                format="DD/MM/YYYY"
+                placeholder="Chọn ngày kết thúc chiếu"
+                disabled={!releaseDate}
+                disabledDate={disabledEndDate}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="country"
+              label="Quốc gia"
+              rules={[{ required: true, message: "Vui lòng chọn quốc gia sản xuất" }]}
+            >
+              <CountrySelect />
+            </Form.Item>
+
+            <Form.Item
+              name="duration"
+              label="Thời lượng (phút)"
+              rules={[
+                { required: true, message: "Vui lòng nhập thời lượng phim" },
+                { type: 'number', min: 1, max: 240, message: "Thời lượng phải từ 1 đến 240 phút" }
+              ]}
+            >
+              <InputNumber min={1} max={240} className="w-full" />
+            </Form.Item>
+
+            <Form.Item
+              name="age_rating"
+              label="Giới hạn tuổi"
+            >
+              <InputNumber min={0} className="w-full" />
             </Form.Item>
 
             <Form.Item
@@ -231,12 +383,76 @@ export default function EditMovies() {
                 )}
               </div>
             </Form.Item>
+          </div>
+
+          <Form.Item
+            name="description"
+            label="Mô tả"
+            className="col-span-full"
+          >
+            <TextArea rows={4} placeholder="Nhập mô tả phim" />
+          </Form.Item>
+
+          <Divider orientation="left">Diễn viên, Đạo diễn & Thể loại</Divider>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Form.Item
+              name="director_id"
+              label="Đạo diễn"
+              rules={[{ required: true, message: "Vui lòng chọn đạo diễn" }]}
+            >
+              <Select placeholder="Chọn đạo diễn">
+                {directors.map(director => (
+                  <Option key={director.id} value={director.id}>{director.name}</Option>
+                ))}
+              </Select>
+            </Form.Item>
 
             <Form.Item
-              name="description"
-              label="Mô tả"
+              name="actor_ids"
+              label="Diễn viên"
+              rules={[{ required: true, message: "Vui lòng chọn ít nhất một diễn viên" }]}
             >
-              <TextArea rows={4} placeholder="Nhập mô tả phim" />
+              <Select 
+                mode="multiple"
+                placeholder="Chọn diễn viên"
+                optionFilterProp="children"
+              >
+                {actors.map(actor => (
+                  <Option key={actor.id} value={actor.id}>{actor.name}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="producer_ids"
+              label="Nhà sản xuất"
+              rules={[{ required: true, message: "Vui lòng chọn ít nhất một nhà sản xuất" }]}
+            >
+              <Select 
+                mode="multiple"
+                placeholder="Chọn nhà sản xuất"
+                optionFilterProp="children"
+              >
+                {producers.map(producer => (
+                  <Option key={producer.id} value={producer.id}>{producer.name}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="genre_ids"
+              label="Thể loại"
+            >
+              <Select 
+                mode="multiple"
+                placeholder="Chọn thể loại"
+                optionFilterProp="children"
+              >
+                {genres.map(genre => (
+                  <Option key={genre.id} value={genre.id}>{genre.name}</Option>
+                ))}
+              </Select>
             </Form.Item>
           </div>
 
@@ -262,5 +478,38 @@ export default function EditMovies() {
         </Form>
       </div>
     </div>
+  );
+}
+
+// Component cho Select quốc gia
+function CountrySelect({ value, onChange }) {
+  const { data: countriesData, isLoading, error } = useGetCountriesQuery();
+  
+  if (isLoading) return <Spin size="small" />;
+  
+  if (error) {
+    console.error("Lỗi khi tải danh sách quốc gia:", error);
+    return <Input placeholder="Nhập quốc gia sản xuất" value={value} onChange={onChange} />;
+  }
+
+  const countries = countriesData || [];
+
+  return (
+    <Select 
+      showSearch
+      placeholder="Chọn quốc gia sản xuất"
+      optionFilterProp="children"
+      filterOption={(input, option) =>
+        option.children.toLowerCase().includes(input.toLowerCase())
+      }
+      value={value}
+      onChange={onChange}
+    >
+      {countries.map(country => (
+        <Option key={country.code} value={country.name}>
+          {country.name}
+        </Option>
+      ))}
+    </Select>
   );
 }

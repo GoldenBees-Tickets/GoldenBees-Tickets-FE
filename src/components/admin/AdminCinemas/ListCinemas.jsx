@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Table, Tag, Button, Modal, Spin, message, Input, Space, Select } from "antd";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
-import { useGetCinemasQuery, useDeleteCinemaMutation } from "../../../api/cinemaApi";
+import { useGetCinemasQuery, useDeleteCinemaMutation } from "@/api/cinemaApi";
 import EditCinema from "./EditCinemas";
 import PaginationDefault from "@/components/PaginationDefault";
 
@@ -41,9 +41,9 @@ export default function ListCinemas() {
   const confirmDelete = async () => {
     try {
       await deleteCinema(selectedCinema.id).unwrap();
-      message.success("Xóa cinema thành công!");
+      message.success("Xóa rạp thành công!");
     } catch (error) {
-      message.error("Xóa cinema thất bại. Vui lòng thử lại!");
+      message.error("Xóa rạp thất bại. Vui lòng thử lại!");
     }
     setIsDeleteModalOpen(false);
   };
@@ -85,7 +85,7 @@ export default function ListCinemas() {
           className="flex items-center cursor-pointer select-none" 
           onClick={toggleSortOrder}
         >
-          Tên Cinema
+          Tên rạp
           <div className="flex flex-col ml-1">
             <CaretUpOutlined 
               className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
@@ -204,7 +204,7 @@ export default function ListCinemas() {
         okButtonProps={{ danger: true }}
         title="Xác nhận xóa"
       >
-        Bạn có chắc chắn muốn xóa cinema "{selectedCinema?.name}" không?
+        Bạn có chắc chắn muốn xóa rạp "{selectedCinema?.name}" không?
       </Modal>
     </>
   );

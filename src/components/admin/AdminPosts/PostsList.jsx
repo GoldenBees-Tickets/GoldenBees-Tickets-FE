@@ -1,46 +1,158 @@
 import { useState } from "react";
 import { useGetPostsQuery, useDeletePostMutation } from "@/api/postApi";
 import { Link } from "react-router-dom";
-import { FiEdit, FiTrash2, FiPlus, FiSearch } from "react-icons/fi";
-import { toast } from "react-toastify";
+import { Table, Button, Modal, Spin, message, Tooltip, Input, Space } from "antd";
+import { FiEdit2, FiEye, FiTrash2, FiPlus } from "react-icons/fi";
+import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
+import PaginationDefault from "../../PaginationDefault";
+
+const { Search } = Input;
 
 export default function PostsList() {
-  const { data: postsData, isLoading, isError } = useGetPostsQuery();
-  const [deletePost] = useDeletePostMutation();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const [searchText, setSearchText] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletePostId, setDeletePostId] = useState(null);
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
-      try {
-        await deletePost(id).unwrap();
-        toast.success("Xóa bài viết thành công");
-      } catch (error) {
-        console.error("Error deleting post:", error);
-        toast.error("Không thể xóa bài viết");
-      }
+  const { data: postData, isLoading, error } = useGetPostsQuery({ 
+    page: currentPage, 
+    limit: pageSize,
+    search: searchValue,
+    sort_order: sortOrder
+  });
+
+  const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
+
+  const handlePageChange = (page, newPageSize) => {
+    if (newPageSize !== pageSize) {
+      setPageSize(newPageSize);
+    }
+    setCurrentPage(page);
+  };
+
+  const handleSearch = (value) => {
+    setSearchValue(value);
+    setCurrentPage(1);
+  };
+
+  const handleReset = () => {
+    setSearchText("");
+    setSearchValue("");
+    setSortOrder("desc");
+    setCurrentPage(1);
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
+  };
+
+  const showDeleteConfirm = (id) => {
+    setDeletePostId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deletePost(deletePostId).unwrap();
+      message.success("Xóa bài viết thành công");
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      message.error("Không thể xóa bài viết");
     }
   };
 
-  // Filter posts by search term
-  const filteredPosts = postsData?.posts?.filter((post) =>
-    post.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setDeletePostId(null);
+  };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+  const columns = [
+    {
+      title: "STT",
+      key: "index",
+      width: 80,
+      render: (_, __, index) => {
+        return (currentPage - 1) * pageSize + index + 1;
+      }
+    },
+    {
+      title: (
+        <div 
+          className="flex items-center cursor-pointer select-none" 
+          onClick={toggleSortOrder}
+        >
+          Tiêu đề
+          <div className="flex flex-col ml-1">
+            <CaretUpOutlined 
+              className={`text-[10px] ${sortOrder === "asc" ? "text-blue-500" : "text-gray-400"}`}
+              style={{ marginBottom: -2 }}
+            />
+            <CaretDownOutlined 
+              className={`text-[10px] ${sortOrder === "desc" ? "text-blue-500" : "text-gray-400"}`}
+            />
+          </div>
+        </div>
+      ),
+      dataIndex: "title",
+      key: "title",
+    },
+    {
+      title: "Trạng thái",
+      key: "status",
+      render: (_, record) => (
+        <span
+          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            record.status === "active"
+              ? "bg-green-100 text-green-800"
+              : record.status === "draft"
+              ? "bg-yellow-100 text-yellow-800"
+              : "bg-red-100 text-red-800"
+          }`}
+        >
+          {record.status === "active"
+            ? "Đã xuất bản"
+            : record.status === "draft"
+            ? "Bản nháp"
+            : "Không hoạt động"}
+        </span>
+      ),
+    },
+    {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date) => new Date(date).toLocaleDateString("vi-VN"),
+    },
+    {
+      title: "Thao tác",
+      key: "actions",
+      width: 180,
+      render: (_, record) => (
+        <div className="flex space-x-2">
+          <Tooltip title="Chỉnh sửa">
+            <Link to={`/admin/posts/edit/${record.id}`}>
+              <Button icon={<FiEdit2 />} />
+            </Link>
+          </Tooltip>
+          <Tooltip title="Xóa">
+            <Button 
+              icon={<FiTrash2 />} 
+              danger 
+              onClick={() => showDeleteConfirm(record.id)}
+            />
+          </Tooltip>
+        </div>
+      ),
+    },
+  ];
 
-  if (isError) {
-    return (
-      <div className="text-center text-red-500 p-4">
-        Đã xảy ra lỗi khi tải dữ liệu bài viết
-      </div>
-    );
-  }
+  if (isLoading) return <Spin className="flex justify-center mt-10" size="large" />;
+  if (error) return <div className="text-red-500">Lỗi khi tải dữ liệu!</div>;
 
   return (
     <div className="container mx-auto p-4">
@@ -54,98 +166,57 @@ export default function PostsList() {
         </Link>
       </div>
 
-      <div className="mb-6">
-        <div className="relative">
-          <input
-            type="text"
+      <div className="mb-4">
+        <Space size="middle">
+          <Search
             placeholder="Tìm kiếm bài viết..."
-            className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            allowClear
+            onSearch={handleSearch}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 250 }}
+            prefix={<SearchOutlined className="text-gray-400" />}
           />
-          <FiSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-        </div>
+          {(searchValue || sortOrder !== "desc") && (
+            <Button onClick={handleReset}>Xóa bộ lọc</Button>
+          )}
+        </Space>
       </div>
 
-      {filteredPosts?.length > 0 ? (
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tiêu đề
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Trạng thái
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tác giả
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ngày tạo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Thao tác
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredPosts.map((post) => (
-                <tr key={post.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {post.title}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        post.status === "active"
-                          ? "bg-green-100 text-green-800"
-                          : post.status === "draft"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {post.status === "active"
-                        ? "Đã xuất bản"
-                        : post.status === "draft"
-                        ? "Bản nháp"
-                        : "Không hoạt động"}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {post.author}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(post.createdAt).toLocaleDateString("vi-VN")}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <Link
-                        to={`/admin/posts/edit/${post.id}`}
-                        className="text-indigo-600 hover:text-indigo-900"
-                      >
-                        <FiEdit className="w-5 h-5" />
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(post.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <FiTrash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="text-center p-8 bg-white rounded-lg shadow">
-          <p className="text-gray-500">Không tìm thấy bài viết nào</p>
-        </div>
-      )}
+      <Table
+        columns={columns}
+        dataSource={postData?.posts || []}
+        rowKey="id"
+        pagination={false}
+        locale={{
+          emptyText: "Chưa có bài viết nào",
+        }}
+        className="shadow-md rounded-lg overflow-hidden"
+      />
+
+      <div className="mt-4">
+        <PaginationDefault
+          current={postData?.pagination?.currentPage || 1}
+          total={postData?.pagination?.total || 0}
+          pageSize={pageSize}
+          onChange={handlePageChange}
+          showSizeChanger={true}
+          pageSizeOptions={[5, 10, 20]}
+        />
+      </div>
+
+      <Modal
+        title="Xác nhận xóa bài viết"
+        open={isDeleteModalOpen}
+        onOk={handleDelete}
+        onCancel={handleCancelDelete}
+        confirmLoading={isDeleting}
+        okText="Xóa"
+        cancelText="Hủy"
+        okButtonProps={{ danger: true }}
+      >
+        <p>Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.</p>
+      </Modal>
     </div>
   );
 } 

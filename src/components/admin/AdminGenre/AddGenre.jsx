@@ -1,5 +1,4 @@
 import { Form, Input, Button, message, Typography } from "antd";
-import { CloseOutlined } from "@ant-design/icons";
 import { useCreateGenreMutation } from "@/api/genreApi";
 import PropTypes from "prop-types";
 

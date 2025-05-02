@@ -5,14 +5,14 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const userApi = createApi({
   reducerPath: "userApi",
   baseQuery: axiosBaseQuery({ baseUrl: `${API_BASE_URL}user`, useHttpClient: true,  }),
-  tagTypes: ["User"],
+  tagTypes: ["User", "AdminBranches"],
   endpoints: (builder) => ({
     getUsers: builder.query({
       query: ({ page = 1, limit = 5, search = '' }) => ({
         url: `/?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`,
         method: "GET",
       }),
-      providesTags: () => [{ type: "User", id: "LIST" }],
+      providesTags: ["User"],
     }),
     getUser: builder.query({
       query: (id) => ({
@@ -27,14 +27,14 @@ export const userApi = createApi({
         url: `/`,
         method: "GET",
       }),
-      providesTags: () => [{ type: "User", id: "LIST" }],
+      providesTags: ["User"],
     }),
     getAdminBranches: builder.query({
       query: ({ page = 1, limit = 5, search = '' }) => ({
         url: `/admin_branches?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`,
         method: "GET",
       }),
-      providesTags: () => [{ type: "User", id: "LIST" }],
+      providesTags: ["AdminBranches"],
     }),
     createUserByAdmin: builder.mutation({
       query: (data) => ({
@@ -42,7 +42,7 @@ export const userApi = createApi({
         method: "POST",
         data,
       }),
-      invalidatesTags: () => [{ type: "User", id: "LIST" }],
+      invalidatesTags: ["User"],
     }),
     addUser: builder.mutation({
       query: (data) => ({
@@ -50,14 +50,14 @@ export const userApi = createApi({
         method: "POST",
         data,
       }),
-      invalidatesTags: () => [{ type: "User", id: "LIST" }],
+      invalidatesTags: ["User"],
     }),
     deleteUser: builder.mutation({
       query: (id) => ({
         url: `/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: () => [{ type: "User", id: "LIST" }],
+      invalidatesTags: ["User"],
     }),
     updateUser: builder.mutation({
       query: ({ id, ...updateData }) => ({
@@ -68,13 +68,36 @@ export const userApi = createApi({
       }),
       invalidatesTags: (result, error, { id }) => [{ type: "User", id }],
     }),
+    updateAdmin: builder.mutation({
+      query: ({ id, ...updateData }) => ({
+        url: `/admin/${id}`,
+        method: "PUT",
+        data: updateData,
+      }),
+      invalidatesTags: ["AdminBranches"],
+    }),
     getStarByUser: builder.query({
       query: (id) => ({
         url: `/star/${id}`,
         method: "GET",
       }),
-      providesTags: () => [{ type: "User", id: "LIST" }],
-    })
+      providesTags: ["User"],
+    }),
+    updateAdminStatus: builder.mutation({
+      query: (data) => ({
+        url: `/status/${data.id}`,
+        method: 'PUT',
+        data
+      }),
+      invalidatesTags: ["AdminBranches"]
+    }),
+    getAdminBranchInfo: builder.query({
+      query: (adminId) => ({
+        url: `/admin-branch/${adminId}`,
+        method: "GET",
+      }),
+      providesTags: ["AdminBranches"],
+    }),
   }),
 });
 
@@ -83,9 +106,12 @@ export const {
   useGetListUsersQuery,
   useGetUserQuery,
   useUpdateUserMutation,
+  useUpdateAdminMutation,
   useCreateUserByAdminMutation,
   useGetAdminBranchesQuery,
   useAddUserMutation,
   useDeleteUserMutation,
-  useGetStarByUserQuery
+  useGetStarByUserQuery,
+  useUpdateAdminStatusMutation,
+  useGetAdminBranchInfoQuery
 } = userApi;

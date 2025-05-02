@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { Button } from "antd";
+import { Button, Modal } from "antd";
 import { FiPlus } from "react-icons/fi";
 import ListAdmin from "@/components/admin/AdminUser/ListAdmin";
 import AddAdmin from "@/components/admin/AdminUser/AddAdmin";
 
 export default function BranchAdmins() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  
+  const handleAddModalClose = () => {
+    setIsAddModalOpen(false);
+  };
 
   return (
     <div className="p-4">
@@ -27,13 +31,19 @@ export default function BranchAdmins() {
         <ListAdmin />
       </div>
 
-      {isAddModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-[999]">
-          <div className="w-full max-w-[90vw] md:max-w-xl bg-white rounded-lg overflow-hidden">
-            <AddAdmin setIsFormCreate={setIsAddModalOpen} />
-          </div>
-        </div>
-      )}
+      <Modal
+        title={null}
+        open={isAddModalOpen}
+        footer={null}
+        onCancel={handleAddModalClose}
+        destroyOnClose
+        width={500}
+        styles={{
+          body: { padding: 0 }
+        }}
+      >
+        <AddAdmin setIsFormCreate={setIsAddModalOpen} />
+      </Modal>
     </div>
   );
 }

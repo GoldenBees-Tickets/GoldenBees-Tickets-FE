@@ -1,40 +1,72 @@
-import { createApi } from "@reduxjs/toolkit/query/react";
+import { createApi } from '@reduxjs/toolkit/query/react';
 import axiosBaseQuery from "./authQuery/axiosBaseQuery";
+import { get } from 'react-hook-form';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const priceSettingApi = createApi({
-  reducerPath: "priceSettingApi",
-  baseQuery: axiosBaseQuery({ baseUrl: `${API_BASE_URL}priceSetting`, useHttpClient: true,  }),
+  reducerPath: 'priceSettingApi',
+  baseQuery: axiosBaseQuery({
+    baseUrl: `${API_BASE_URL}priceSetting`,
+    useHttpClient: true,
+  }),
+  tagTypes: ['PriceSettings'],
   endpoints: (builder) => ({
+    // Price Settings
     getPriceSettings: builder.query({
-      query: (branch_id) => ({
-        url: `/${branch_id}`,
+      query: () => ({
+        url: '',
       }),
-      providesTags: [{ type: "PriceSetting", id: "PRICESETTING" }],
+      providesTags: ['PriceSettings']
     }),
-    createPriceSetting: builder.mutation({
-      query: (dataSubmit) => ({
-        url: `/`,
-        method: "POST",
-        data: dataSubmit,      
+    addPriceSetting: builder.mutation({
+      query: (data) => ({
+        url: '/',
+        method: 'POST',
+        data
+      }),
+      invalidatesTags: ['PriceSettings']
     }),
-      invalidatesTags: [{ type: "PriceSetting", id: "PRICESETTING" }],
+    updatePriceSetting: builder.mutation({
+      query: (data) => ({
+        url: `/${data.id}`,
+        method: 'PUT',
+        data
+      }),
+      invalidatesTags: ['PriceSettings']
     }),
 
-    updatePriceSetting: builder.mutation({
-      query: ({ id, name }) => ({
-        url: `/${id}`,
-        method: "PUT",
-        body: { name },
-        useHttpClient: true,
+    // Holiday Pricing
+    getHolidayPricing: builder.query({
+      query: () => ({
+        url: '/holiday',
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: "PriceSetting", id }],
+      providesTags: ['PriceSettings']
     }),
-  }),
+    addHolidayPricing: builder.mutation({
+      query: (data) => ({
+        url: '/holiday',
+        method: 'POST',
+        data
+      }),
+      invalidatesTags: ['PriceSettings']
+    }),
+    updateHolidayPricing: builder.mutation({
+      query: (data) => ({
+        url: `/holiday/${data.id}`,
+        method: 'PUT',
+        data
+      }),
+      invalidatesTags: ['PriceSettings']
+    }),
+  })
 });
 
-export const {
+export const { 
   useGetPriceSettingsQuery,
-  useCreatePriceSettingMutation,
+  useAddPriceSettingMutation,
   useUpdatePriceSettingMutation,
+
+  useGetHolidayPricingQuery,
+  useAddHolidayPricingMutation,
+  useUpdateHolidayPricingMutation,
 } = priceSettingApi;

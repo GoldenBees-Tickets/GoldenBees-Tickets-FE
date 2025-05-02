@@ -107,6 +107,14 @@ export const movieApi = createApi({
       providesTags: [{ type: "Movie", id: "LISTMOVIE" }],
     }),
 
+    getMoviesByBranch: builder.query({
+      query: (adminId) => ({
+        url: `/branch/${adminId}`,
+        method: "GET",
+      }),
+      providesTags: ["Movie"],
+    }),
+
   }),
 });
 
@@ -117,5 +125,6 @@ export const {
   useGetMoviesQuery,
   useGetMovieByIdQuery,
   useGetAllMoviesByUserQuery,
-  useGetAllMoviesByAdminQuery
+  useGetAllMoviesByAdminQuery,
+  useGetMoviesByBranchQuery
 } = movieApi;

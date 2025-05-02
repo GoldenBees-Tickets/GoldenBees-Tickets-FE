@@ -73,6 +73,13 @@ export const roomApi = createApi({
       }),
       providesTags: (result, error, id) => [{ type: "Room", id }],
     }),
+
+    getSeatsByRoomId: builder.query({
+      query: (room_id) => ({
+        url: `/seats/${room_id}`,
+        useHttpClient: true,
+      }),
+    }),
   }),
 });
 
@@ -82,5 +89,6 @@ export const {
   useDeleteRoomMutation,
   useGetRoomsQuery,
   useGetRoomByIdQuery,
-  useGetRoomsByCinemaIdQuery
+  useGetRoomsByCinemaIdQuery,
+  useGetSeatsByRoomIdQuery
 } = roomApi;
