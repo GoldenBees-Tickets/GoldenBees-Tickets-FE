@@ -117,7 +117,7 @@ export default function AddCinema({ setAddCinema }) {
     try {
       const response = await createCinema(cinemaData);
       if (response?.data) {
-        message.success("Thêm cinema thành công!");
+        message.success("Thêm rạp thành công!");
         setAddCinema(false);
         setName(""); 
         setSelectedCity(null);
@@ -127,14 +127,14 @@ export default function AddCinema({ setAddCinema }) {
         setBranchId(null);
       }
     } catch (error) {
-      message.error("Thêm cinema thất bại. Vui lòng thử lại.");
+      message.error("Thêm rạp thất bại. Vui lòng thử lại.");
     }
   };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg w-full max-h-[90vh] overflow-y-auto">
       <div className="flex justify-between items-center mb-6 border-b pb-4">
-        <h1 className="text-xl font-bold text-gray-800">Thêm Cinema</h1>
+        <h1 className="text-xl font-bold text-gray-800">Thêm rạp chiếu</h1>
         <Button 
           type="text" 
           icon={<IoClose size={20} />} 
@@ -154,7 +154,7 @@ export default function AddCinema({ setAddCinema }) {
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Nhập tên cinema"
+              placeholder="Nhập tên rạp"
             />
           </Form.Item>
 

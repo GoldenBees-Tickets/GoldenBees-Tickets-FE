@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Modal, Spin, Empty, Typography, Grid } from 'antd';
-import { useGetRoomByIdQuery } from '@/api/roomApi';
+import { useGetSeatsByRoomIdQuery } from '@/api/roomApi';
 import { useGetListSeatTypesQuery } from "@/api/seatTypeApi";
 import MovieScreen from "../../MovieScreen";
 
@@ -9,27 +9,49 @@ const { useBreakpoint } = Grid;
 
 export default function ViewRoomSeats({ roomId, visible, onClose }) {
   const screens = useBreakpoint();
-  const { data: listSeats, isLoading, error } = useGetRoomByIdQuery(roomId, { 
+  const { data: listSeats, isLoading, error } = useGetSeatsByRoomIdQuery(roomId, { 
     skip: !roomId || !visible
   });
   const { data: listSeatTypes } = useGetListSeatTypesQuery();
   
   const [seats, setSeats] = useState([]);
+  const [seatsByRow, setSeatsByRow] = useState({});
   
   useEffect(() => {
     if (listSeats && listSeats?.data) {
-      setSeats(listSeats?.data?.Seats || []);
+      const seatsArray = listSeats?.data || [];
+      setSeats(seatsArray);
+      
+      // Nhóm ghế theo hàng
+      const rowGrouped = {};
+      seatsArray.forEach(seat => {
+        if (!rowGrouped[seat.seat_row]) {
+          rowGrouped[seat.seat_row] = [];
+        }
+        rowGrouped[seat.seat_row].push(seat);
+      });
+      
+      // Sắp xếp ghế trong mỗi hàng theo số thứ tự
+      Object.keys(rowGrouped).forEach(row => {
+        rowGrouped[row].sort((a, b) => {
+          return parseInt(a.seat_number) - parseInt(b.seat_number);
+        });
+      });
+      
+      setSeatsByRow(rowGrouped);
     }
   }, [listSeats]);
   
-  const room = listSeats?.data || {};
-  const columns_count = room.columns_count || 1;
+  const room = listSeats?.data?.[0]?.Room || {};
   const seat_types = listSeatTypes?.seat_types || [];
 
   // Determine if on mobile
   const isMobile = !screens.md;
 
   if (!visible) return null;
+  
+  // Sắp xếp tên hàng theo thứ tự (A, B, C,...)
+  const rowNames = Object.keys(seatsByRow).sort();
 
   return (
     <Modal
@@ -38,10 +60,12 @@ export default function ViewRoomSeats({ roomId, visible, onClose }) {
       onCancel={onClose}
       width={'90vw'}
       style={{ maxWidth: '800px' }}
-      bodyStyle={{ 
-        maxHeight: 'calc(90vh - 120px)', 
-        overflowY: 'auto',
-        padding: isMobile ? '12px' : '24px'
+      styles={{ 
+        body: { 
+          maxHeight: 'calc(90vh - 120px)', 
+          overflowY: 'auto',
+          padding: isMobile ? '12px' : '24px'
+        }
       }}
       footer={null}
       centered
@@ -64,35 +88,34 @@ export default function ViewRoomSeats({ roomId, visible, onClose }) {
           </div>
           
           <div className="seats-container overflow-x-auto">
-            <div className={`grid-seats ${isMobile ? 'scaled' : ''}`}>
-              <div
-                className="grid gap-1 p-2 bg-gray-100 rounded-lg mx-auto"
-                style={{
-                  maxWidth: `${Math.min(columns_count * 40, 800)}px`,
-                  gridTemplateColumns: `repeat(${columns_count}, minmax(20px, 1fr))`,
-                }}
-              >
-                {seats.map((seat, index) => {
-                  const seatType = seat_types.find(type => type.id === seat.type_id);
-                  return (
-                    <div key={index} className="relative">
-                      <div
-                        className={`w-8 h-8 border-2 rounded flex items-center justify-center text-xs
-                          ${seat.is_enabled ? "border-gray-900 text-black" : "bg-gray-500 text-white"}
-                        `}
-                        style={{
-                          borderColor: seat.is_enabled
-                            ? seatType?.color || 'gray'
-                            : "gray",
-                        }}
-                        title={`${seat.seat_row}${seat.seat_number || ""} - ${seatType?.type || 'Thường'}`}
-                      >
-                        {seat.seat_row + (seat.seat_number || "")}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="flex flex-col items-center gap-4">
+              {rowNames.map(rowName => (
+                <div key={rowName} className="flex items-center">
+                  <div className="font-bold w-8 text-center mr-3">{rowName}</div>
+                  <div className="flex gap-2">
+                    {seatsByRow[rowName].map((seat, seatIndex) => {
+                      const seatType = seat_types.find(type => type.id === seat.type_id);
+                      return (
+                        <div key={`${rowName}-${seatIndex}`} className="seat-item">
+                          <div
+                            className={`w-8 h-8 border-2 rounded flex items-center justify-center text-xs
+                              ${seat.is_enabled ? "border-gray-900 text-black" : "bg-gray-500 text-white"}
+                            `}
+                            style={{
+                              borderColor: seat.is_enabled
+                                ? seatType?.color || 'gray'
+                                : "gray",
+                            }}
+                            title={`${seat.seat_row}${seat.seat_number} - ${seatType?.type || 'Thường'}`}
+                          >
+                            {seat.seat_number}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           
@@ -115,32 +138,4 @@ export default function ViewRoomSeats({ roomId, visible, onClose }) {
       )}
     </Modal>
   );
-}
-
-// Add CSS in your global or component styles
-const styles = `
-.grid-seats.scaled {
-  transform-origin: top center;
-  transform: scale(0.8);
-}
-
-@media (max-width: 640px) {
-  .grid-seats.scaled {
-    transform: scale(0.65);
-  }
-}
-
-@media (max-width: 480px) {
-  .grid-seats.scaled {
-    transform: scale(0.5);
-  }
-}
-`;
-
-// Add styles to document if not already present
-if (typeof document !== 'undefined') {
-  const styleEl = document.createElement('style');
-  styleEl.type = 'text/css';
-  styleEl.appendChild(document.createTextNode(styles));
-  document.head.appendChild(styleEl);
 } 

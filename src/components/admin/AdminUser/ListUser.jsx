@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useGetUsersQuery } from "@/api/userApi";
-import { Table, Button, Avatar, Modal, Spin, Tag, message, Input, Space } from "antd";
-import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { useGetUsersQuery, useUpdateAdminStatusMutation } from "@/api/userApi";
+import { Table, Button, Avatar, Spin, Tag, message, Input, Space, Switch, Popconfirm } from "antd";
+import { FiEdit2 } from "react-icons/fi";
 import PaginationDefault from "@/components/PaginationDefault";
 import { formatDate } from "@/utils/format";
 
@@ -12,12 +12,15 @@ export default function ListUser() {
   const [pageSize, setPageSize] = useState(5);
   const [searchText, setSearchText] = useState("");
   const [searchValue, setSearchValue] = useState("");
+  const [statusUpdating, setStatusUpdating] = useState(null);
 
-  const { data: usersData, isLoading, error } = useGetUsersQuery({
+  const { data: usersData, isLoading, error, refetch } = useGetUsersQuery({
     page: currentPage,
     limit: pageSize,
     search: searchText
   });
+  
+  const [updateUserStatus] = useUpdateAdminStatusMutation();
 
   const handlePageChange = (page, newPageSize) => {
     if (newPageSize !== pageSize) {
@@ -35,6 +38,24 @@ export default function ListUser() {
 
   const handleSearchChange = (e) => {
     setSearchValue(e.target.value);
+  };
+  
+  const handleStatusChange = async (checked, userId) => {
+    try {
+      setStatusUpdating(userId);
+      
+      await updateUserStatus({
+        id: userId,
+        status: checked
+      }).unwrap();
+      
+      message.success(`Đã ${checked ? 'kích hoạt' : 'khóa'} tài khoản người dùng`);
+      refetch();
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi cập nhật trạng thái người dùng");
+    } finally {
+      setStatusUpdating(null);
+    }
   };
 
   const columns = [
@@ -70,11 +91,27 @@ export default function ListUser() {
     },
     {
       title: "Trạng thái",
-      key: "status",
-      render: (_, record) => (
-        <Tag color={record.status ? "green" : "red"}>
-          {record.status ? "Đang hoạt động" : "Đã khóa"}
-        </Tag>
+      dataIndex: "is_active",
+      key: "is_active",
+      render: (is_active, record) => (
+        <div className="flex items-center">
+          <Tag color={is_active ? "green" : "red"}>
+            {is_active ? "Đang hoạt động" : "Đã khóa"}
+          </Tag>
+          <Popconfirm
+            title={`Bạn có muốn ${is_active ? 'khóa' : 'kích hoạt'} tài khoản này?`}
+            onConfirm={() => handleStatusChange(!is_active, record.id)}
+            okText="Đồng ý"
+            cancelText="Hủy"
+          >
+            <Switch
+              checked={is_active}
+              loading={statusUpdating === record.id}
+              size="small"
+              className="ml-2"
+            />
+          </Popconfirm>
+        </div>
       )
     },
     {
@@ -83,17 +120,6 @@ export default function ListUser() {
       key: "createdAt",
       render: (date) => <span>{formatDate(date)}</span>
     },
-    {
-      title: "Hành động",
-      key: "action",
-      render: (_, record) => (
-        <Space>
-          <Button 
-            icon={<FiEdit2 />}
-          />
-        </Space>
-      )
-    }
   ];
 
   if (isLoading) return <Spin className="flex justify-center mt-10" size="large" />;

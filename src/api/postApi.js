@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import axiosBaseQuery from "./authQuery/axiosBaseQuery";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/v1/api/";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const postApi = createApi({
   reducerPath: "postApi",
@@ -11,10 +11,23 @@ export const postApi = createApi({
   tagTypes: ["Post"],
   endpoints: (builder) => ({
     getPosts: builder.query({
-      query: () => ({
-        url: "/",
-        method: "GET",
-      }),
+      query: (params) => {
+        const { page = 1, limit = 10, search = "", sort_order = "desc" } = params || {};
+        
+        // Thêm query params 
+        const queryParams = [];
+        if (page) queryParams.push(`page=${page}`);
+        if (limit) queryParams.push(`limit=${limit}`);
+        if (search) queryParams.push(`search=${search}`);
+        if (sort_order) queryParams.push(`sort_order=${sort_order}`);
+        
+        let url = '/';
+        if (queryParams.length > 0) {
+          url += `?${queryParams.join('&')}`;
+        }
+        
+        return { url };
+      },
       providesTags: [{ type: "Post", id: "LIST" }],
     }),
 

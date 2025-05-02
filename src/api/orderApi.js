@@ -82,6 +82,14 @@ export const orderApi = createApi({
       },
       providesTags: [{ type: "Order", id: "ORDER" }],
     }),
+
+    getOrdersByBranch: builder.query({
+      query: (adminId) => ({
+        url: `/branch/${adminId}`,
+        method: "GET",
+      }),
+      providesTags: ["Order"],
+    }),
   }),  
 });
 
@@ -92,5 +100,6 @@ export const {
  useCheckOrderQuery,
  useGetOrderByUserQuery,
  useGetOrdersQuery,
- useGetOrdersPaginationQuery
+ useGetOrdersPaginationQuery,
+ useGetOrdersByBranchQuery
 } = orderApi;

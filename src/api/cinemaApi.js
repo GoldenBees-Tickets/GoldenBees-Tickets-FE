@@ -49,26 +49,19 @@ export const cinemaApi = createApi({
 
     // Lấy danh sách cinema
     getCinemas: builder.query({
-      query: (params) => {
-        const { page = 1, limit = 5, search = "", sort_order = "desc" } = params || {};
-        
-        // Thêm query params 
-        const queryParams = [];
-        if (page) queryParams.push(`page=${page}`);
-        if (limit) queryParams.push(`limit=${limit}`);
-        if (search) queryParams.push(`search=${search}`);
-        if (sort_order) queryParams.push(`sort_order=${sort_order}`);
-        
-        let url = '/';
-        if (queryParams.length > 0) {
-          url += `?${queryParams.join('&')}`;
-        }
-        
-        return url;
-      },
-      // Provides the tag to refetch the cinema list
+      query: ({ page = 1, limit = 5, search = "", sort_order = "desc" } = {}) => ({
+        url: "", // Đảm bảo endpoint gốc đúng
+        method: "GET",
+        params: {
+          page,
+          limit,
+          search,
+          sort_order,
+        },
+      }),
       providesTags: [{ type: "Cinema", id: "LISTCINEMA" }],
     }),
+    
 
     getCinemaByBranchId: builder.query({
       query: (branch_id) => ({
@@ -91,6 +84,15 @@ export const cinemaApi = createApi({
       // Provides the tag to refetch the cinema list
       providesTags: [{ type: "Cinema", id: "LISTCINEMA" }],
     }),
+
+    // Thêm endpoint
+    getCinemasByBranch: builder.query({
+      query: (adminId) => ({
+        url: `/branch/${adminId}`,
+        method: "GET",
+      }),
+      providesTags: ["Cinema"],
+    }),
   }),
 });
 
@@ -102,4 +104,5 @@ export const {
   useGetCinemaByIdQuery,
   useGetCinemaByBranchIdQuery,
   useGetAllCinemaNotPaginationQuery,
+  useGetCinemasByBranchQuery,
 } = cinemaApi;

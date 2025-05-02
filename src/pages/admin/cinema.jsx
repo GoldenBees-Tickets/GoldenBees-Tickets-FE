@@ -10,14 +10,14 @@ export default function Cinema() {
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4 p-4">
-        <h2 className="text-xl font-bold text-gray-800">Danh sách Cinema</h2>
+        <h2 className="text-xl font-bold text-gray-800">Danh sách rạp phim</h2>
         <Button
           type="primary"
           icon={<FiPlus />}
           onClick={() => setIsAddModalOpen(true)}
           className="flex items-center"
         >
-          Thêm Cinema
+          Thêm rạp
         </Button>
       </div>
       

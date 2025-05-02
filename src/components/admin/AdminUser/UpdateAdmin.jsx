@@ -1,35 +1,41 @@
-import { useState, useMemo } from "react";
-import { Form, Input, Select, Button, message } from "antd";
+import { useState, useEffect } from "react";
+import { Form, Input, Button, message } from "antd";
 import {
   EyeOutlined,
   EyeInvisibleOutlined,
 } from "@ant-design/icons";
-import { useGetBranchesQuery } from "@/api/branchApi";
-import { useCreateUserByAdminMutation } from "@/api/userApi";
+import { useUpdateAdminMutation } from "@/api/userApi";
 
-const { Option } = Select;
-
-export default function AddAdmin({ setIsFormCreate }) {
-  const { data: branchesData, isLoading: loadingBranches } =
-    useGetBranchesQuery();
-  const [addBranchAdmin, { isLoading }] = useCreateUserByAdminMutation();
+export default function UpdateAdmin({ onClose, adminData }) {
+  const [updateAdmin, { isLoading }] = useUpdateAdminMutation();
   const [form] = Form.useForm();
   const [passwordVisible, setPasswordVisible] = useState(false);
 
-  const branches = useMemo(() => branchesData?.branches || [], [branchesData]);
+  useEffect(() => {
+    // Thiết lập giá trị ban đầu cho form
+    if (adminData) {
+      form.setFieldsValue({
+        username: adminData.username,
+        email: adminData.email,
+      });
+    }
+  }, [adminData, form]);
 
   const onSubmit = async (values) => {
     try {
-      const response = await addBranchAdmin(values).unwrap();
-      if (response.status === 409 && response.error) {
-        message.error(response.message || "Email đã tồn tại");
-        return;
+      // Nếu mật khẩu trống, không gửi lên
+      const dataToSubmit = { ...values };
+      if (!dataToSubmit.password) {
+        delete dataToSubmit.password;
       }
 
-      if (response.success) {
-        message.success(response.message || "Tạo quản trị viên thành công");
-        setIsFormCreate(false);
-      }
+      const response = await updateAdmin({
+        id: adminData.id,
+        ...dataToSubmit
+      }).unwrap();
+
+      message.success("Cập nhật quản trị viên thành công");
+      onClose();
     } catch (error) {
       message.error("Có lỗi xảy ra: " + (error.data?.message || error.message));
     }
@@ -38,7 +44,7 @@ export default function AddAdmin({ setIsFormCreate }) {
   return (
     <div className="bg-white rounded-lg p-6 relative mx-auto">
       <div className="flex justify-between items-center mb-4">
-        <h4 className="text-lg font-medium m-0">Thêm quản trị viên</h4>
+        <h4 className="text-lg font-medium m-0">Chỉnh sửa quản trị viên</h4>
       </div>
 
       <Form
@@ -47,20 +53,6 @@ export default function AddAdmin({ setIsFormCreate }) {
         onFinish={onSubmit}
         requiredMark={false}
       >
-        <Form.Item
-          name="branch_id"
-          label="Chi nhánh"
-          rules={[{ required: true, message: "Vui lòng chọn chi nhánh" }]}
-        >
-          <Select placeholder="Chọn chi nhánh">
-            {branches?.map((branch) => (
-              <Option key={branch.id} value={branch.id}>
-                {branch.name}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-
         <Form.Item
           name="username"
           label="Tên đăng nhập"
@@ -82,14 +74,13 @@ export default function AddAdmin({ setIsFormCreate }) {
 
         <Form.Item
           name="password"
-          label="Mật khẩu"
+          label="Mật khẩu mới (không điền nếu không đổi)"
           rules={[
-            { required: true, message: "Vui lòng nhập mật khẩu" },
             { min: 6, message: "Mật khẩu phải có ít nhất 6 ký tự" },
           ]}
         >
           <Input.Password
-            placeholder="Nhập mật khẩu"
+            placeholder="Nhập mật khẩu mới"
             iconRender={(visible) =>
               visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
             }
@@ -107,10 +98,10 @@ export default function AddAdmin({ setIsFormCreate }) {
             loading={isLoading}
             className="w-full bg-blue-500"
           >
-            Tạo quản trị viên
+            Cập nhật
           </Button>
         </Form.Item>
       </Form>
     </div>
   );
-}
+} 

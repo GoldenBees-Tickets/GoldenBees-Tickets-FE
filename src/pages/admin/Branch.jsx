@@ -5,13 +5,11 @@ import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/
 import {
   useDeleteBranchMutation,
   useGetBranchesQuery,
-  useCreateBranchMutation,
-  useUpdateBranchMutation,
 } from "../../api/branchApi";
-import Select from "react-select";
-import citiesData from "../../public/vietnamAddress.json";
 import ResponsiveTable from "@/components/admin/ResponsiveTable";
 import PaginationDefault from "@/components/PaginationDefault";
+import AddBranch from "@/components/admin/AdminBranches/AddBranch";
+import EditBranch from "@/components/admin/AdminBranches/editBranch";
 
 const { Search } = Input;
 
@@ -26,13 +24,9 @@ export default function Branch() {
   const [searchText, setSearchText] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
-  const [formData, setFormData] = useState({
-    name: "",
-    city: null
-  });
 
   // Gọi API với các tham số phân trang và lọc
-  const { data: branchData, error, isLoading } = useGetBranchesQuery({
+  const { data: branchData, error, isLoading, refetch } = useGetBranchesQuery({
     page: currentPage,
     limit: pageSize,
     search: searchValue,
@@ -40,8 +34,6 @@ export default function Branch() {
   });
   
   const [deleteBranch] = useDeleteBranchMutation();
-  const [createBranch] = useCreateBranchMutation();
-  const [updateBranch] = useUpdateBranchMutation();
 
   const handleViewDetail = (branch) => {
     setSelectedBranch(branch);
@@ -55,18 +47,10 @@ export default function Branch() {
 
   const handleEdit = (branch) => {
     setSelectedBranch(branch);
-    setFormData({
-      name: branch.name,
-      city: { value: branch.city, label: branch.city }
-    });
     setEditModalOpen(true);
   };
 
   const handleAdd = () => {
-    setFormData({
-      name: "",
-      city: null
-    });
     setIsAddModalOpen(true);
   };
 
@@ -74,64 +58,11 @@ export default function Branch() {
     try {
       await deleteBranch(selectedBranch.id).unwrap();
       message.success("Xóa chi nhánh thành công!");
+      refetch();
     } catch (error) {
       message.error("Xóa chi nhánh thất bại. Vui lòng thử lại!");
     }
     setDeleteModalOpen(false);
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
-
-  const handleCityChange = (selectedOption) => {
-    setFormData({
-      ...formData,
-      city: selectedOption
-    });
-  };
-
-  const handleSubmitAdd = async (e) => {
-    e.preventDefault();
-    if (!formData.name || !formData.city) {
-      message.error("Vui lòng điền đầy đủ thông tin!");
-      return;
-    }
-
-    try {
-      await createBranch({
-        name: formData.name,
-        city: formData.city.value
-      }).unwrap();
-      message.success("Thêm chi nhánh thành công!");
-      setIsAddModalOpen(false);
-    } catch (error) {
-      message.error("Thêm chi nhánh thất bại. Vui lòng thử lại!");
-    }
-  };
-
-  const handleSubmitEdit = async (e) => {
-    e.preventDefault();
-    if (!formData.name || !formData.city) {
-      message.error("Vui lòng điền đầy đủ thông tin!");
-      return;
-    }
-
-    try {
-      await updateBranch({
-        id: selectedBranch.id,
-        name: formData.name,
-        city: formData.city.value
-      }).unwrap();
-      message.success("Cập nhật chi nhánh thành công!");
-      setEditModalOpen(false);
-    } catch (error) {
-      message.error("Cập nhật chi nhánh thất bại. Vui lòng thử lại!");
-    }
   };
 
   const handleSearch = (value) => {
@@ -162,6 +93,16 @@ export default function Branch() {
   const toggleSortOrder = () => {
     setSortOrder(prev => prev === "asc" ? "desc" : "asc");
     setCurrentPage(1);
+  };
+
+  const handleAddModalClose = () => {
+    setIsAddModalOpen(false);
+    refetch();
+  };
+
+  const handleEditModalClose = () => {
+    setEditModalOpen(false);
+    refetch();
   };
 
   const columns = [
@@ -319,98 +260,30 @@ export default function Branch() {
 
       {/* Thêm chi nhánh */}
       <Modal
-        title="Thêm chi nhánh mới"
+        title={null}
         open={isAddModalOpen}
-        onCancel={() => setIsAddModalOpen(false)}
+        onCancel={handleAddModalClose}
         footer={null}
+        styles={{
+          body: { padding: 0 }
+        }}
+        destroyOnClose
       >
-        <form onSubmit={handleSubmitAdd} className="space-y-4 mt-4">
-          <div>
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Tên chi nhánh
-            </label>
-            <input
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="Nhập tên chi nhánh"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Thành phố
-            </label>
-            <Select
-              value={formData.city}
-              onChange={handleCityChange}
-              options={citiesData.map(city => ({ 
-                value: city.Name, 
-                label: city.Name 
-              }))}
-              placeholder="Chọn thành phố"
-              className="react-select-container"
-              classNamePrefix="react-select"
-            />
-          </div>
-          <div className="flex justify-end space-x-2 mt-6">
-            <Button onClick={() => setIsAddModalOpen(false)}>
-              Hủy
-            </Button>
-            <Button type="primary" htmlType="submit" className="bg-blue-500 hover:bg-blue-600">
-              Thêm
-            </Button>
-          </div>
-        </form>
+        <AddBranch handleAddModalClose={handleAddModalClose} />
       </Modal>
 
       {/* Sửa chi nhánh */}
       <Modal
-        title="Sửa chi nhánh"
+        title={null}
         open={isEditModalOpen}
-        onCancel={() => setEditModalOpen(false)}
+        onCancel={handleEditModalClose}
         footer={null}
+        styles={{
+          body: { padding: 0 }
+        }}
+        destroyOnClose
       >
-        <form onSubmit={handleSubmitEdit} className="space-y-4 mt-4">
-          <div>
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Tên chi nhánh
-            </label>
-            <input
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="Nhập tên chi nhánh"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Thành phố
-            </label>
-            <Select
-              value={formData.city}
-              onChange={handleCityChange}
-              options={citiesData.map(city => ({ 
-                value: city.name, 
-                label: city.name 
-              }))}
-              placeholder="Chọn thành phố"
-              className="react-select-container"
-              classNamePrefix="react-select"
-            />
-          </div>
-          <div className="flex justify-end space-x-2 mt-6">
-            <Button onClick={() => setEditModalOpen(false)}>
-              Hủy
-            </Button>
-            <Button type="primary" htmlType="submit" className="bg-blue-500 hover:bg-blue-600">
-              Lưu
-            </Button>
-          </div>
-        </form>
+        <EditBranch branch={selectedBranch} handleAddModalClose={handleEditModalClose} />
       </Modal>
 
       {/* Xác nhận xóa */}

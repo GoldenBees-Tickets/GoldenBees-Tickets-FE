@@ -1,24 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Form, Input, Button, Spin, message } from "antd";
-import { useAddPriceSettingMutation } from "@/api/priceSettingApi";
+import { useUpdatePriceSettingMutation } from "@/api/priceSettingApi";
 
-export default function AddPriceSetting({ onCancel }) {
+export default function UpdatePriceSetting({ onCancel, currentData }) {
   const [form] = Form.useForm();
   const [submitLoading, setSubmitLoading] = useState(false);
-
-  const [addPriceSetting] = useAddPriceSettingMutation();
+  const [updatePriceSetting] = useUpdatePriceSettingMutation();
+  // Set form values from existing data
+  useEffect(() => {
+    if (currentData) {
+      form.setFieldsValue({
+        base_ticket_price: currentData.base_ticket_price,
+        weekend_ticket_price: currentData.weekend_ticket_price,
+        holiday_ticket_price: currentData.holiday_ticket_price,
+      });
+    }
+  }, [currentData, form]);
 
   const onFinish = async (values) => {
     try {
       setSubmitLoading(true);
       
-      // Add new price setting
-      await addPriceSetting(values).unwrap();
-      message.success("Thêm cài đặt giá vé thành công!");
+      if (!currentData || !currentData.id) {
+        message.error("Không tìm thấy thông tin giá vé để cập nhật!");
+        return;
+      }
       
+      // Update existing price setting
+      await updatePriceSetting({
+        id: currentData.id,
+        ...values
+      }).unwrap();
+      
+      message.success("Cập nhật giá vé thành công!");
       onCancel(); // Close modal on success
     } catch (error) {
-      message.error(error?.data?.message || "Có lỗi xảy ra khi thêm mới giá vé!");
+      message.error(error?.data?.message || "Có lỗi xảy ra khi cập nhật giá vé!");
     } finally {
       setSubmitLoading(false);
     }
@@ -32,6 +49,11 @@ export default function AddPriceSetting({ onCancel }) {
         onFinish={onFinish}
         className="mt-4"
         requiredMark={false}
+        initialValues={{
+          base_ticket_price: currentData?.base_ticket_price || 0,
+          weekend_ticket_price: currentData?.weekend_ticket_price || 0,
+          holiday_ticket_price: currentData?.holiday_ticket_price || 0,
+        }}
       >
         <Form.Item
           name="base_ticket_price"
@@ -102,11 +124,11 @@ export default function AddPriceSetting({ onCancel }) {
               loading={submitLoading}
               className="bg-blue-700"
             >
-              Thêm mới
+              Cập nhật
             </Button>
           </div>
         </Form.Item>
       </Form>
     </Spin>
   );
-}
+} 

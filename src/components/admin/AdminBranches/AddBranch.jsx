@@ -1,56 +1,27 @@
-import { useState } from "react";
-import Select from "react-select";
-import citiesData from "../../../public/vietnamAddress.json";
-import { useCreateBranchMutation } from "../../../api/branchApi";
-import { useNavigate } from "react-router-dom";
+import { Select, Input, Form, Button, Typography, Space } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import citiesData from "@/public/vietnamAddress.json";
+import { useCreateBranchMutation } from "@/api/branchApi";
 import { toast } from "react-toastify";
 
-export default function AddBranch() {
-  const [Add] = useCreateBranchMutation();
-  const navigate = useNavigate();
-  const [selectedCity, setSelectedCity] = useState(null);
-  const [name, setName] = useState("");
-  const [errors, setErrors] = useState({
-    name: "",
-    city: "",
-  });
+const { Option } = Select;
+const { Title } = Typography;
 
-  const handleCityChange = (selectedOption) => {
-    setSelectedCity(selectedOption);
-    setErrors((prev) => ({ ...prev, city: "" }));
-  };
+export default function AddBranch({handleAddModalClose}) {
+  const [form] = Form.useForm();
+  const [Add, { isLoading }] = useCreateBranchMutation();
 
-  const addBranch = async (e) => {
-    e.preventDefault();
-    setErrors({ name: "", city: "" });
-
-    let isValid = true;
-
-    // Validation
-    if (!name) {
-      setErrors((prev) => ({ ...prev, name: "Tên là bắt buộc." }));
-      isValid = false;
-    }
-
-    if (!selectedCity) {
-      setErrors((prev) => ({ ...prev, city: "Thành phố là bắt buộc." }));
-      isValid = false;
-    }
-
-    if (!isValid) return;
-
-    const branchData = {
-      name: name,
-      city: selectedCity.label,
-    };
-
+  const onFinish = async (values) => {    
     try {
+      const branchData = {
+        name: values.name,
+        city: values.city,
+      };
+      
       await Add(branchData).unwrap();
       toast.success("Thêm chi nhánh thành công!");
-      setName("");
-      setSelectedCity(null);
-
-      navigate("/admin/branches");
+      form.resetFields();
+      handleAddModalClose(); 
     } catch (error) {
       console.error("Thêm chi nhánh thất bại:", error);
       toast.error("Thêm chi nhánh thất bại. Vui lòng thử lại.");
@@ -58,47 +29,67 @@ export default function AddBranch() {
   };
 
   return (
-    <>
-      <form onSubmit={addBranch} className="font-[sans-serif] text-[#333] max-w-4xl mx-auto px-6 my-6">
-        <h1 className="text-4xl font-bold mb-12 text-center">Thêm chi nhánh mới</h1>
-        <div className="grid sm:grid-cols-2 gap-10">
-          <div className="flex flex-col">
-            <label className="text-[13px] mb-2">Tên</label>
-            <input
-              type="text"
-              name="name"
-              onChange={(e) => setName(e.target.value)}
-              value={name}
-              placeholder="Nhập tên"
-              className="px-2 pt-5 pb-2 bg-white w-full text-sm border-b-2 border-gray-100 focus:border-[#333] outline-none"
-            />
-            {errors.name && (
-              <p className="text-red-500 text-xs mt-1">{errors.name}</p>
-            )}
-          </div>
-          <div className="flex flex-col">
-            <label className="text-[13px] mb-2">Thành phố</label>
-            <Select
-              className="w-full"
-              options={citiesData.map(city => ({ value: city.Name, label: city.Name, id: city.Id }))}
-              onChange={handleCityChange}
-              value={selectedCity}
-              placeholder="Chọn thành phố"
-              isClearable
-            />
-            {errors.city && (
-              <p className="text-red-500 text-xs mt-1">{errors.city}</p>
-            )}
-          </div>
-        </div>
-        <button
-          type="submit"
-          className="mt-10 px-2 py-2.5 w-full rounded-sm text-sm bg-[#333] hover:bg-[#222] text-white"
+    <div className="mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <Title level={4}>Thêm Chi Nhánh Mới</Title>
+      </div>
+
+      <div>
+        <Form
+          form={form}
+          name="addBranch"
+          onFinish={onFinish}
+          layout="vertical"
+          requiredMark={false}
         >
-          Gửi
-        </button>
-      </form>
-    </>
+          <div>
+            <Form.Item
+              name="name"
+              label="Tên chi nhánh"
+              rules={[{ required: true, message: 'Tên chi nhánh là bắt buộc' }]}
+            >
+              <Input placeholder="Nhập tên chi nhánh" />
+            </Form.Item>
+
+            <Form.Item
+              name="city"
+              label="Thành phố"
+              rules={[{ required: true, message: 'Thành phố là bắt buộc' }]}
+            >
+              <Select
+                showSearch
+                placeholder="Chọn thành phố"
+                optionFilterProp="children"
+                filterOption={(input, option) => 
+                  option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
+                allowClear
+              >
+                {citiesData.map(city => (
+                  <Option key={city.Id} value={city.Name}>
+                    {city.Name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </div>
+
+          <Form.Item className="mb-0 mt-6">
+            <Space className="w-full justify-end">
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                loading={isLoading}
+                icon={<PlusOutlined />}
+                className="bg-blue-500"
+              >
+                Thêm chi nhánh
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </div>
+    </div>
   );
 }
 
