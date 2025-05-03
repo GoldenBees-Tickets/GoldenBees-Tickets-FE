@@ -110,7 +110,7 @@ export default function Login() {
         setServerError("Sai tài khoản hoặc mật khẩu!");
       }
     } catch (error) {
-      console.error("Google login error:", error);
+      console.error("Lỗi đăng nhập Google:", error);
       toast.error("Đăng nhập bằng Google thất bại. Vui lòng thử lại sau.");
     } finally {
       setIsLoading(false);
@@ -180,10 +180,10 @@ export default function Login() {
                   <div className="relative flex items-center">
                     <input
                       {...register("email", {
-                        required: "Email is required",
+                        required: "Email là bắt buộc",
                         validate: {
                           validFormat: (value) =>
-                            validateEmail(value) || "Invalid email format",
+                            validateEmail(value) || "Email không đúng định dạng",
                         },
                       })}
                       type="text"
@@ -235,10 +235,10 @@ export default function Login() {
                   <div className="relative flex items-center">
                     <input
                       {...register("password", {
-                        required: "Password is required",
+                        required: "Mật khẩu là bắt buộc",
                         minLength: {
                           value: 6,
-                          message: "Password must be at least 6 characters",
+                          message: "Mật khẩu phải có ít nhất 6 ký tự",
                         },
                       })}
                       type={showPassword ? "text" : "password"}
@@ -331,9 +331,14 @@ export default function Login() {
                     <GoogleLogin
                       onSuccess={handleGoogleLogin}
                       onError={(error) =>
-                        console.error("Google login error:", error)
+                        console.error("Lỗi đăng nhập Google:", error)
                       }
                       useOneTap
+                      theme="outline"
+                      text="signin_with"
+                      shape="rectangular"
+                      locale="vi"
+                      logo_alignment="center"
                     />
                   </div>
                 </div>

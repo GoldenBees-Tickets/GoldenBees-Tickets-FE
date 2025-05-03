@@ -103,10 +103,10 @@ export default function Register() {
                 <div className="relative flex items-center">
                   <input
                     {...register("username", {
-                      required: "Username is required",
+                      required: "Tên người dùng là bắt buộc",
                       minLength: {
                         value: 3,
-                        message: "Username must be at least 3 characters",
+                        message: "Tên người dùng phải có ít nhất 3 ký tự",
                       },
                     })}
                     type="text"
@@ -138,10 +138,10 @@ export default function Register() {
                 <div className="relative flex items-center">
                   <input
                     {...register("email", {
-                      required: "Email is required",
+                      required: "Email là bắt buộc",
                       validate: {
                         validFormat: (value) =>
-                          validateEmail(value) || "Invalid email format",
+                          validateEmail(value) || "Email không đúng định dạng",
                       },
                     })}
                     type="text"
@@ -194,10 +194,10 @@ export default function Register() {
                 <div className="relative flex items-center">
                   <input
                     {...register("password", {
-                      required: "Password is required",
+                      required: "Mật khẩu là bắt buộc",
                       minLength: {
                         value: 6,
-                        message: "Password must be at least 6 characters",
+                        message: "Mật khẩu phải có ít nhất 6 ký tự",
                       },
                     })}
                     type={showPassword ? "text" : "password"}
@@ -231,10 +231,10 @@ export default function Register() {
                 <div className="relative flex items-center">
                   <input
                     {...register("confirmPassword", {
-                      required: "Please confirm your password",
+                      required: "Vui lòng xác nhận mật khẩu",
                       validate: (value) =>
                         value === watch("password") ||
-                        "The confirmation password does not match",
+                        "Mật khẩu xác nhận không khớp",
                     })}
                     type={showConfirmPassword ? "text" : "password"}
                     className="w-full text-sm text-gray-800 border-b border-orange-200 focus:border-orange-500 px-2 py-2 outline-none transition-colors duration-300"
