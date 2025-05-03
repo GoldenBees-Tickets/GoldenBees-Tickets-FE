@@ -1,8 +1,8 @@
 import { useGetOrdersQuery, useGetOrdersByBranchQuery } from "@/api/orderApi";
-import { useGetBranchesQuery, useGetBranchesByAdminQuery } from "@/api/branchApi";
+import { useGetBranchesQuery } from "@/api/branchApi";
 import { useGetAllMoviesByAdminQuery, useGetMoviesByBranchQuery } from "@/api/movieApi";
 import { useGetAllGenresForDashboardQuery } from "@/api/genreApi";
-import { useGetAllCinemaNotPaginationQuery, useGetCinemasByBranchQuery } from "@/api/cinemaApi";
+import { useGetAllCinemaNotPaginationQuery, useGetCinemasForDashboardByBranchQuery } from "@/api/cinemaApi";
 import { useMemo } from "react";
 
 // Hàm kiểm tra role
@@ -26,11 +26,11 @@ export const useDashboardData = (userRole, userId) => {
     data: allBranchesData, 
     isLoading: allBranchesLoading 
   } = useGetBranchesQuery(undefined, { skip: !isAdmin });
-
+  
   const { 
     data: adminBranchData, 
     isLoading: adminBranchLoading 
-  } = useGetBranchesByAdminQuery(userId, { skip: !isBranchAdmin });
+  } = useGetBranchesQuery(undefined, { skip: !isBranchAdmin });
 
   // Movies
   const { 
@@ -58,8 +58,8 @@ export const useDashboardData = (userRole, userId) => {
   const { 
     data: branchCinemasData, 
     isLoading: branchCinemasLoading 
-  } = useGetCinemasByBranchQuery(userId, { skip: !isBranchAdmin });
-
+  } = useGetCinemasForDashboardByBranchQuery(userId, { skip: !isBranchAdmin });
+  
   // Tổng hợp dữ liệu
   const orders = isAdmin ? adminOrdersData : branchOrdersData;
   const branches = isAdmin ? allBranchesData : adminBranchData;
@@ -276,6 +276,127 @@ export const useGenreChart = (movies, genres) => {
       .sort((a, b) => b.value - a.value)
       .slice(0, 5); // Lấy 5 thể loại phổ biến nhất
   }, [genres, movies]);
+};
+
+// Hook phân tích hiệu suất chi nhánh cho admin chi nhánh
+export const useBranchPerformance = (orders, cinemas, movies, timeFrame) => {
+  return useMemo(() => {
+    if (!orders?.data || !cinemas?.data) return null;
+
+    // Dữ liệu phân tích theo thời gian
+    const timeAnalysis = {
+      totalRevenue: 0,
+      avgTicketPrice: 0,
+      totalOrders: 0,
+      avgOrderValue: 0,
+      growthRate: 0,
+      peakHours: [], // Giờ có doanh thu cao
+    };
+
+    // Dữ liệu phân tích theo phòng chiếu
+    const roomAnalysis = {};
+    
+    // Dữ liệu phân tích theo phim 
+    const movieAnalysis = {};
+
+    // Dữ liệu phân tích theo khung giờ
+    const hourlyData = Array(24).fill(0).map(() => ({ revenue: 0, count: 0 }));
+
+    // Tính tổng doanh thu và số lượng đơn hàng
+    orders.data.forEach(order => {
+      if (order.status === "paid") {
+        const orderTotal = parseInt(order.total || 0);
+        const orderDate = new Date(order.order_date);
+        const hour = orderDate.getHours();
+        
+        // Cập nhật thông tin tổng quan
+        timeAnalysis.totalRevenue += orderTotal;
+        timeAnalysis.totalOrders += 1;
+        
+        // Cập nhật thông tin theo giờ
+        hourlyData[hour].revenue += orderTotal;
+        hourlyData[hour].count += 1;
+        
+        // Cập nhật thông tin theo phòng chiếu
+        if (order.showtime && order.showtime.room) {
+          const roomId = order.showtime.room.id;
+          const roomName = order.showtime.room.name;
+          
+          if (!roomAnalysis[roomId]) {
+            roomAnalysis[roomId] = {
+              id: roomId,
+              name: roomName,
+              revenue: 0,
+              count: 0,
+              seatOccupancy: 0,
+              ticketCount: 0,
+            };
+          }
+          
+          roomAnalysis[roomId].revenue += orderTotal;
+          roomAnalysis[roomId].count += 1;
+          roomAnalysis[roomId].ticketCount += (order.seats?.length || 0);
+        }
+        
+        // Cập nhật thông tin theo phim
+        if (order.showtime && order.showtime.movie) {
+          const movieId = order.showtime.movie.id;
+          const movieName = order.showtime.movie.title;
+          
+          if (!movieAnalysis[movieId]) {
+            movieAnalysis[movieId] = {
+              id: movieId,
+              name: movieName,
+              revenue: 0,
+              count: 0,
+              ticketCount: 0,
+            };
+          }
+          
+          movieAnalysis[movieId].revenue += orderTotal;
+          movieAnalysis[movieId].count += 1;
+          movieAnalysis[movieId].ticketCount += (order.seats?.length || 0);
+        }
+      }
+    });
+    
+    // Tìm giờ cao điểm (5 giờ có doanh thu cao nhất)
+    timeAnalysis.peakHours = hourlyData
+      .map((data, hour) => ({ hour, revenue: data.revenue, count: data.count }))
+      .filter(item => item.count > 0)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5)
+      .map(item => ({
+        ...item,
+        hourDisplay: `${String(item.hour).padStart(2, '0')}:00 - ${String(item.hour + 1).padStart(2, '0')}:00`
+      }));
+    
+    // Tính giá vé trung bình và giá trị đơn hàng trung bình
+    if (timeAnalysis.totalOrders > 0) {
+      timeAnalysis.avgOrderValue = Math.round(timeAnalysis.totalRevenue / timeAnalysis.totalOrders);
+      
+      // Tổng số vé bán ra
+      const totalTickets = Object.values(roomAnalysis).reduce((sum, room) => sum + room.ticketCount, 0);
+      timeAnalysis.avgTicketPrice = totalTickets > 0 
+        ? Math.round(timeAnalysis.totalRevenue / totalTickets)
+        : 0;
+    }
+    
+    // Chuyển đổi phân tích phòng chiếu và phim thành mảng để dễ sử dụng
+    const roomAnalysisArray = Object.values(roomAnalysis)
+      .sort((a, b) => b.revenue - a.revenue);
+    
+    const movieAnalysisArray = Object.values(movieAnalysis)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10); // Lấy top 10 phim có doanh thu cao nhất
+    
+    return {
+      timeAnalysis,
+      roomAnalysisArray,
+      movieAnalysisArray,
+      hourlyData,
+    };
+  }, [orders, cinemas, movies, timeFrame]);
 };
 
 // Xử lý dữ liệu biểu đồ doanh thu theo chi nhánh

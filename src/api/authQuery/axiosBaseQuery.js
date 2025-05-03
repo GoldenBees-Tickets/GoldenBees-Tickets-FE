@@ -19,7 +19,6 @@ const axiosBaseQuery =
         // Khi sử dụng FormData, không cần set Content-Type, axios sẽ tự động thêm
         // header với boundary chính xác
         headers = {};
-        console.log("Sending FormData:", requestData instanceof FormData ? "FormData object" : requestData);
       } else {
         headers["Content-Type"] = "application/json";
       }

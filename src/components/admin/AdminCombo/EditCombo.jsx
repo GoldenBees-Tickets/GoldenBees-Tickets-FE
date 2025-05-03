@@ -76,9 +76,6 @@ const EditCombo = ({ combo, setEditForm }) => {
   // Đảm bảo truy cập đúng cấu trúc dữ liệu API trả về
   const foodAndDrinks = foodAndDrinkData?.items || [];
   
-  console.log("Combo data received:", combo);
-  console.log("Food and Drinks available:", foodAndDrinks);
-  
   const [update] = useUpdateComboMutation();
   const [name, setName] = useState(combo.name);
   const [price, setPrice] = useState(combo.price);
@@ -181,7 +178,6 @@ const EditCombo = ({ combo, setEditForm }) => {
 
     try {
       setIsSubmitting(true);
-      console.log("Form data:", { name, price, selectedItems });
       
       // Tạo FormData object
       const formData = new FormData();
@@ -190,7 +186,6 @@ const EditCombo = ({ combo, setEditForm }) => {
       
       if (profile_picture) {
         formData.append("profile_picture", profile_picture);
-        console.log("Adding image to form data:", profile_picture.name);
       }
       
       // Chuyển đổi mảng selectedItems thành JSON string
@@ -200,18 +195,12 @@ const EditCombo = ({ combo, setEditForm }) => {
       }));
       formData.append("items", JSON.stringify(itemsForServer));
       
-      // Log FormData để kiểm tra
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${key === 'profile_picture' ? 'File Object' : value}`);
-      }
-      
       // Gọi API với FormData
       const response = await update({ 
         id: combo.id, 
         data: formData 
       }).unwrap();
       
-      console.log("API Response:", response);
       toast.success(response?.message || "Cập nhật combo thành công!");
       setEditForm(false);
     } catch (error) {

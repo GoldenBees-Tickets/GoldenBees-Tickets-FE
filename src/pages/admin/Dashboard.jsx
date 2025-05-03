@@ -7,6 +7,7 @@ import StatsCards from "@/components/admin/dashboard/StatsCards";
 import RevenueChart from "@/components/admin/dashboard/RevenueChart";
 import GenreChart from "@/components/admin/dashboard/GenreChart";
 import BranchRevenueChart from "@/components/admin/dashboard/BranchRevenueChart";
+import BranchPerformanceChart from "@/components/admin/dashboard/BranchPerformanceChart";
 import CityChart from "@/components/admin/dashboard/CityChart";
 import RecentOrders from "@/components/admin/dashboard/RecentOrders";
 
@@ -18,6 +19,7 @@ import {
   useGenreChart,
   useBranchRevenueChart,
   useCityChart,
+  useBranchPerformance,
 } from "@/components/admin/dashboard/apiHooks";
 
 export default function Dashboard() {
@@ -30,6 +32,8 @@ export default function Dashboard() {
     : null;
   const userRole = user?.role || "";
   const userId = user?.id || "";
+  const isAdmin = userRole === "admin";
+  const isBranchAdmin = userRole === "branch_admin";
 
   // Lấy dữ liệu dựa trên quyền hạn
   const { orders, branches, movies, genres, cinemas, isLoading } = useDashboardData(userRole, userId);
@@ -38,8 +42,13 @@ export default function Dashboard() {
   const { stats, movieStats, formatCurrency } = useStatistics(orders, movies, branches, cinemas);
   const revenueByTime = useRevenueChart(orders, timeFrame);
   const genreChartData = useGenreChart(movies, genres);
+  
+  // Dữ liệu cho admin tổng
   const branchRevenueData = useBranchRevenueChart(branches, orders);
   const cinemaByCity = useCityChart(cinemas);
+  
+  // Dữ liệu chi tiết cho admin chi nhánh
+  const branchPerformance = useBranchPerformance(orders, cinemas, movies, timeFrame);
 
   if (isLoading) {
     return <Spin fullscreen tip="Đang tải dữ liệu..." />;
@@ -53,7 +62,7 @@ export default function Dashboard() {
         totalOrders={stats.totalOrders}
         totalMovies={stats.totalMovies}
         totalCinemas={stats.totalCinemas}
-        totalBranches={stats.totalBranches}
+        totalBranches={isAdmin ? stats.totalBranches : 1}
         paidOrders={stats.paidOrders}
         movieStats={movieStats}
         formatCurrency={formatCurrency}
@@ -77,20 +86,39 @@ export default function Dashboard() {
         </Col>
       </Row>
 
-      {/* Secondary Content */}
+      {/* Secondary Content - Khác nhau giữa admin tổng và admin chi nhánh */}
       <Row gutter={[16, 16]} className="mb-8">
-        {/* Biểu đồ cột - Doanh thu theo chi nhánh */}
-        <Col xs={24} lg={12}>
-          <BranchRevenueChart
-            branchRevenueData={branchRevenueData}
-            formatCurrency={formatCurrency}
-          />
-        </Col>
+        {isAdmin ? (
+          // Nội dung cho admin tổng
+          <>
+            {/* Biểu đồ cột - Doanh thu theo chi nhánh */}
+            <Col xs={24} lg={12}>
+              <BranchRevenueChart
+                branchRevenueData={branchRevenueData}
+                formatCurrency={formatCurrency}
+              />
+            </Col>
 
-        {/* Biểu đồ cột - Rạp theo thành phố */}
-        <Col xs={24} lg={12}>
-          <CityChart cinemaByCity={cinemaByCity} />
-        </Col>
+            {/* Biểu đồ cột - Rạp theo thành phố */}
+            <Col xs={24} lg={12}>
+              <CityChart cinemaByCity={cinemaByCity} />
+            </Col>
+          </>
+        ) : (
+          // Nội dung cho admin chi nhánh
+          <>
+            {/* Biểu đồ hiệu suất chi nhánh */}
+            <Col xs={24} lg={24}>
+              <BranchPerformanceChart
+                branchData={branches}
+                cinemas={cinemas}
+                orders={orders}
+                timeFrame={timeFrame}
+                formatCurrency={formatCurrency}
+              />
+            </Col>
+          </>
+        )}
       </Row>
 
       {/* Recent Orders */}

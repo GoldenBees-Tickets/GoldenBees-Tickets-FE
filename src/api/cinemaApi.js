@@ -93,6 +93,14 @@ export const cinemaApi = createApi({
       }),
       providesTags: ["Cinema"],
     }),
+    
+    getCinemasForDashboardByBranch: builder.query({
+      query: (branchId) => ({
+        url: `/dashboard/${branchId}`,
+        method: "GET",
+      }),
+      providesTags: ["Cinema"],
+    }),
   }),
 });
 
@@ -105,4 +113,5 @@ export const {
   useGetCinemaByBranchIdQuery,
   useGetAllCinemaNotPaginationQuery,
   useGetCinemasByBranchQuery,
+  useGetCinemasForDashboardByBranchQuery,
 } = cinemaApi;

@@ -17,7 +17,6 @@ const AddFoodAndDrink = ({ setAddForm }) => {
   const handleSubmit = async (values) => {
     try {
       setIsSubmitting(true);
-      console.log("Form values:", values);
       
       // Tạo FormData object
       const formData = new FormData();
@@ -27,17 +26,10 @@ const AddFoodAndDrink = ({ setAddForm }) => {
       
       if (imageFile) {
         formData.append("profile_picture", imageFile);
-        console.log("Adding image to form data:", imageFile.name);
-      }
-      
-      // Log FormData để kiểm tra
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${key === 'profile_picture' ? 'File Object' : value}`);
       }
 
       // Gọi API với FormData
       const response = await addFoodAndDrink(formData).unwrap();
-      console.log("API Response:", response);
       toast.success("Thêm món thành công!");
       setAddForm(false);
     } catch (error) {
@@ -51,7 +43,6 @@ const AddFoodAndDrink = ({ setAddForm }) => {
   // Xử lý việc chọn file
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    console.log("File selected:", file);
     
     if (file) {
       setImageFile(file);
@@ -161,10 +152,6 @@ const AddFoodAndDrink = ({ setAddForm }) => {
       </Form.Item>
     </Form>
   );
-};
-
-AddFoodAndDrink.propTypes = {
-  setAddForm: PropTypes.func.isRequired,
 };
 
 export default AddFoodAndDrink;
