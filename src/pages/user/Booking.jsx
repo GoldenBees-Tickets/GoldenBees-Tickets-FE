@@ -52,11 +52,6 @@ export default function Booking() {
 
   const { data: listSeatTypes } = useGetListSeatTypesQuery();
 
-  const allSeats = useMemo(
-    () => listSeats?.data?.Seats || [],
-    [listSeats?.data?.Seats]
-  );
-
   // State hooks
   const [selectedFoodItems, setSelectedFoodItems] = useState([]);
   const [discountCode, setDiscountCode] = useState("");
@@ -119,6 +114,7 @@ export default function Booking() {
       // Kiểm tra đăng nhập
       if (!user_id) {
         toast.error("Vui lòng đăng nhập để đặt ghế!");
+        navigate("/login");
         return;
       }
 
@@ -137,17 +133,6 @@ export default function Booking() {
     [user_id, hasActiveReservation, activeReservationInfo, isLoading]
   );
 
-  // Hiện thông báo khi có đơn hàng ở suất chiếu khác
-  const promptForOtherShowtimeReservation = useCallback(() => {
-    toast.warn(
-      `Bạn đang có đơn hàng chưa thanh toán ở suất chiếu khác. Vui lòng thanh toán hoặc hủy đơn hàng đó trước.`
-    );
-    
-    // Hiển thị dialog xác nhận
-    if (window.confirm("Bạn muốn đến trang thanh toán đơn hàng đang xử lý không?")) {
-      navigate(`/payment/${activeReservationInfo.showtime.id}`);
-    }
-  }, [activeReservationInfo, navigate]);
 
   // Chọn hoặc bỏ chọn ghế
   const toggleSeatSelection = useCallback(

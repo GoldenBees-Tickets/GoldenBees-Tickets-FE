@@ -77,6 +77,15 @@ export const postApi = createApi({
       }),
       invalidatesTags: [{ type: "Post", id: "LIST" }],
     }),
+
+    getAllPostsNotPage: builder.query({
+      query: () => ({
+        url: "/getAll",
+        method: "GET",
+        useHttpClient: false,
+      }),
+      providesTags: [{ type: "Post", id: "ALL" }],
+    }),
   }),
 });
 
@@ -87,5 +96,6 @@ export const {
   useSearchPostsQuery,
   useCreatePostMutation,
   useUpdatePostMutation,
-  useDeletePostMutation
+  useDeletePostMutation,
+  useGetAllPostsNotPageQuery,
 } = postApi; 

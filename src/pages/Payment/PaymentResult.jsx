@@ -70,7 +70,7 @@ const PaymentResult = () => {
         setCountdown(countdown - 1);
       }, 1000);
     } else if (paymentStatus.status === "success" && countdown === 0) {
-      navigate("/");
+      window.location.replace("/");
     }
     
     return () => clearTimeout(timer);
@@ -114,8 +114,10 @@ const PaymentResult = () => {
       localStorage.removeItem('reservation');
       localStorage.removeItem('payment_info');
       localStorage.removeItem('promotion_id');
-      
-      // Hiển thị thông báo thành công
+      localStorage.removeItem('booking_cart');
+      localStorage.removeItem('finalPrice');
+      sessionStorage.clear();
+
       toast.success("Đặt vé thành công!");
     } else {
       // Trường hợp thanh toán thất bại

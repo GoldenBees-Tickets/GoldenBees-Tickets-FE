@@ -43,21 +43,21 @@ export const orderApi = createApi({
       query: (id) => ({
         url: `/status/${id}` 
       }),
-      providesTags: ["Order"],
+      providesTags: [{ type: "Order", id: "ORDER" }],
     }),
 
     getOrderByUser: builder.query({
       query: (user_id) => ({
         url: `/${user_id}` 
       }),
-      providesTags: ["Order"],
+      providesTags: [{ type: "Order", id: "ORDER" }],
     }),
 
     getOrders: builder.query({
       query: () => ({
         url: `/` 
       }),
-      providesTags: ["Order"],
+      providesTags: [{ type: "Order", id: "ORDER" }],
     }),
 
     getOrdersPagination: builder.query({
@@ -88,7 +88,7 @@ export const orderApi = createApi({
         url: `/branch/${adminId}`,
         method: "GET",
       }),
-      providesTags: ["Order"],
+      providesTags: [{ type: "Order", id: "ORDER" }],
     }),
   }),  
 });

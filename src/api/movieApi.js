@@ -83,13 +83,11 @@ export const movieApi = createApi({
     }),
 
     getAllMoviesByUser: builder.query({
-      query: () => {
-        return {
-          url: "/getAll",
-          method: "GET",
-          useHttpClient: false,
-        };
-      },
+      query: () => ({
+        url: "/getAll",
+        method: "GET",
+        useHttpClient: false,
+      }),
       providesTags: [{ type: "Movie", id: "LISTMOVIE" }],
     }),
 
@@ -112,7 +110,7 @@ export const movieApi = createApi({
         url: `/branch/${adminId}`,
         method: "GET",
       }),
-      providesTags: ["Movie"],
+      providesTags: [{ type: "Movie", id: "LISTMOVIE" }],
     }),
 
   }),
