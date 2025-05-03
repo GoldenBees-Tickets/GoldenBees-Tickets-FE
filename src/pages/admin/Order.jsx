@@ -3,7 +3,7 @@ import { FiPlus } from "react-icons/fi";
 import { Table, Tag, Button, Modal, Spin, message, Space, Input } from "antd";
 import { FiEdit2, FiTrash2, FiEye } from "react-icons/fi";
 import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
-import { useGetOrdersPaginationQuery } from "@/api/orderApi";
+import { useGetOrdersPaginationQuery, useGetListOrdersByBranchIdQuery } from "@/api/orderApi";
 import PaginationDefault from "@/components/PaginationDefault";
 
 const { Search } = Input;
@@ -18,13 +18,46 @@ export default function Order() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isDetailModalOpen, setDetailModalOpen] = useState(false);
   
-  // Gọi API với các tham số
-  const { data: orderData, isLoading, error, refetch } = useGetOrdersPaginationQuery({
+  // Lấy thông tin người dùng từ localStorage
+  const user = localStorage.getItem("user")
+    ? JSON.parse(localStorage.getItem("user"))
+    : null;
+  const userRole = user?.role || "";
+  const userId = user?.id || "";
+  const isAdmin = userRole === "admin";
+  const isBranchAdmin = userRole === "branch_admin";
+  
+  // Gọi API với các tham số phân quyền
+  const { 
+    data: adminOrderData, 
+    isLoading: adminIsLoading, 
+    error: adminError, 
+    refetch: adminRefetch 
+  } = useGetOrdersPaginationQuery({
     page: currentPage,
     limit: pageSize,
     search: searchValue,
     sort_order: sortOrder
-  });  
+  }, { skip: !isAdmin });
+  
+  const { 
+    data: branchOrderData, 
+    isLoading: branchIsLoading, 
+    error: branchError, 
+    refetch: branchRefetch 
+  } = useGetListOrdersByBranchIdQuery({
+    id: userId,
+    page: currentPage,
+    limit: pageSize,
+    search: searchValue,
+    sort_order: sortOrder
+  }, { skip: !isBranchAdmin });
+  
+  // Tổng hợp dữ liệu dựa trên quyền hạn
+  const orderData = isAdmin ? adminOrderData : branchOrderData;
+  const isLoading = isAdmin ? adminIsLoading : branchIsLoading;
+  const error = isAdmin ? adminError : branchError;
+  const refetch = isAdmin ? adminRefetch : branchRefetch;
   
   const handleViewDetail = (order) => {
     setSelectedOrder(order);
@@ -172,7 +205,12 @@ export default function Order() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Quản lý đơn hàng</h1>
-            <p className="mt-1 text-sm text-gray-600">Xem và quản lý tất cả đơn hàng từ khách hàng</p>
+            <p className="mt-1 text-sm text-gray-600">
+              {isAdmin 
+                ? "Xem và quản lý tất cả đơn hàng từ khách hàng" 
+                : "Xem và quản lý đơn hàng của chi nhánh bạn"
+              }
+            </p>
           </div>
         </div>
 
