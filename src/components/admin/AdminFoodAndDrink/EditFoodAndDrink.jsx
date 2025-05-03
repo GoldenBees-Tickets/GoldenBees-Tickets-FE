@@ -30,8 +30,6 @@ const EditFoodAndDrink = ({ setEditForm, editItem }) => {
   const handleSubmit = async (values) => {
     try {
       setIsSubmitting(true);
-      console.log("Form values:", values);
-      
       // Tạo FormData object
       const formData = new FormData();
       formData.append("name", values.name || "");
@@ -40,16 +38,9 @@ const EditFoodAndDrink = ({ setEditForm, editItem }) => {
       
       if (imageFile) {
         formData.append("profile_picture", imageFile);
-        console.log("Adding image to form data:", imageFile.name);
       } else if (!isDefaultImage && !imagePreview) {
         // Gửi null khi người dùng đã xóa ảnh
         formData.append("profile_picture", "null");
-        console.log("Removing image");
-      }
-      
-      // Log FormData để kiểm tra
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${key === 'profile_picture' ? 'File Object' : value}`);
       }
 
       // Gọi API với FormData
@@ -58,7 +49,6 @@ const EditFoodAndDrink = ({ setEditForm, editItem }) => {
         data: formData 
       }).unwrap();
       
-      console.log("API Response:", response);
       toast.success("Cập nhật món thành công!");
       setEditForm(false);
     } catch (error) {
@@ -72,7 +62,6 @@ const EditFoodAndDrink = ({ setEditForm, editItem }) => {
   // Xử lý việc chọn file
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    console.log("File selected:", file);
     
     if (file) {
       setImageFile(file);
@@ -218,10 +207,4 @@ const EditFoodAndDrink = ({ setEditForm, editItem }) => {
     </Form>
   );
 };
-
-EditFoodAndDrink.propTypes = {
-  setEditForm: PropTypes.func.isRequired,
-  editItem: PropTypes.object.isRequired
-};
-
 export default EditFoodAndDrink;

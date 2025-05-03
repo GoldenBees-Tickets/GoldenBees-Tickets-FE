@@ -46,7 +46,6 @@ const Combo = () => {
   };
 
   const handleEdit = (item) => {
-    console.log("Editing combo item:", item);
     setEditItem(item);
     setEditForm(true);
   };
