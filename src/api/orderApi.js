@@ -90,6 +90,31 @@ export const orderApi = createApi({
       }),
       providesTags: [{ type: "Order", id: "ORDER" }],
     }),
+
+    //lấy danh sách đơn hàng theo id chi nhánh
+    getListOrdersByBranchId: builder.query({
+      query: (params) => {
+        const { id, page, limit = 10, search = "", sort_order = "desc" } = params || {};
+        
+        // Xây dựng query params
+        const queryParams = [];
+        if (page) queryParams.push(`page=${page}`);
+        if (limit) queryParams.push(`limit=${limit}`);
+        if (search) queryParams.push(`search=${encodeURIComponent(search)}`);
+        if (sort_order) queryParams.push(`sort_order=${sort_order}`);
+        
+        // Thêm timestamp để tránh cache
+        queryParams.push(`_t=${Date.now()}`);
+        
+        let url = `/list/branch/${id}`;
+        if (queryParams.length > 0) {
+          url += `?${queryParams.join('&')}`;
+        }
+        return { url };
+      },
+      providesTags: [{ type: "Order", id: "ORDER" }],
+    }),
+
   }),  
 });
 
@@ -101,5 +126,6 @@ export const {
  useGetOrderByUserQuery,
  useGetOrdersQuery,
  useGetOrdersPaginationQuery,
- useGetOrdersByBranchQuery
+ useGetOrdersByBranchQuery,
+ useGetListOrdersByBranchIdQuery,
 } = orderApi;
