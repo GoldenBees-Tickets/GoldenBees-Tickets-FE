@@ -29,7 +29,7 @@ export default function ConfirmDelete({ id, setIsShowConfirmDelete, onDelete }) 
                 clipRule="evenodd"
               />
             </svg>
-            <p className="mb-4 text-gray-600">Are you sure you want to delete this item?</p>
+            <p className="mb-4 text-gray-600">Bạn có chắc chắn muốn xóa mục này không?</p>
   
             {/* Nút hành động */}
             <div className="flex justify-center gap-4">
@@ -37,13 +37,13 @@ export default function ConfirmDelete({ id, setIsShowConfirmDelete, onDelete }) 
                 onClick={() => setIsShowConfirmDelete(false)}
                 className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
               >
-                No, Cancel
+                Không, Hủy bỏ
               </button>
               <button
                 onClick={() => onDelete(id)}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
-                Yes, Delete
+                Có, Xóa
               </button>
             </div>
           </div>

@@ -8,6 +8,9 @@ import { formatImage } from "@/utils/formatImage";
 
 // Component Item được tách riêng để tránh re-render không cần thiết
 const ComboItem = memo(({ item, index, foodAndDrinks, onItemChange, onRemoveItem }) => {
+  // Thêm kiểm tra để tránh lỗi khi foodAndDrinks chưa load
+  const hasFoodOptions = Array.isArray(foodAndDrinks) && foodAndDrinks.length > 0;
+  
   return (
     <div className="flex gap-3 items-start p-3 bg-gray-50 rounded-lg">
       <div className="flex-1">
@@ -17,14 +20,19 @@ const ComboItem = memo(({ item, index, foodAndDrinks, onItemChange, onRemoveItem
         <select
           value={item.foodAndDrinkId}
           onChange={(e) => onItemChange(index, "foodAndDrinkId", e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          className={`w-full px-3 py-2 text-sm border ${!hasFoodOptions ? 'border-yellow-300' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white`}
+          disabled={!hasFoodOptions}
         >
           <option value="">Chọn món</option>
-          {foodAndDrinks?.map((foodAndDrink) => (
-            <option key={foodAndDrink.id} value={foodAndDrink.id}>
-              {foodAndDrink.name}
-            </option>
-          ))}
+          {hasFoodOptions ? (
+            foodAndDrinks.map((foodAndDrink) => (
+              <option key={foodAndDrink.id} value={foodAndDrink.id}>
+                {foodAndDrink.name}
+              </option>
+            ))
+          ) : (
+            <option value="" disabled>Đang tải danh sách món...</option>
+          )}
         </select>
       </div>
 
@@ -64,8 +72,12 @@ ComboItem.propTypes = {
 };
 
 const EditCombo = ({ combo, setEditForm }) => {
-  const { data: List } = useGetFoodAndDrinksQuery();
-  const foodAndDrinks = List?.data || [];
+  const { data: foodAndDrinkData, isLoading: isLoadingFoods, error: foodDataError } = useGetFoodAndDrinksQuery();
+  // Đảm bảo truy cập đúng cấu trúc dữ liệu API trả về
+  const foodAndDrinks = foodAndDrinkData?.items || [];
+  
+  console.log("Combo data received:", combo);
+  console.log("Food and Drinks available:", foodAndDrinks);
   
   const [update] = useUpdateComboMutation();
   const [name, setName] = useState(combo.name);
@@ -74,12 +86,27 @@ const EditCombo = ({ combo, setEditForm }) => {
   const [imagePreview, setImagePreview] = useState(
     combo?.profile_picture ? formatImage(combo.profile_picture) : null
   );
-  const [selectedItems, setSelectedItems] = useState(
-    combo.ComboItems.map((item) => ({
-      foodAndDrinkId: item.FoodAndDrink.id,
-      quantity: item.quantity,
-    }))
-  );
+  
+  // Đảm bảo khởi tạo các món trong combo một cách an toàn
+  const [selectedItems, setSelectedItems] = useState(() => {
+    if (!combo.ComboItems || !Array.isArray(combo.ComboItems)) {
+      console.warn("ComboItems is missing or not an array:", combo);
+      return [];
+    }
+    
+    // Map các item trong combo để tạo dữ liệu cho form
+    return combo.ComboItems.map((item) => {
+      if (!item.FoodAndDrink) {
+        console.warn("FoodAndDrink data missing in item:", item);
+        return { foodAndDrinkId: item.product_id || "", quantity: item.quantity || 1 };
+      }
+      return {
+        foodAndDrinkId: item.FoodAndDrink.id,
+        quantity: item.quantity,
+      };
+    }).filter(item => item.foodAndDrinkId); // Lọc bỏ các item không có id
+  });
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -152,22 +179,44 @@ const EditCombo = ({ combo, setEditForm }) => {
     e?.preventDefault();
     if (!validateFields()) return;
 
-    setIsSubmitting(true);
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("price", price);
-    if (profile_picture) {
-      formData.append("profile_picture", profile_picture);
-    }
-    formData.append("items", JSON.stringify(selectedItems));
     try {
-      const response = await update({ id: combo.id, data: formData }).unwrap();
+      setIsSubmitting(true);
+      console.log("Form data:", { name, price, selectedItems });
       
+      // Tạo FormData object
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("price", price);
+      
+      if (profile_picture) {
+        formData.append("profile_picture", profile_picture);
+        console.log("Adding image to form data:", profile_picture.name);
+      }
+      
+      // Chuyển đổi mảng selectedItems thành JSON string
+      const itemsForServer = selectedItems.map(item => ({
+        foodAndDrinkId: item.foodAndDrinkId,
+        quantity: item.quantity
+      }));
+      formData.append("items", JSON.stringify(itemsForServer));
+      
+      // Log FormData để kiểm tra
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${key === 'profile_picture' ? 'File Object' : value}`);
+      }
+      
+      // Gọi API với FormData
+      const response = await update({ 
+        id: combo.id, 
+        data: formData 
+      }).unwrap();
+      
+      console.log("API Response:", response);
       toast.success(response?.message || "Cập nhật combo thành công!");
       setEditForm(false);
     } catch (error) {
       console.error("Error while updating combo:", error);
-      toast.error("Cập nhật combo thất bại. Vui lòng thử lại.");
+      toast.error(`Cập nhật combo thất bại: ${error.data?.message || "Vui lòng thử lại"}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -280,6 +329,21 @@ const EditCombo = ({ combo, setEditForm }) => {
                 <span>Thêm món</span>
               </button>
             </div>
+
+            {/* Hiển thị thông báo trạng thái tải dữ liệu */}
+            {isLoadingFoods && (
+              <div className="p-3 bg-blue-50 rounded-lg mb-3">
+                <p className="text-sm text-blue-600">Đang tải danh sách món ăn...</p>
+              </div>
+            )}
+            
+            {foodDataError && (
+              <div className="p-3 bg-red-50 rounded-lg mb-3">
+                <p className="text-sm text-red-600">
+                  Không thể tải danh sách món ăn. Vui lòng thử lại sau.
+                </p>
+              </div>
+            )}
 
             <div className="space-y-3">
               {selectedItems.map((item, index) => (

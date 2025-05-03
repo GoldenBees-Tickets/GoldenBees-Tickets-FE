@@ -35,7 +35,9 @@ export const foodAndDrinkApi = createApi({
       query: (data) => ({
         url: "/", // Đảm bảo URL là chính xác
         method: "POST",
-        body: data,
+        data: data, // Dùng data thay vì body để phù hợp với axiosBaseQuery
+        useHttpClient: true,
+        isFormData: true,
       }),
       invalidatesTags: ["FoodAndDrink"],
     }),
@@ -43,7 +45,9 @@ export const foodAndDrinkApi = createApi({
       query: ({ id, data }) => ({
         url: `/${id}`, // Đảm bảo URL là chính xác
         method: "PUT",
-        body: data,
+        data: data, // Dùng data thay vì body
+        useHttpClient: true,
+        isFormData: true,
       }),
       invalidatesTags: ["FoodAndDrink"],
     }),

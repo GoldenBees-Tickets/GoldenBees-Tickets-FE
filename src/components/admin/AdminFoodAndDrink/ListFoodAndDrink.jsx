@@ -19,7 +19,7 @@ const ListFoodAndDrink = () => {
   const [searchValue, setSearchValue] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
   const [typeFilter, setTypeFilter] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [addForm, setAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -101,11 +101,21 @@ const ListFoodAndDrink = () => {
       width: 100,
       render: (_, record) => (
         <div className="flex items-center">
-          <img
-            src={formatImage(record.profile_picture)}
-            alt={record.name}
-            className="h-10 w-10 rounded-lg object-cover shadow-sm"
-          />
+          {record.profile_picture ? (
+            <img
+              src={formatImage(record.profile_picture)}
+              alt={record.name}
+              className="h-10 w-10 rounded-lg object-cover shadow-sm"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://via.placeholder.com/100?text=No+Image';
+              }}
+            />
+          ) : (
+            <div className="h-10 w-10 rounded-lg bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+              No Image
+            </div>
+          )}
         </div>
       )
     },
@@ -209,7 +219,7 @@ const ListFoodAndDrink = () => {
         <Button
           type="primary"
           icon={<FiPlus />}
-          onClick={() => setShowAddForm(true)}
+          onClick={() => setAddForm(true)}
           className="bg-blue-600 hover:bg-blue-700"
         >
           Thêm Món Mới
@@ -257,7 +267,7 @@ const ListFoodAndDrink = () => {
                     <p className="text-gray-500 text-base">Chưa có món ăn hoặc đồ uống nào</p>
                 <Button
                   type="link"
-                      onClick={() => setShowAddForm(true)}
+                      onClick={() => setAddForm(true)}
                   className="mt-2 text-blue-600 hover:text-blue-700"
                     >
                       Thêm món mới ngay
@@ -289,7 +299,7 @@ const ListFoodAndDrink = () => {
         onOk={confirmDelete}
         okText="Xóa"
         okButtonProps={{ danger: true }}
-        cancelText="Cancel"
+        cancelText="Hủy"
         title="Xác nhận xóa"
       >
         Bạn có chắc chắn muốn xóa món "{itemToDelete?.name}" không?
@@ -298,13 +308,13 @@ const ListFoodAndDrink = () => {
       {/* Modal Thêm Món mới */}
       <Modal
         title="Thêm Món Mới"
-        open={showAddForm}
-        onCancel={() => setShowAddForm(false)}
+        open={addForm}
+        onCancel={() => setAddForm(false)}
         footer={null}
         width={600}
         destroyOnClose
       >
-        {showAddForm && <AddFoodAndDrink setAddForm={setShowAddForm} />}
+        {addForm && <AddFoodAndDrink setAddForm={setAddForm} />}
       </Modal>
 
       {/* Modal Chỉnh sửa */}

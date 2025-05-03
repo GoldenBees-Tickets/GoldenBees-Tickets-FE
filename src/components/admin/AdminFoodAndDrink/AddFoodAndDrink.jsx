@@ -2,8 +2,8 @@ import { useState } from "react";
 import PropTypes from "prop-types";
 import { useAddFoodAndDrinkMutation } from "../../../api/foodAndDrinkApi";
 import { toast } from "react-toastify";
-import { UploadOutlined } from "@ant-design/icons";
-import { Form, Input, Select, Button, Upload, Space, message } from "antd";
+import { Form, Input, Select, Button, Space, message } from "antd";
+import { FiUpload, FiX } from "react-icons/fi";
 
 const { Option } = Select;
 
@@ -15,57 +15,63 @@ const AddFoodAndDrink = ({ setAddForm }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (values) => {
-    setIsSubmitting(true);
-
-    const formData = new FormData();
-    formData.append("name", values.name);
-    formData.append("type", values.type);
-    formData.append("price", values.price);
-    
-    if (imageFile) {
-      formData.append("profile_picture", imageFile);
-    }
-
     try {
-      await addFoodAndDrink(formData).unwrap();
+      setIsSubmitting(true);
+      console.log("Form values:", values);
+      
+      // Tạo FormData object
+      const formData = new FormData();
+      formData.append("name", values.name || "");
+      formData.append("type", values.type || "");
+      formData.append("price", values.price || "0");
+      
+      if (imageFile) {
+        formData.append("profile_picture", imageFile);
+        console.log("Adding image to form data:", imageFile.name);
+      }
+      
+      // Log FormData để kiểm tra
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${key === 'profile_picture' ? 'File Object' : value}`);
+      }
+
+      // Gọi API với FormData
+      const response = await addFoodAndDrink(formData).unwrap();
+      console.log("API Response:", response);
       toast.success("Thêm món thành công!");
       setAddForm(false);
     } catch (error) {
       console.error("Lỗi khi thêm món:", error);
-      toast.error("Thêm món thất bại. Vui lòng thử lại.");
+      toast.error(`Thêm món thất bại: ${error.data?.message || "Vui lòng thử lại"}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleFileChange = (info) => {
-    if (info.file.status === 'done') {
-      message.success(`${info.file.name} được tải lên thành công`);
-    } else if (info.file.status === 'error') {
-      message.error(`${info.file.name} tải lên thất bại.`);
-    }
+  // Xử lý việc chọn file
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    console.log("File selected:", file);
     
-    const file = info.file.originFileObj;
     if (file) {
       setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+      
+      // Tạo URL để preview ảnh
+      const objectUrl = URL.createObjectURL(file);
+      setImagePreview(objectUrl);
+      
+      // Thông báo thành công
+      message.success(`Tải lên ${file.name} thành công`);
     }
   };
-
-  const uploadProps = {
-    beforeUpload: (file) => {
-      const isImage = file.type.startsWith('image/');
-      if (!isImage) {
-        message.error(`${file.name} không phải là file hình ảnh`);
-      }
-      return false;
-    },
-    onChange: handleFileChange,
-    showUploadList: false,
+  
+  // Xử lý việc xóa hình preview
+  const handleClosePreview = () => {
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImagePreview(null);
+    setImageFile(null);
   };
 
   return (
@@ -74,6 +80,7 @@ const AddFoodAndDrink = ({ setAddForm }) => {
       layout="vertical"
       onFinish={handleSubmit}
       autoComplete="off"
+      encType="multipart/form-data"
     >
       <Form.Item
         label="Tên món"
@@ -103,20 +110,42 @@ const AddFoodAndDrink = ({ setAddForm }) => {
       </Form.Item>
 
       <Form.Item label="Hình ảnh">
-        <div className="flex flex-col space-y-2">
-          <Upload {...uploadProps}>
-            <Button icon={<UploadOutlined />}>Tải lên hình ảnh</Button>
-          </Upload>
-          
-          {imagePreview && (
-            <div className="mt-3">
-              <img 
-                src={imagePreview} 
-                alt="Preview" 
-                className="w-32 h-32 object-cover rounded-lg border border-gray-200"
-              />
-            </div>
-          )}
+        <div className="mt-1 flex justify-center px-3 py-3 border-2 border-gray-200 border-dashed rounded-lg hover:border-gray-300 transition-colors duration-200">
+          <div className="space-y-2 text-center">
+            {imagePreview ? (
+              <div className="relative w-24 h-24 mx-auto">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full h-full object-cover rounded-lg"
+                />
+                <button
+                  type="button"
+                  onClick={handleClosePreview}
+                  className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-full transform translate-x-1/2 -translate-y-1/2 hover:bg-red-600"
+                >
+                  <FiX className="w-3 h-3" />
+                </button>
+              </div>
+            ) : (
+              <>
+                <FiUpload className="mx-auto h-8 w-8 text-gray-400" />
+                <div className="flex justify-center text-sm text-gray-600">
+                  <label className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
+                    <span>Tải ảnh lên</span>
+                    <input
+                      type="file"
+                      className="sr-only"
+                      onChange={handleImageChange}
+                      accept="image/*"
+                    />
+                  </label>
+                  <p className="pl-1">hoặc kéo thả</p>
+                </div>
+                <p className="text-xs text-gray-500">PNG, JPG, GIF tối đa 10MB</p>
+              </>
+            )}
+          </div>
         </div>
       </Form.Item>
 
@@ -132,6 +161,10 @@ const AddFoodAndDrink = ({ setAddForm }) => {
       </Form.Item>
     </Form>
   );
+};
+
+AddFoodAndDrink.propTypes = {
+  setAddForm: PropTypes.func.isRequired,
 };
 
 export default AddFoodAndDrink;
