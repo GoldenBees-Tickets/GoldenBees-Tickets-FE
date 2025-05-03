@@ -9,8 +9,7 @@ export default function SeatGrid({
   hasActiveReservation, 
   activeReservationInfo, 
   onSeatClick 
-}) {
-  
+}) {  
   // Hiển thị danh sách ghế
   const renderSeats = useMemo(
     () =>

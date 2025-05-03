@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import axiosPublic from '../../api/authQuery/axiosPublic';
+import axiosPublic from '@/api/authQuery/axiosPublic';
 import { motion } from 'framer-motion';
 import { BsCheckCircleFill, BsArrowLeft, BsTicketPerforated, BsCalendar3, BsClock, BsPinMap } from 'react-icons/bs';
 import { MdFastfood } from 'react-icons/md';
