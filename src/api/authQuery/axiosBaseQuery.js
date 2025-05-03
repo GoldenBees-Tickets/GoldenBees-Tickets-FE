@@ -6,13 +6,20 @@ const axiosBaseQuery =
   (
     { baseUrl, useHttpClient = false } = { baseUrl: "", useHttpClient: false }
   ) =>
-  async ({ url, method, data, isFormData = false }) => {
+  async ({ url, method, body, data, isFormData = false }) => {
     try {
       const client = useHttpClient ? httpClient : axiosPublic;
+      
+      // Sử dụng data nếu có, nếu không thì dùng body
+      const requestData = data || body;
 
+      // Thiết lập headers phù hợp
       let headers = {};
       if (isFormData) {
-        headers["Content-Type"] = "multipart/form-data";
+        // Khi sử dụng FormData, không cần set Content-Type, axios sẽ tự động thêm
+        // header với boundary chính xác
+        headers = {};
+        console.log("Sending FormData:", requestData instanceof FormData ? "FormData object" : requestData);
       } else {
         headers["Content-Type"] = "application/json";
       }
@@ -20,12 +27,14 @@ const axiosBaseQuery =
       const result = await client({
         url: baseUrl + url,
         method,
-        data,
+        data: requestData,
         headers,
       });
       
       return { data: result.data };
     } catch (error) {      
+      console.error("Request error:", error.response || error);
+      
       if (error.response?.status == 403) {
         authEvents.onForbidden();
       }
@@ -34,7 +43,6 @@ const axiosBaseQuery =
         authEvents.onUnauthorized();
       }
       
-
       return {
         error: {
           status: error.response?.status,

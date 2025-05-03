@@ -13,7 +13,15 @@ httpClient.interceptors.request.use(
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
-    }    
+    }
+
+    // Nếu dữ liệu là FormData, không đặt Content-Type
+    // Axios sẽ tự động đặt Content-Type: multipart/form-data và thêm boundary
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+      console.log("Sending FormData request:", config.url);
+    }
+    
     return config;
   },
   (error) => {

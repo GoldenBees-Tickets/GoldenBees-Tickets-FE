@@ -46,6 +46,7 @@ const Combo = () => {
   };
 
   const handleEdit = (item) => {
+    console.log("Editing combo item:", item);
     setEditItem(item);
     setEditForm(true);
   };
@@ -269,7 +270,7 @@ const Combo = () => {
         onOk={confirmDelete}
         okText="Xóa"
         okButtonProps={{ danger: true }}
-        cancelText="Cancel"
+        cancelText="Hủy"
         title="Xác nhận xóa"
       >
         Bạn có chắc chắn muốn xóa combo "{itemToDelete?.name}" không?
