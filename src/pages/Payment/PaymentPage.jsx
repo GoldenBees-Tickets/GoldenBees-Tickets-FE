@@ -20,7 +20,9 @@ const PaymentPage = ({
   const dataTotal = JSON.parse(localStorage.getItem("payment_info") || "{}");
   const promotion_id = localStorage.getItem("promotion_id") || null;
   const finalPrice = localStorage.getItem("finalPrice") || 0;
-
+  const star = localStorage.getItem("starDiscount") || 0;
+  let starDiscount = 0;
+  star > 0 ? (starDiscount = Number(star) / 1000) : (starDiscount = 0);
   // Lấy thông tin ghế và tính giá
   const seat_ids = selectedSeats?.map((seat) => {
     let basePrice = 0;
@@ -73,6 +75,7 @@ const PaymentPage = ({
     combos: dataPage?.foodItems,
     promotion_id,
     orderInfo: orderInfo,
+    starDiscount: starDiscount,
   };
   // Xử lý khi thanh toán thành công
   const handlePaymentSuccess = (payUrl) => {

@@ -6,6 +6,7 @@ import PaginationDefault from "@/components/PaginationDefault";
 import { useGetGenresQuery, useDeleteGenreMutation } from "@/api/genreApi";
 import PropTypes from 'prop-types';
 import EditGenre from "./EditGenre";
+import { canPerformAdminAction } from "@/utils/auth";
 
 const { Search } = Input;
 
@@ -17,6 +18,9 @@ export default function ListGenre() {
   const [pageSize, setPageSize] = useState(5);
   const [searchText, setSearchText] = useState("");
   const [searchValue, setSearchValue] = useState("");
+
+  // Check if user has full admin permissions
+  const canEditGenres = canPerformAdminAction();
 
   const { data: genresData, isLoading, error } = useGetGenresQuery({
     page: currentPage,
@@ -83,22 +87,48 @@ export default function ListGenre() {
       key: "name"
     },
     {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (createdAt) => createdAt ? new Date(createdAt).toLocaleDateString("vi-VN", {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }) : "N/A"
+    },
+    {
+      title: "Ngày cập nhật",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
+      render: (updatedAt) => updatedAt ? new Date(updatedAt).toLocaleDateString("vi-VN", {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }) : "N/A"
+    },
+    {
       title: "Thao tác",
       key: "action",
       width: 120,
       align: "right",
       render: (_, record) => (
-        <Space>
-          <Button
-            icon={<FiEdit2 />}
-            onClick={() => handleEdit(record)}
-          />
-          <Button
-            danger
-            icon={<FiTrash2 />}
-            onClick={() => handleDelete(record)}
-          />
-        </Space>
+        canEditGenres ? (
+          <Space>
+            <Button
+              icon={<FiEdit2 />}
+              onClick={() => handleEdit(record)}
+            />
+            <Button
+              danger
+              icon={<FiTrash2 />}
+              onClick={() => handleDelete(record)}
+            />
+          </Space>
+        ) : null
       )
     }
   ];
@@ -127,7 +157,7 @@ export default function ListGenre() {
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <Table
-          columns={columns}
+          columns={canEditGenres ? columns : columns.filter(col => col.key !== "action")}
           dataSource={genresData?.genres || []}
           rowKey="id"
           pagination={false}

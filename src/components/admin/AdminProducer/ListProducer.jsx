@@ -6,6 +6,7 @@ import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/
 import { useGetProducersQuery, useDeleteProducerMutation } from "@/api/producerApi";
 import PaginationDefault from "@/components/PaginationDefault";
 import { formatImage } from "@/utils/formatImage";
+import { canPerformAdminAction } from "@/utils/auth";
 
 const { Search } = Input;
 
@@ -19,6 +20,9 @@ export default function ListProducers() {
   const [searchText, setSearchText] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
+  
+  // Check if user has full admin permissions
+  const canEditProducers = canPerformAdminAction();
 
   // Gọi API với các tham số phân trang và lọc
   const { data: producerData, error, isLoading } = useGetProducersQuery({
@@ -121,21 +125,47 @@ export default function ListProducers() {
       key: "name",
     },
     {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (createdAt) => createdAt ? new Date(createdAt).toLocaleDateString("vi-VN", {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }) : "N/A"
+    },
+    {
+      title: "Ngày cập nhật",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
+      render: (updatedAt) => updatedAt ? new Date(updatedAt).toLocaleDateString("vi-VN", {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }) : "N/A"
+    },
+    {
       title: "Thao tác",
       key: "actions",
       width: 150,
       render: (_, record) => (
-        <div className="flex space-x-2">
-          <Button
-            icon={<FiEdit2 />}
-            onClick={() => handleEdit(record.id)}
-          />
-          <Button
-            danger
-            icon={<FiTrash2 />}
-            onClick={() => handleDelete(record)}
-          />
-        </div>
+        canEditProducers ? (
+          <div className="flex space-x-2">
+            <Button
+              icon={<FiEdit2 />}
+              onClick={() => handleEdit(record.id)}
+            />
+            <Button
+              danger
+              icon={<FiTrash2 />}
+              onClick={() => handleDelete(record)}
+            />
+          </div>
+        ) : null
       ),
     },
   ];
@@ -150,15 +180,17 @@ export default function ListProducers() {
           <h2 className="text-lg font-bold text-gray-800">Danh Sách Nhà Sản Xuất</h2>
           <p className="text-xs text-gray-600">Quản lý thông tin các nhà sản xuất phim</p>
         </div>
-        <Link to="../addProducer">
-          <Button
-            type="primary"
-            icon={<FiPlus />}
-            className="flex items-center bg-blue-500"
-          >
-            Thêm Nhà Sản Xuất
-          </Button>
-        </Link>
+        {canEditProducers && (
+          <Link to="../addProducer">
+            <Button
+              type="primary"
+              icon={<FiPlus />}
+              className="flex items-center bg-blue-500"
+            >
+              Thêm Nhà Sản Xuất
+            </Button>
+          </Link>
+        )}
       </div>
 
       <div className="mb-4">
@@ -179,7 +211,7 @@ export default function ListProducers() {
       </div>
 
       <Table
-        columns={columns}
+        columns={canEditProducers ? columns : columns.filter(col => col.key !== "actions")}
         dataSource={producerData?.producers || []}
         rowKey="id"
         pagination={false}

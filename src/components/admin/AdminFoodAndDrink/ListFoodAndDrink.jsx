@@ -8,6 +8,7 @@ import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/
 import { Input, Button, Space, Spin, Select, Table, Modal } from "antd";
 import PaginationDefault from "../../PaginationDefault";
 import { formatImage } from "@/utils/formatImage";
+import { canPerformAdminAction } from "@/utils/auth";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -24,6 +25,9 @@ const ListFoodAndDrink = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  
+  // Check if user has full admin permissions
+  const canEditItems = canPerformAdminAction();
   
   // Gọi API với các tham số
   const { data: foodAndDrinkData, isLoading, error } = useGetFoodAndDrinksQuery({
@@ -168,17 +172,19 @@ const ListFoodAndDrink = () => {
       width: 100,
       align: "right",
       render: (_, record) => (
-        <Space>
-          <Button 
-            icon={<FiEdit2 />} 
-            onClick={() => handleEdit(record)} 
-          />
-          <Button
-            danger
-            icon={<FiTrash2 />}
-            onClick={() => handleDelete(record)}
-          />
-        </Space>
+        canEditItems ? (
+          <Space>
+            <Button 
+              icon={<FiEdit2 />} 
+              onClick={() => handleEdit(record)} 
+            />
+            <Button
+              danger
+              icon={<FiTrash2 />}
+              onClick={() => handleDelete(record)}
+            />
+          </Space>
+        ) : null
       )
     }
   ];
@@ -216,14 +222,16 @@ const ListFoodAndDrink = () => {
           <h2 className="text-2xl font-bold text-gray-800">Quản Lý Đồ Ăn & Đồ Uống</h2>
           <p className="text-sm text-gray-600 mt-1">Quản lý danh sách món ăn và đồ uống của rạp</p>
         </div>
-        <Button
-          type="primary"
-          icon={<FiPlus />}
-          onClick={() => setAddForm(true)}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          Thêm Món Mới
-        </Button>
+        {canEditItems && (
+          <Button
+            type="primary"
+            icon={<FiPlus />}
+            onClick={() => setAddForm(true)}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Thêm Món Mới
+          </Button>
+        )}
       </div>
 
       {/* Thanh tìm kiếm và bộ lọc */}
@@ -257,7 +265,7 @@ const ListFoodAndDrink = () => {
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <Table
-          columns={columns}
+          columns={canEditItems ? columns : columns.filter(col => col.key !== "actions")}
           dataSource={foodAndDrinks}
           rowKey="id"
           pagination={false}
@@ -265,14 +273,16 @@ const ListFoodAndDrink = () => {
             emptyText: (
               <div className="py-5">
                     <p className="text-gray-500 text-base">Chưa có món ăn hoặc đồ uống nào</p>
-                <Button
-                  type="link"
-                      onClick={() => setAddForm(true)}
-                  className="mt-2 text-blue-600 hover:text-blue-700"
-                    >
-                      Thêm món mới ngay
-                </Button>
-                      </div>
+                {canEditItems && (
+                  <Button
+                    type="link"
+                    onClick={() => setAddForm(true)}
+                    className="mt-2 text-blue-600 hover:text-blue-700"
+                  >
+                    Thêm món mới ngay
+                  </Button>
+                )}
+              </div>
             )
           }}
         />
