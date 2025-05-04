@@ -21,7 +21,7 @@ export const promotionApi = createApi({
 
     // Cập nhật khuyến mãi (Update a promotion)
     updatePromotion: builder.mutation({
-        query: ({ id, promotionData }) => {      
+        query: ({ id, ...promotionData }) => {                
           return {
             url: `/${id}`,
             method: "PUT",

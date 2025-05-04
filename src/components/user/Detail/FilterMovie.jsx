@@ -30,7 +30,7 @@ export default function FilterMovie() {
       pollingInterval: 5 * 60 * 1000,
       refetchOnMountOrArgChange: true
     }
-  );
+  );  
 
   // Làm mới dữ liệu xuất chiếu mỗi khi thời gian thay đổi
   useEffect(() => {

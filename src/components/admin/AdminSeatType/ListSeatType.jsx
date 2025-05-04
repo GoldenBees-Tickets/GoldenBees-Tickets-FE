@@ -6,6 +6,7 @@ import { useGetListSeatTypesQuery, useDeleteSeatTypeMutation } from "@/api/seatT
 import UpdateSeatType from "./UpdateSeatType";
 import PaginationDefault from "@/components/PaginationDefault";
 import AddSeatType from "./AddSeatType";
+import { formatDate } from "@/utils/format";
 
 const { Search } = Input;
 
@@ -142,11 +143,7 @@ export default function ListSeatType() {
       key: "createdAt",
       render: (date) => (
         <span>
-          {new Date(date).toLocaleDateString("vi-VN", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
+          {formatDate(date)}
         </span>
       ),
     },

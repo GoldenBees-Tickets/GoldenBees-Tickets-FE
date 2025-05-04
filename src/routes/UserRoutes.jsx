@@ -21,10 +21,8 @@ import TestVNPay from "../pages/Payment/TestVNPay";
 import VNPayResult from "../pages/Payment/VNPayResult";
 import VNPaySuccess from "../pages/Payment/VNPaySuccess";
 import VoiceConverterPage from "../pages/VoiceConverter/VoiceConverterPage";
-import Posts from "@/pages/user/Posts";
 import PostDetail from "@/pages/user/PostDetail";
 import TicketPurchasePage from "@/pages/user/TicketPurchasePage";
-import { Navigate } from "react-router-dom";
 
 
 const UserRoutes = {
@@ -36,6 +34,7 @@ const UserRoutes = {
     { path: "about", element: <About /> },
     { path: "contact", element: <Contacts /> },
     { path: "blog", element: <Blog /> },
+    { path: "blog/:id", element: <PostDetail /> },
     { path: "movies", element: <Product /> },
     { path: "detail/:id", element: <Detail /> },
     { path: "chair", element: <ListChair /> },
@@ -43,7 +42,7 @@ const UserRoutes = {
     { path: "homepay", element: <HomePay /> },
     { path: "actor/:id", element: <Actor /> },
     { path: "producer/:id", element: <Producer /> },
-    { path: "/director/:id", element: <Director /> },
+    { path: "director/:id", element: <Director /> },
     { path: "/payment", element: <PaymentPage /> },
     { path: "/payment-result", element: <PaymentResult /> },
     { path: "/booking/:showtime_id", element: <Booking /> },
@@ -53,12 +52,7 @@ const UserRoutes = {
     { path: "/test-vnpay", element: <TestVNPay /> },
     { path: "/vnpay-result", element: <VNPayResult /> },
     { path: "/vnpay-success", element: <VNPaySuccess /> },
-    // Voice Converter Route
     { path: "/voice-converter", element: <VoiceConverterPage /> },
-    // Posts Routes
-    { path: "/posts", element: <Navigate to="/blog" replace /> },
-    { path: "/posts/:id", element: <PostDetail /> },
-    // Ticket Purchase Page
     { path: "/ticket-purchase", element: <TicketPurchasePage /> }
   ]
 };
