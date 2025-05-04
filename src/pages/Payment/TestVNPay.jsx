@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axiosPublic from "../../api/authQuery/axiosPublic";
 
 const TestVNPay = ({ data, onSuccess, onError }) => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -22,6 +20,7 @@ const TestVNPay = ({ data, onSuccess, onError }) => {
         seat_ids: data.seat_ids,
         combos: data.combos || [],
         promotion_id: data.promotion_id,
+        starDiscount: data.starDiscount,
         // Mặc định các tham số
         bankCode: "",
         language: "vn",

@@ -11,11 +11,11 @@ export const orderApi = createApi({
   tagTypes: ["Order"],
   endpoints: (builder) => ({
     addOrder: builder.mutation({
-      query: ({ user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo }) => {        
+      query: ({ user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo, starDiscount }) => {        
         return {
           url: `/pay-with-momo`,
           method: "POST",
-          data: { user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo }
+          data: { user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo, starDiscount }
         };
       },
       invalidatesTags: [{ type: "Order", id: "ORDER" }],

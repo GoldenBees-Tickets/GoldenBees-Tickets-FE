@@ -5,10 +5,11 @@ import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/
 import {
   useGetActorsQuery,
   useDeleteActorMutation,
-} from "../../../api/actorApi";
+} from "@/api/actorApi";
 import PaginationDefault from "@/components/PaginationDefault";
 import { formatImage } from "@/utils/formatImage";
 import { useNavigate } from "react-router-dom";
+import { canPerformAdminAction } from "@/utils/auth";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -23,6 +24,9 @@ export default function ListActors() {
   const [searchValue, setSearchValue] = useState("");
   const [genderFilter, setGenderFilter] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
+  
+  // Check if user has full admin permissions
+  const canEditActors = canPerformAdminAction();
 
   // Gọi API với các tham số phân trang và lọc
   const { data: actorData, error, isLoading } = useGetActorsQuery({
@@ -145,17 +149,19 @@ export default function ListActors() {
       width: 150,
       align: "right",
       render: (_, record) => (
-        <Space>
-          <Button
-            icon={<FiEdit2 />}
-            onClick={() => handleEdit(record)}
-          />
-          <Button
-            danger
-            icon={<FiTrash2 />}
-            onClick={() => handleDelete(record)}
-          />
-        </Space>
+        canEditActors ? (
+          <Space>
+            <Button
+              icon={<FiEdit2 />}
+              onClick={() => handleEdit(record)}
+            />
+            <Button
+              danger
+              icon={<FiTrash2 />}
+              onClick={() => handleDelete(record)}
+            />
+          </Space>
+        ) : null
       ),
     },
   ];
@@ -194,7 +200,7 @@ export default function ListActors() {
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <Table
-          columns={columns}
+          columns={canEditActors ? columns : columns.filter(col => col.key !== "actions")}
           dataSource={actorData?.actors || []}
           rowKey="id"
           pagination={false}

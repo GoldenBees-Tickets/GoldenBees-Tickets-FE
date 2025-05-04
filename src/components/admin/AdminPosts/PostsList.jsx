@@ -5,6 +5,7 @@ import { Table, Button, Modal, Spin, message, Tooltip, Input, Space } from "antd
 import { FiEdit2, FiEye, FiTrash2, FiPlus } from "react-icons/fi";
 import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import PaginationDefault from "../../PaginationDefault";
+import { canPerformAdminAction } from "@/utils/auth";
 
 const { Search } = Input;
 
@@ -16,6 +17,9 @@ export default function PostsList() {
   const [sortOrder, setSortOrder] = useState("desc");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletePostId, setDeletePostId] = useState(null);
+  
+  // Check if user has full admin permissions
+  const canEditPosts = canPerformAdminAction();
 
   const { data: postData, isLoading, error } = useGetPostsQuery({ 
     page: currentPage, 
@@ -133,20 +137,22 @@ export default function PostsList() {
       key: "actions",
       width: 180,
       render: (_, record) => (
-        <div className="flex space-x-2">
-          <Tooltip title="Chỉnh sửa">
-            <Link to={`/admin/posts/edit/${record.id}`}>
-              <Button icon={<FiEdit2 />} />
-            </Link>
-          </Tooltip>
-          <Tooltip title="Xóa">
-            <Button 
-              icon={<FiTrash2 />} 
-              danger 
-              onClick={() => showDeleteConfirm(record.id)}
-            />
-          </Tooltip>
-        </div>
+        canEditPosts ? (
+          <div className="flex space-x-2">
+            <Tooltip title="Chỉnh sửa">
+              <Link to={`/admin/posts/edit/${record.id}`}>
+                <Button icon={<FiEdit2 />} />
+              </Link>
+            </Tooltip>
+            <Tooltip title="Xóa">
+              <Button 
+                icon={<FiTrash2 />} 
+                danger 
+                onClick={() => showDeleteConfirm(record.id)}
+              />
+            </Tooltip>
+          </div>
+        ) : null
       ),
     },
   ];
@@ -158,12 +164,19 @@ export default function PostsList() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold text-gray-800">Quản lý bài viết</h1>
-        <Link
-          to="/admin/posts/create"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition duration-300"
-        >
-          <FiPlus className="mr-2" /> Thêm bài viết
-        </Link>
+        {canEditPosts && (
+          <Link
+            to="/admin/posts/create"
+          >
+            <Button
+            type="primary"
+            icon={<FiPlus />}
+            className="flex items-center"
+          >
+            Thêm bài viết
+          </Button>
+          </Link>
+        )}
       </div>
 
       <div className="mb-4">
@@ -184,7 +197,7 @@ export default function PostsList() {
       </div>
 
       <Table
-        columns={columns}
+        columns={canEditPosts ? columns : columns.filter(col => col.key !== "actions")}
         dataSource={postData?.posts || []}
         rowKey="id"
         pagination={false}

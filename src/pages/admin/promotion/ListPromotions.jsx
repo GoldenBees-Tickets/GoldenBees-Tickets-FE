@@ -9,6 +9,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import PaginationDefault from "@/components/PaginationDefault";
 import EditPromotionModal from "./EditPromotion";
+import { canPerformAdminAction } from "@/utils/auth";
 
 const { Search } = Input;
 
@@ -18,6 +19,9 @@ export default function ListPromotions() {
   const [searchText, setSearchText] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
+
+  // Check if user has full admin permissions
+  const canEditPromotions = canPerformAdminAction();
 
   const [selectedPromotion, setSelectedPromotion] = useState(null);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
@@ -164,15 +168,19 @@ export default function ListPromotions() {
             icon={<FiEye />} 
             onClick={() => handleViewDetail(record)} 
           />
-          <Button 
-            icon={<FiEdit2 />} 
-            onClick={() => handleEdit(record)} 
-          />
-          <Button
-            danger
-            icon={<FiTrash2 />}
-            onClick={() => handleDelete(record)}
-          />
+          {canEditPromotions && (
+            <>
+              <Button 
+                icon={<FiEdit2 />} 
+                onClick={() => handleEdit(record)} 
+              />
+              <Button
+                danger
+                icon={<FiTrash2 />}
+                onClick={() => handleDelete(record)}
+              />
+            </>
+          )}
         </Space>
       ),
     },
@@ -218,13 +226,15 @@ export default function ListPromotions() {
             emptyText: (
               <div className="py-5">
                 <p className="text-gray-500 text-base">Chưa có khuyến mãi nào</p>
-                <Button
-                  type="link"
-                  onClick={() => navigate('/admin/promotion/create')}
-                  className="mt-2 text-blue-600 hover:text-blue-700"
-                >
-                  Thêm khuyến mãi mới ngay
-                </Button>
+                {canEditPromotions && (
+                  <Button
+                    type="link"
+                    onClick={() => navigate('/admin/promotion/create')}
+                    className="mt-2 text-blue-600 hover:text-blue-700"
+                  >
+                    Thêm khuyến mãi mới ngay
+                  </Button>
+                )}
               </div>
             )
           }}

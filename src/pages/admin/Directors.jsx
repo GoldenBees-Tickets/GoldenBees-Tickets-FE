@@ -3,12 +3,16 @@ import { Link } from "react-router-dom";
 import { Button } from "antd";
 import { FiPlus } from "react-icons/fi";
 import ListDirectors from "@/components/admin/AdminDirectors/ListDirector";
+import { canPerformAdminAction } from "../../utils/auth";
 
 export default function Directors() {
+  const canAddActor = canPerformAdminAction();
+
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold text-gray-800">Danh sách Đạo diễn</h2>
+        {canAddActor && (
         <Link to="/admin/directors/add">
           <Button
             type="primary"
@@ -18,6 +22,7 @@ export default function Directors() {
             Thêm Đạo diễn
           </Button>
         </Link>
+        )}
       </div>
       
       <div className="mt-4">

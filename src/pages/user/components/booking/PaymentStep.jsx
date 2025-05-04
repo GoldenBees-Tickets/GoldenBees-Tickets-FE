@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import DiscountSection from "./DiscountSection";
-import MomoPayment from "../../../../components/Payment/MomoPayment";
+import MomoPayment from "@/components/Payment/MomoPayment";
 import Payment from "../../Payment";
 
 const PaymentStep = ({

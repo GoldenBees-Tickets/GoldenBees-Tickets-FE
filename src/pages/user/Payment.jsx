@@ -378,7 +378,7 @@ export default function Payment({paymentMethod, setPaymentMethod}) {
               />
               <div className='text-left'>
                 <p className="font-medium">Thanh toán VN PAY</p>
-                <p className="text-sm text-gray-500">Thanh toán tại quầy khi đến rạp</p>
+                <p className="text-sm text-gray-500">Thanh toán qua hệ thống VN Pay</p>
               </div>
             </label>
             
@@ -394,21 +394,6 @@ export default function Payment({paymentMethod, setPaymentMethod}) {
               <div>
                 <p className="font-medium">Thanh toán qua Momo</p>
                 <p className="text-sm text-gray-500">Quét mã QR để thanh toán</p>
-              </div>
-            </label>
-            
-            <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="bank"
-                checked={localMethod === 'bank'}
-                onChange={() => handleChangeMethod('bank')}
-                className="mr-3"
-              />
-              <div className='text-left'>
-                <p className="font-medium">Chuyển khoản ngân hàng</p>
-                <p className="text-sm text-gray-500">Chuyển khoản đến tài khoản của rạp</p>
               </div>
             </label>
           </div>

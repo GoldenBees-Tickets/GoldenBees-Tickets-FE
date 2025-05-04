@@ -8,6 +8,7 @@ import { Input, Button, Space, Spin, Table, Modal, Typography } from "antd";
 import { toast } from "react-toastify";
 import { formatImage } from "@/utils/formatImage";
 import PaginationDefault from "../../components/PaginationDefault";
+import { canPerformAdminAction } from "@/utils/auth";
 
 const { Search } = Input;
 const { Title, Text } = Typography;
@@ -18,6 +19,9 @@ const Combo = () => {
   const [searchText, setSearchText] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
+  
+  // Check if user has full admin permissions
+  const canEditCombos = canPerformAdminAction();
   
   // State cho các modal
   const [addForm, setAddForm] = useState(false);
@@ -151,15 +155,19 @@ const Combo = () => {
             icon={<FiEye />} 
             onClick={() => handleViewDetails(record)} 
           />
-          <Button 
-            icon={<FiEdit2 />} 
-            onClick={() => handleEdit(record)} 
-          />
-          <Button
-            danger
-            icon={<FiTrash2 />}
-            onClick={() => handleDelete(record)}
-          />
+          {canEditCombos && (
+            <>
+              <Button 
+                icon={<FiEdit2 />} 
+                onClick={() => handleEdit(record)} 
+              />
+              <Button
+                danger
+                icon={<FiTrash2 />}
+                onClick={() => handleDelete(record)}
+              />
+            </>
+          )}
         </Space>
       )
     }
@@ -198,14 +206,16 @@ const Combo = () => {
           <h2 className="text-2xl font-bold text-gray-800">Quản Lý Combo</h2>
           <p className="text-sm text-gray-600 mt-1">Quản lý danh sách combo của rạp</p>
         </div>
-        <Button
-          type="primary"
-          icon={<FiPlus />}
-          onClick={() => setAddForm(true)}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          Thêm Combo Mới
-        </Button>
+        {canEditCombos && (
+          <Button
+            type="primary"
+            icon={<FiPlus />}
+            onClick={() => setAddForm(true)}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Thêm Combo Mới
+          </Button>
+        )}
       </div>
 
       {/* Thanh tìm kiếm và bộ lọc */}
@@ -234,19 +244,21 @@ const Combo = () => {
           locale={{
             emptyText: (
               <div className="py-5">
-                    <p className="text-gray-500 text-base">Chưa có combo nào</p>
-                <Button
-                  type="link"
-                      onClick={() => setAddForm(true)}
-                  className="mt-2 text-blue-600 hover:text-blue-700"
-                    >
-                      Thêm combo mới ngay
-                </Button>
-                      </div>
+                <p className="text-gray-500 text-base">Chưa có combo nào</p>
+                {canEditCombos && (
+                  <Button
+                    type="link"
+                    onClick={() => setAddForm(true)}
+                    className="mt-2 text-blue-600 hover:text-blue-700"
+                  >
+                    Thêm combo mới ngay
+                  </Button>
+                )}
+              </div>
             )
           }}
         />
-                      </div>
+      </div>
 
       {/* Phân trang */}
       {combos.length > 0 && (

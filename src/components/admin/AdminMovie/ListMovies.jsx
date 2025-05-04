@@ -10,6 +10,7 @@ import {
 import { useGetMoviesQuery } from "@/api/movieApi";
 import PaginationDefault from "@/components/PaginationDefault";
 import { formatDate } from "@/utils/format";
+import { canPerformAdminAction } from "@/utils/auth";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -21,6 +22,9 @@ export default function ListMovies() {
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
+  
+  // Check if user has full admin permissions
+  const canEditMovies = canPerformAdminAction();
 
   // Gọi API với các tham số phân trang và lọc
   const {
@@ -132,9 +136,11 @@ export default function ListMovies() {
           <Link to={`/admin/movies/${record.id}`}>
             <Button icon={<FiEye />} />
           </Link>
-          <Link to={`/admin/movies/edit/${record.id}`}>
-            <Button icon={<FiEdit2 />} />
-          </Link>
+          {canEditMovies && (
+            <Link to={`/admin/movies/edit/${record.id}`}>
+              <Button icon={<FiEdit2 />} />
+            </Link>
+          )}
         </div>
       ),
     },

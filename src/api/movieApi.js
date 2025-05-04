@@ -113,6 +113,13 @@ export const movieApi = createApi({
       providesTags: [{ type: "Movie", id: "LISTMOVIE" }],
     }),
 
+    getMoviesByAddShowtime: builder.query({
+      query: () => ({
+        url: `/getAllMoviesAddShowtime`,
+      }),
+      providesTags: [{ type: "Movie", id: "LISTMOVIE" }],
+    }),
+
   }),
 });
 
@@ -124,5 +131,6 @@ export const {
   useGetMovieByIdQuery,
   useGetAllMoviesByUserQuery,
   useGetAllMoviesByAdminQuery,
-  useGetMoviesByBranchQuery
+  useGetMoviesByBranchQuery,
+  useGetMoviesByAddShowtimeQuery,
 } = movieApi;

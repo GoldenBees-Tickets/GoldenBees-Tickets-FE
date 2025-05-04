@@ -2,7 +2,7 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import { FiAlertCircle } from 'react-icons/fi';
-import { useAddOrderMutation } from '../../api/orderApi';
+import { useAddOrderMutation } from '@/api/orderApi';
 
 const MomoPayment = ({ data, onSuccess, onError }) => {
   const [addOrder] = useAddOrderMutation(); 
@@ -14,7 +14,7 @@ const MomoPayment = ({ data, onSuccess, onError }) => {
     setError(null);
 
     try {
-      const { user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo } = data;
+      const { user_id, total, amount, seat_ids, showtime_id, combos, promotion_id, orderInfo, starDiscount } = data;
       
       // Kiểm tra dữ liệu trước khi gửi
       if (!user_id) {
@@ -51,7 +51,8 @@ const MomoPayment = ({ data, onSuccess, onError }) => {
         showtime_id: preparedShowtimeId, 
         combos, 
         promotion_id, 
-        orderInfo 
+        orderInfo,
+        starDiscount
       }).unwrap(); 
       
       if (response.payUrl) {

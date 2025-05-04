@@ -9,6 +9,7 @@ import {
 } from "../../../api/directorApi";
 import PaginationDefault from "@/components/PaginationDefault";
 import { formatImage } from "@/utils/formatImage";
+import { canPerformAdminAction } from "@/utils/auth";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -23,6 +24,9 @@ export default function ListDirector() {
   const [searchValue, setSearchValue] = useState("");
   const [genderFilter, setGenderFilter] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
+  
+  // Check if user has full admin permissions
+  const canEditDirectors = canPerformAdminAction();
 
   // Gọi API với các tham số phân trang và lọc
   const { data: directorData, error, isLoading } = useGetDirectorsQuery({
@@ -141,17 +145,19 @@ export default function ListDirector() {
       key: "actions",
       width: 150,
       render: (_, record) => (
-        <div className="flex space-x-2">
-          <Button 
-            icon={<FiEdit2 />} 
-            onClick={() => handleEdit(record)}
-          />
-          <Button
-            danger
-            icon={<FiTrash2 />}
-            onClick={() => handleDelete(record)}
-          />
-        </div>
+        canEditDirectors ? (
+          <div className="flex space-x-2">
+            <Button 
+              icon={<FiEdit2 />} 
+              onClick={() => handleEdit(record)}
+            />
+            <Button
+              danger
+              icon={<FiTrash2 />}
+              onClick={() => handleDelete(record)}
+            />
+          </div>
+        ) : null
       ),
     },
   ];
@@ -189,7 +195,7 @@ export default function ListDirector() {
       </div>
 
       <Table
-        columns={columns}
+        columns={canEditDirectors ? columns : columns.filter(col => col.key !== "actions")}
         dataSource={directorData?.directors || []}
         rowKey="id"
         pagination={false}

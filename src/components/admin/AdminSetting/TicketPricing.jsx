@@ -6,6 +6,7 @@ import AddPriceSetting from "./AddPriceSetting";
 import UpdatePriceSetting from "./UpdatePriceSetting";
 import AddHolidayPricing from "./AddHolidayPricing";
 import UpdateHolidayItem from "./UpdateHolidayItem";
+import { canPerformAdminAction } from "@/utils/auth";
 
 export default function TicketPricing() {
   const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
@@ -13,6 +14,9 @@ export default function TicketPricing() {
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
   const [isUpdateHolidayItemModalOpen, setIsUpdateHolidayItemModalOpen] = useState(false);
   const [selectedHoliday, setSelectedHoliday] = useState(null);
+  
+  // Check if user has full admin permissions
+  const canEditPricing = canPerformAdminAction();
 
   const { data: PriceSettings, isLoading, error } = useGetPriceSettingsQuery();
   const {data: HolidayDates, isLoading: isLoadingHoliday, error: errorHoliday} = useGetHolidayPricingQuery();
@@ -61,8 +65,12 @@ export default function TicketPricing() {
       dataIndex: "holiday_ticket_price",
       key: "holiday_ticket_price",
       render: (price) => `${price?.toLocaleString() || 0} VND`
-    },
-    {
+    }
+  ];
+
+  // Add actions column only if user has admin permissions
+  if (canEditPricing) {
+    priceColumns.push({
       title: "Thao tác",
       key: "actions",
       width: 200,
@@ -77,8 +85,8 @@ export default function TicketPricing() {
           </Button>
         </Space>
       ),
-    }
-  ];
+    });
+  }
 
   // Columns for holidays table
   const holidayColumns = [
@@ -99,6 +107,22 @@ export default function TicketPricing() {
       key: "holiday_name"
     },
     {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date) => date ? new Date(date).toLocaleString('vi-VN') : 'N/A'
+    },
+    {
+      title: "Ngày cập nhật",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
+      render: (date) => date ? new Date(date).toLocaleString('vi-VN') : 'N/A'
+    }
+  ];
+
+  // Add actions column for holidays only if user has admin permissions
+  if (canEditPricing) {
+    holidayColumns.push({
       title: "Thao tác",
       key: "actions",
       width: 150,
@@ -111,8 +135,8 @@ export default function TicketPricing() {
           />
         </Space>
       )
-    }
-  ];
+    });
+  }
 
   const priceData = useMemo(() => {
     if (!PriceSettings?.data) return [];
@@ -134,7 +158,7 @@ export default function TicketPricing() {
     <div className="flex-1 ml-4 bg-white p-6 rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Quản lý Giá Vé</h2>
-        {!hasPriceData && (
+        {!hasPriceData && canEditPricing && (
           <div className="flex gap-2">
             <Button 
               type="primary" 
@@ -165,7 +189,7 @@ export default function TicketPricing() {
       <div>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Ngày lễ đã cài đặt</h3>
-          {hasPriceData && (
+          {hasPriceData && canEditPricing && (
             <Button 
               type="primary" 
               onClick={openHolidayModal}

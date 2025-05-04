@@ -16,9 +16,7 @@ const axiosBaseQuery =
       // Thiết lập headers phù hợp
       let headers = {};
       if (isFormData) {
-        // Khi sử dụng FormData, không cần set Content-Type, axios sẽ tự động thêm
-        // header với boundary chính xác
-        headers = {};
+        headers["Content-Type"] = "multipart/form-data";
       } else {
         headers["Content-Type"] = "application/json";
       }

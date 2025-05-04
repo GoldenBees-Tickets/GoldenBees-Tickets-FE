@@ -16,7 +16,7 @@ import {
 import { FiPlus, FiX, FiTrash2 } from "react-icons/fi";
 import { useGetCinemaByBranchIdQuery, useGetAllCinemaNotPaginationQuery } from "@/api/cinemaApi";
 import { useGetRoomsByCinemaIdQuery } from "@/api/roomApi";
-import { useGetMoviesQuery } from "@/api/movieApi";
+import { useGetMoviesByAddShowtimeQuery } from "@/api/movieApi";
 import {
   useCreateShowtimeMutation,
   useLazyGetShowtimeByRoomIdQuery,
@@ -122,9 +122,8 @@ export default function AddShowtime() {
       skip: !!branch_id
     });
 
-    
-    
-  const { data: moviesData, isLoading: moviesLoading } = useGetMoviesQuery();
+  const { data: moviesData, isLoading: moviesLoading } = useGetMoviesByAddShowtimeQuery();
+  
   const { data: roomsData, isLoading: roomsLoading } =
     useGetRoomsByCinemaIdQuery(selectedCinema, {
       skip: !selectedCinema,
@@ -142,7 +141,7 @@ export default function AddShowtime() {
     return allCinemasData?.data || [];
   }, [branch_id, cinemasDataByBranch, allCinemasData]);
   
-  const movies = useMemo(() => moviesData?.movies || [], [moviesData]);
+  const movies = useMemo(() => moviesData?.data || [], [moviesData]);
   const rooms = useMemo(() => roomsData?.data || [], [roomsData]);
   const basePrice = useMemo(
     () => priceSettings?.data?.base_ticket_price || 55000,
@@ -513,13 +512,19 @@ export default function AddShowtime() {
                 label="Phim"
                 rules={[{ required: true, message: "Vui lòng chọn phim" }]}
               >
-                <Select placeholder="Chọn phim" onChange={handleMovieChange}>
-                  {movies.map((movie) => (
-                    <Option key={movie.id} value={movie.id}>
-                      {movie.name} - {movie.duration} phút
-                    </Option>
-                  ))}
-                </Select>
+                <Select 
+                  placeholder="Chọn phim" 
+                  onChange={handleMovieChange}
+                  showSearch
+                  optionFilterProp="label"
+                  filterOption={(input, option) => 
+                    (option?.label || '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={movies.map((movie) => ({
+                    value: movie.id,
+                    label: `${movie.name} - ${movie.duration} phút`
+                  }))}
+                />
               </Form.Item>
             </div>
 
