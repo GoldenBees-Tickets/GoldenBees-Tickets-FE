@@ -4,47 +4,72 @@ import { useGetCombosQuery } from "@/api/comboApi";
 import { formatImage } from "@/utils/formatImage";
 // Component hiển thị FoodItem
 function FoodItem({ item, onQuantityChange }) {
+  console.log(item);
   return (
-    <div className="flex items-center justify-between p-4 border rounded-lg shadow-md hover:shadow-lg transition mb-4">
-      {/* Bên trái: Ảnh + Thông tin */}
-      <div className="flex items-center space-x-4">
-        {/* Ảnh */}
-        <div className="w-20 h-20 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
-          <img
-            src={formatImage(item.profile_picture)}
-            alt={item.name}
-            className="w-full h-full object-cover"
-          />
+    <div className="flex flex-col p-3 border rounded-lg shadow-sm hover:shadow-md transition mb-3 bg-white">
+      <div className="flex items-center justify-between">
+        {/* Bên trái: Ảnh + Thông tin */}
+        <div className="flex items-center space-x-3">
+          {/* Ảnh */}
+          <div className="w-16 h-16 flex-shrink-0 overflow-hidden rounded-md bg-gray-100">
+            <img
+              src={formatImage(item.profile_picture)}
+              alt={item.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          {/* Thông tin */}
+          <div>
+            <h3 className="text-base font-semibold text-gray-800">{item.name}</h3>
+            <p className="font-semibold text-left text-orange-600 text-sm">
+              {Number(item.price).toLocaleString()}đ
+            </p>
+          </div>
         </div>
 
-        {/* Thông tin */}
-        <div>
-          <h3 className="text-lg font-semibold">{item.name}</h3>
-          <p className="font-semibold text-left text-orange-600">
-            {Number(item.price).toLocaleString()}đ
-          </p>
+        {/* Bên phải: Tăng/Giảm số lượng */}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => onQuantityChange(item.id, -1)}
+            disabled={item.quantity === 0}
+            className="px-2 py-1 text-base font-bold text-orange-600 disabled:text-gray-400 border border-gray-300 rounded"
+            aria-label="Giảm số lượng"
+          >
+            -
+          </button>
+          <span className="w-6 text-center font-medium">{item.quantity}</span>
+          <button
+            onClick={() => onQuantityChange(item.id, 1)}
+            className="px-2 py-1 text-base font-bold text-orange-600 border border-gray-300 rounded"
+            aria-label="Tăng số lượng"
+          >
+            +
+          </button>
         </div>
       </div>
 
-      {/* Bên phải: Tăng/Giảm số lượng */}
-      <div className="flex items-center space-x-3">
-        <button
-          onClick={() => onQuantityChange(item.id, -1)}
-          disabled={item.quantity === 0}
-          className="px-3 py-1 text-lg font-bold text-orange-600 disabled:text-gray-400 border border-gray-300 rounded-md"
-          aria-label="Giảm số lượng"
-        >
-          -
-        </button>
-        <span className="w-8 text-center font-semibold">{item.quantity}</span>
-        <button
-          onClick={() => onQuantityChange(item.id, 1)}
-          className="px-3 py-1 text-lg font-bold text-orange-600 border border-gray-300 rounded-md"
-          aria-label="Tăng số lượng"
-        >
-          +
-        </button>
-      </div>
+      {/* Hiển thị danh sách các món trong combo */}
+      {item.ComboItems && item.ComboItems.length > 0 && (
+        <div className="mt-2 ml-16 border-t pt-1">
+          <p className="text-xs font-medium text-gray-700">Bao gồm:</p>
+          <div className="grid grid-cols-2 gap-x-2 gap-y-0 mt-1">
+            {item.ComboItems.map((comboItem) => (
+              <div key={comboItem.id} className="flex items-center text-xs text-gray-600">
+                <span className="inline-flex items-center justify-center w-4 h-4 bg-orange-50 text-orange-600 rounded-full font-medium text-xs mr-1">
+                  {comboItem.quantity}
+                </span>
+                <span>{comboItem.FoodAndDrink?.name}</span>
+                {comboItem.FoodAndDrink?.price && (
+                  <span className="ml-1 text-gray-500 text-xs">
+                    ({Number(comboItem.FoodAndDrink.price).toLocaleString()}đ)
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -52,16 +77,15 @@ function FoodItem({ item, onQuantityChange }) {
 // Component loading skeleton
 function LoadingSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse">
+    <div className="space-y-3 animate-pulse">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="flex items-center p-4 border rounded-lg">
-          <div className="w-24 h-24 bg-gray-200 rounded"></div>
-          <div className="flex-grow px-4">
-            <div className="h-6 w-1/2 bg-gray-200 rounded mb-2"></div>
-            <div className="h-4 w-3/4 bg-gray-200 rounded mb-2"></div>
-            <div className="h-5 w-1/4 bg-gray-200 rounded"></div>
+        <div key={i} className="flex items-center p-3 border rounded-lg">
+          <div className="w-16 h-16 bg-gray-200 rounded"></div>
+          <div className="flex-grow px-3">
+            <div className="h-4 w-1/2 bg-gray-200 rounded mb-2"></div>
+            <div className="h-3 w-1/3 bg-gray-200 rounded"></div>
           </div>
-          <div className="w-20 h-8 bg-gray-200 rounded"></div>
+          <div className="w-16 h-7 bg-gray-200 rounded"></div>
         </div>
       ))}
     </div>

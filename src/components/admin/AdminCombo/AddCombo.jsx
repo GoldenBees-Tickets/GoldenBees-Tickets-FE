@@ -139,10 +139,19 @@ export default function AddCombo({ setAddForm }) {
     if (!validateFields()) return;
 
     setIsSubmitting(true);
-    const dataCombo = { name, price, profile_picture, items: selectedItems };
     
     try {
-      await add2(dataCombo);
+      // Create FormData object
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('price', price);
+      formData.append('profile_picture', profile_picture);
+      
+      // Convert items array to JSON string and append
+      formData.append('items', JSON.stringify(selectedItems));
+      
+      // Call the API with FormData
+      await add2(formData);
       toast.success("Thêm combo thành công!");
       setAddForm(false);
     } catch (error) {

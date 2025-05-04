@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import MovieInfo from "../MovieInfo";
 import SelectedSeatsInfo from "../SelectedSeatsInfo";
 import { useSearchParams } from "react-router-dom";
+import { toast } from 'react-toastify';
 
 const BookingSidebar = ({
   showtimeData,
@@ -129,13 +130,43 @@ const BookingSidebar = ({
       
       // Redirect back to the booking page with the showtime_id and room_id
       if (showtimeId && roomId) {
-        alert("Thời gian giữ ghế đã hết. Bạn sẽ được chuyển về trang đặt vé.");
+        toast.error(
+          <div className="font-medium">
+            <div className="text-base mb-1">Hết thời gian giữ ghế</div>
+            <div className="text-sm opacity-90">Bạn sẽ được chuyển về trang đặt vé</div>
+          </div>, 
+          {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            icon: "⏰"
+          }
+        );
         
         // Use setSearchParams to navigate back to the initial booking page
-        window.location.href = `/booking/${showtimeId}?room_id=${roomId}`;
+        setTimeout(() => {
+          window.location.href = `/booking/${showtimeId}?room_id=${roomId}`;
+        }, 2000);
       } else {
         // Fallback if we can't find the showtime_id and room_id
-        alert("Thời gian giữ ghế đã hết. Vui lòng đặt lại từ đầu.");
+        toast.error(
+          <div className="font-medium">
+            <div className="text-base mb-1">Hết thời gian giữ ghế</div>
+            <div className="text-sm opacity-90">Vui lòng đặt vé lại từ đầu</div>
+          </div>, 
+          {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            icon: "⏰"
+          }
+        );
         setSearchParams({});
       }
     }
