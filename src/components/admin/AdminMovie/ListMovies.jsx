@@ -160,18 +160,7 @@ export default function ListMovies() {
             prefix={<SearchOutlined className="text-gray-400" />}
             allowClear
           />
-          <Select
-            placeholder="Lọc theo trạng thái"
-            style={{ width: 180 }}
-            onChange={handleStatusFilterChange}
-            value={statusFilter}
-            allowClear
-          >
-            <Option value="now_showing">Đang chiếu</Option>
-            <Option value="opening_soon">Sắp chiếu</Option>
-            <Option value="coming_soon">Sắp ra mắt</Option>
-            <Option value="ended">Đã kết thúc</Option>
-          </Select>
+
           {(searchValue || statusFilter || sortOrder !== "desc") && (
             <Button onClick={handleReset}>Xóa bộ lọc</Button>
           )}

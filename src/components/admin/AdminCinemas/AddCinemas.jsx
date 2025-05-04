@@ -60,8 +60,7 @@ export default function AddCinema({ setAddCinema }) {
     setBranchId(branch?.value); 
   };
 
-  const addCinema = async (e) => {
-    e.preventDefault();
+  const addCinema = async () => {
     setErrors({
       name: "",
       city: "",
