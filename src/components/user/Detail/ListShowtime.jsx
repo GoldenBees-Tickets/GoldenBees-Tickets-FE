@@ -8,7 +8,7 @@ export default function ListShowtime() {
   const { data: ListShowtimes } = useGetShowtimesByMovieIdQuery(movie_id, {
     skip: !movie_id,
   });
-
+  
   const renderShowtimes = useMemo(
     () =>
       ListShowtimes?.data?.map((cinema, index) => (

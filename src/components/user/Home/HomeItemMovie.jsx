@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 
-export default function HomeItemMovie({ title, year, imageSrc, id, genres = [], status }) {
+export default function HomeItemMovie({ title, year, imageSrc, id, genres = [], rating }) {
+  
   return (
     <Link to={`/detail/${id}`} className="block h-full">
       <div className="relative h-full bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
@@ -18,7 +19,7 @@ export default function HomeItemMovie({ title, year, imageSrc, id, genres = [], 
           {/* Rating badge - smaller on mobile */}
           <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-20">
             <div className="bg-yellow-400 text-[10px] sm:text-xs font-bold text-gray-900 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
-              8.5
+              {rating}
             </div>
           </div>
           

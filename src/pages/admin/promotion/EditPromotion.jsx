@@ -1,7 +1,7 @@
 import { Modal, Form, Input, DatePicker, Button, message } from "antd";
 import { useEffect } from "react";
 import dayjs from "dayjs";
-import { useUpdatePromotionMutation } from "../../../api/promotionApi";
+import { useUpdatePromotionMutation } from "@/api/promotionApi";
 
 export default function EditPromotionModal({ visible, onClose, promotion }) {
   const [form] = Form.useForm();
@@ -23,7 +23,7 @@ export default function EditPromotionModal({ visible, onClose, promotion }) {
       const formattedValues = {
         ...values,
         end_date: values.end_date?.format("YYYY-MM-DD"),
-      };
+      };      
       await updatePromotion({ id: promotion.id, ...formattedValues }).unwrap();
       message.success("Cập nhật thành công!");
       onClose();

@@ -6,6 +6,7 @@ import { FiEdit2, FiEye } from "react-icons/fi";
 import { SearchOutlined, CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import PaginationDefault from "../../PaginationDefault";
 import ViewRoomSeats from "./ViewRoomSeats";
+import { formatDate } from "@/utils/format";
 
 const { Search } = Input;
 
@@ -98,6 +99,11 @@ export default function ListRooms() {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
+      render: (date) => (
+        <span>
+          {formatDate(date)}
+        </span>
+      ),
     },
     {
       title: "Thao tác",

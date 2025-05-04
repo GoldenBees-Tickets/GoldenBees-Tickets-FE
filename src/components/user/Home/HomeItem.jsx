@@ -18,8 +18,7 @@ export default function HomeItem() {
   const moviesToDisplay = useMemo(() => {
     return activeTab === "nowShowing" ? nowShowingMovies : comingSoonMovies;
   }, [activeTab, nowShowingMovies, comingSoonMovies]);
-  
-  const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL;
+    
   return (
     <div className="font-[sans-serif] p-4 mx-auto max-w-[1400px]">
       {/* Combined title and tab navigation */}
@@ -65,6 +64,7 @@ export default function HomeItem() {
             year={movie.year}
             imageSrc={formatImage(movie.poster)}
             id={movie.id}
+            rating={movie.average_rating}
             genres={movie.MovieGenres?.map(mg => ({ id: mg.Genre?.id, name: mg.Genre?.name }))}
           />
         ))}

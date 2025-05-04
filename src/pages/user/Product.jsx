@@ -200,6 +200,7 @@ export default function Product() {
                     year={movie.year}
                     imageSrc={formatImage(movie.poster)}
                     id={movie.id}
+                    rating={movie.average_rating}
                     genres={movie.MovieGenres?.map(mg => ({ id: mg.Genre?.id, name: mg.Genre?.name }))}
                   />
                 ))}
