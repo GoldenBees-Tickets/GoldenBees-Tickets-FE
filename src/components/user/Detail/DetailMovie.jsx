@@ -6,6 +6,7 @@ import { formatImage } from "@/utils/formatImage";
 import { FaRegStar, FaStar, FaStarHalfAlt } from "react-icons/fa";
 import RatingMovie from "./RatingMovie";
 import { toast } from "react-toastify";
+import { formatDate } from "@/utils/format";
 
 // Tách thành component con để tránh re-render không cần thiết
 const MoviePoster = memo(({ poster, name, trailer, onShowTrailer, ageRating }) => (
@@ -105,7 +106,6 @@ const MovieInfo = memo(({
   isShowMore 
 }) => {
   const directorName = movie?.Director?.name || "Unknown Director";
-
   return (
     <div className="flex-1">
       <div className="mb-8">
@@ -142,6 +142,12 @@ const MovieInfo = memo(({
                       {index < movie.MovieActors.length - 1 ? ", " : ""}
                     </Link>
                   ))}
+                </div>
+              </div>
+              <div className="flex">
+                <span className="w-32 text-gray-500 font-medium">Khởi chiếu:</span>
+                <div className="flex flex-wrap font-medium">
+                  {formatDate(movie?.release_date)}
                 </div>
               </div>
             </div>

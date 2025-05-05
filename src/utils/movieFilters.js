@@ -4,6 +4,7 @@
  * @returns {Object} Object containing filtered movie arrays
  */
 export const filterMoviesByStatus = (movies) => {
+  
   if (!Array.isArray(movies)) {
     return { nowShowingMovies: [], comingSoonMovies: [] };
   }
