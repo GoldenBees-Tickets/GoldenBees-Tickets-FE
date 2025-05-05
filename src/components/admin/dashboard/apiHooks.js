@@ -4,6 +4,7 @@ import { useGetAllMoviesByAdminQuery, useGetMoviesByBranchQuery } from "@/api/mo
 import { useGetAllGenresForDashboardQuery } from "@/api/genreApi";
 import { useGetAllCinemaNotPaginationQuery, useGetCinemasForDashboardByBranchQuery } from "@/api/cinemaApi";
 import { useMemo } from "react";
+import { filterMoviesByStatus } from "@/utils/movieFilters";
 
 // Hàm kiểm tra role
 export const useDashboardData = (userRole, userId) => {
@@ -115,22 +116,33 @@ export const useStatistics = (orders, movies, branches, cinemas) => {
   // Thống kê phim theo trạng thái
   const movieStats = useMemo(() => {
     if (!movies?.data) return { comingSoon: 0, nowShowing: 0, ended: 0 };
-
+    // Process movies - chuyển từ useMemo lồng nhau thành tính toán trực tiếp
+    const ListMovie = movies?.data || [];
+    const { nowShowingMovies, comingSoonMovies } = filterMoviesByStatus(ListMovie);
+        
+    // Lọc thêm phim đang chiếu, loại bỏ phim có end_date đã qua
+    const currentDate = new Date();
+    const filteredNowShowingMovies = nowShowingMovies.filter(movie => {
+      if (!movie.end_date) return true; // Giữ lại nếu không có end_date
+      const endDate = new Date(movie.end_date);
+      return endDate >= currentDate; // Chỉ giữ những phim có end_date >= ngày hiện tại
+    });
+        
     const stats = {
-      comingSoon: 0,
-      nowShowing: 0,
+      comingSoon: comingSoonMovies.length,
+      nowShowing: filteredNowShowingMovies.length,
       ended: 0,
     };
 
-    movies.data.forEach((movie) => {
-      if (movie.status === "coming_soon" || movie.status === "opening_soon") {
-        stats.comingSoon++;
-      } else if (movie.status === "now_showing") {
-        stats.nowShowing++;
-      } else if (movie.status === "ended") {
-        stats.ended++;
-      }
-    });
+    // Tính số phim đã kết thúc chiếu (phim có end_date đã qua)
+    if (movies.data) {
+      stats.ended = movies.data.filter(movie => {
+        if (!movie.end_date) return false;
+        const endDate = new Date(movie.end_date);
+        const currentDate = new Date();
+        return endDate < currentDate;
+      }).length;
+    }
 
     return stats;
   }, [movies]);
@@ -400,7 +412,7 @@ export const useBranchPerformance = (orders, cinemas, movies, timeFrame) => {
 };
 
 // Xử lý dữ liệu biểu đồ doanh thu theo chi nhánh
-export const useBranchRevenueChart = (branches, orders) => {
+export const useBranchRevenueChart = (branches, orders) => {  
   return useMemo(() => {
     if (!branches?.branches || !orders?.data) return [];
 
@@ -415,52 +427,13 @@ export const useBranchRevenueChart = (branches, orders) => {
       };
     });
 
-    // Tổng doanh thu
-    const totalRevenue = orders.data.reduce(
-      (sum, order) => sum + parseInt(order.total || 0),
-      0
-    );
-
-    // Phân bổ doanh thu theo tỉ lệ cố định cho các chi nhánh
-    // Đây là giả định - trong thực tế nên dựa vào liên kết thực giữa đơn hàng và chi nhánh
-    if (branches.branches.length > 0) {
-      if (branches.branches.length === 1) {
-        branchRevenue[branches.branches[0].id].revenue = totalRevenue;
-      } else if (branches.branches.length === 2) {
-        // Chi nhánh Hồ Chí Minh: 65%, Chi nhánh Đà Nẵng: 35%
-        const hcmBranch = branches.branches.find((b) =>
-          b.city.includes("Hồ Chí Minh")
-        );
-        const dnBranch = branches.branches.find((b) =>
-          b.city.includes("Đà Nẵng")
-        );
-
-        if (hcmBranch)
-          branchRevenue[hcmBranch.id].revenue = Math.round(totalRevenue * 0.65);
-        if (dnBranch)
-          branchRevenue[dnBranch.id].revenue = Math.round(totalRevenue * 0.35);
-      } else {
-        // Phân bổ theo tỷ lệ phần trăm nếu có nhiều chi nhánh
-        let remainingPercent = 100;
-        const percentPerBranch = Math.floor(
-          remainingPercent / branches.branches.length
-        );
-
-        branches.branches.forEach((branch, index) => {
-          if (index === branches.branches.length - 1) {
-            // Chi nhánh cuối nhận phần còn lại
-            branchRevenue[branch.id].revenue = Math.round(
-              totalRevenue * (remainingPercent / 100)
-            );
-          } else {
-            branchRevenue[branch.id].revenue = Math.round(
-              totalRevenue * (percentPerBranch / 100)
-            );
-            remainingPercent -= percentPerBranch;
-          }
-        });
+    // Tính toán doanh thu thực tế dựa trên branch_id của mỗi đơn hàng
+    orders.data.forEach((order) => {
+      if (order.status === "paid" && order.branch_id && branchRevenue[order.branch_id]) {
+        // Cộng doanh thu từ đơn hàng vào chi nhánh tương ứng
+        branchRevenue[order.branch_id].revenue += parseInt(order.total || 0);
       }
-    }
+    });
 
     return Object.values(branchRevenue);
   }, [branches, orders]);

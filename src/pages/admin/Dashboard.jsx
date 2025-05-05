@@ -36,8 +36,7 @@ export default function Dashboard() {
   const isBranchAdmin = userRole === "branch_admin";
 
   // Lấy dữ liệu dựa trên quyền hạn
-  const { orders, branches, movies, genres, cinemas, isLoading } = useDashboardData(userRole, userId);
-
+  const { orders, branches, movies, genres, cinemas, isLoading } = useDashboardData(userRole, userId);  
   // Xử lý các thống kê
   const { stats, movieStats, formatCurrency } = useStatistics(orders, movies, branches, cinemas);
   const revenueByTime = useRevenueChart(orders, timeFrame);

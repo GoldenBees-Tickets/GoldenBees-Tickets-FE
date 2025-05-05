@@ -16,6 +16,7 @@ export default function FilterMovie() {
   const [selectedCinema, setSelectedCinema] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const carouselRef = useRef();
+  const [carouselPosition, setCarouselPosition] = useState({ isBeginning: true, isEnd: false });
 
   // Query lấy suất chiếu với tham số lọc
   const { data: ListShowtimes, isLoading, error, refetch } = useGetShowtimesByMovieIdQuery(
@@ -86,6 +87,14 @@ export default function FilterMovie() {
     
     return dates.sort((a, b) => new Date(a) - new Date(b));
   }, [filteredShowtimes]);
+
+  // Cập nhật trạng thái carousel khi uniqueDates thay đổi
+  useEffect(() => {
+    // Reset carousel position khi dữ liệu thay đổi
+    if (uniqueDates.length > 0) {
+      setCarouselPosition({ isBeginning: true, isEnd: uniqueDates.length <= 4 });
+    }
+  }, [uniqueDates]);
 
   const renderDates = useMemo(
     () => {
@@ -241,11 +250,41 @@ export default function FilterMovie() {
   };
 
   const nextSlide = () => {
-    carouselRef.current.next();
+    if (!carouselPosition.isEnd) {
+      carouselRef.current.next();
+      
+      // Lấy thông tin về vị trí hiện tại của carousel sau khi di chuyển
+      setTimeout(() => {
+        const currentIndex = carouselRef.current.innerSlider.state.currentSlide;
+        const slideCount = uniqueDates.length;
+        const slidesToShow = 4;
+        
+        // Kiểm tra xem đã đến đầu hoặc cuối carousel chưa
+        setCarouselPosition({
+          isBeginning: currentIndex === 0,
+          isEnd: currentIndex + slidesToShow >= slideCount
+        });
+      }, 300);
+    }
   };
 
   const prevSlide = () => {
-    carouselRef.current.prev();
+    if (!carouselPosition.isBeginning) {
+      carouselRef.current.prev();
+      
+      // Lấy thông tin về vị trí hiện tại của carousel sau khi di chuyển
+      setTimeout(() => {
+        const currentIndex = carouselRef.current.innerSlider.state.currentSlide;
+        const slideCount = uniqueDates.length;
+        const slidesToShow = 4;
+        
+        // Kiểm tra xem đã đến đầu hoặc cuối carousel chưa
+        setCarouselPosition({
+          isBeginning: currentIndex === 0,
+          isEnd: currentIndex + slidesToShow >= slideCount
+        });
+      }, 300);
+    }
   };
 
   return (
@@ -282,21 +321,34 @@ export default function FilterMovie() {
                   draggable={true}
                   className="date-carousel"
                   arrows={false}
+                  infinite={false}
+                  afterChange={(current) => {
+                    const slideCount = uniqueDates.length;
+                    const slidesToShow = 4;
+                    setCarouselPosition({
+                      isBeginning: current === 0,
+                      isEnd: current + slidesToShow >= slideCount
+                    });
+                  }}
                 >
                   {renderDates}
                 </Carousel>
-                <button 
-                  onClick={prevSlide} 
-                  className="carousel-nav-button carousel-prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 bg-white rounded-full shadow-md z-10 w-8 h-8 flex items-center justify-center"
-                >
-                  <LeftOutlined className="text-orange-500" />
-                </button>
-                <button 
-                  onClick={nextSlide} 
-                  className="carousel-nav-button carousel-next absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-white rounded-full shadow-md z-10 w-8 h-8 flex items-center justify-center"
-                >
-                  <RightOutlined className="text-orange-500" />
-                </button>
+                {!carouselPosition.isBeginning && (
+                  <button 
+                    onClick={prevSlide} 
+                    className="carousel-nav-button carousel-prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 bg-white rounded-full shadow-md z-10 w-8 h-8 flex items-center justify-center"
+                  >
+                    <LeftOutlined className="text-orange-500" />
+                  </button>
+                )}
+                {!carouselPosition.isEnd && (
+                  <button 
+                    onClick={nextSlide} 
+                    className="carousel-nav-button carousel-next absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-white rounded-full shadow-md z-10 w-8 h-8 flex items-center justify-center"
+                  >
+                    <RightOutlined className="text-orange-500" />
+                  </button>
+                )}
               </div>
             )}
           </div>
