@@ -63,8 +63,8 @@ export default function Login() {
         localStorage.setItem("user", JSON.stringify(user));
 
         toast.success("Đăng nhập thành công!");
-
-        if (response.data.data.role === "admin") {
+        
+        if (response.data.data.role === "admin" || response.data.data.role === "branch_admin") {
           navigate("/admin");
         } else {
           navigate("/");
@@ -101,7 +101,7 @@ export default function Login() {
 
         toast.success("Đăng nhập thành công!");
 
-        if (data.data.data.role === "admin") {
+        if (data.data.data.role === "admin" || data.data.data.role === "branch_admin") {
           navigate("/admin");
         } else {
           navigate("/");
