@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { formatDecimal } from "@/utils/format";
+import { FaStar } from "react-icons/fa";
+
 export default function HomeItemMovie({ title, year, imageSrc, id, genres = [], rating }) {
   
   return (
@@ -18,9 +20,12 @@ export default function HomeItemMovie({ title, year, imageSrc, id, genres = [], 
           
           {/* Rating badge - smaller on mobile */}
           <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-20">
-            <div className="bg-yellow-400 text-[10px] sm:text-xs font-bold text-gray-900 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
+            <div className="flex items-center space-x-1 bg-white text-[10px] sm:text-xs font-bold text-gray-900 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
+              <div>
               {formatDecimal(rating)}
-            </div>
+              </div> 
+              <FaStar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" />
+              </div>
           </div>
           
           {/* Genre badge - adaptive for mobile */}
