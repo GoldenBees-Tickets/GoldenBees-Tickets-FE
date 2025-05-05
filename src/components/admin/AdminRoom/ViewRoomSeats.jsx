@@ -10,7 +10,8 @@ const { useBreakpoint } = Grid;
 export default function ViewRoomSeats({ roomId, visible, onClose }) {
   const screens = useBreakpoint();
   const { data: listSeats, isLoading, error } = useGetSeatsByRoomIdQuery(roomId, { 
-    skip: !roomId || !visible
+    skip: !roomId || !visible,
+    refetchOnMountOrArgChange: true
   });
   const { data: listSeatTypes } = useGetListSeatTypesQuery();
   

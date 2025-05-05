@@ -143,7 +143,7 @@ export default function ListShowtimes({ branch_id }) {
       dataIndex: "base_price",
       key: "price",
       render: (price) => (
-        <span>{formatCurrency(price)} VND</span>
+        <span>{formatCurrency(price)}</span>
       )
     },
     {
@@ -154,20 +154,6 @@ export default function ListShowtimes({ branch_id }) {
         return <Tag color={color}>{status}</Tag>;
       }
     },
-    {
-      title: "Hành động",
-      key: "action",
-      render: (_, record) => (
-        <div className="flex space-x-2">
-          <Button 
-            type="primary" 
-            icon={<FiEdit />} 
-            size="small"
-            className="flex items-center"
-          />
-        </div>
-      )
-    }
   ];
 
   if (isLoading) return <Spin className="flex justify-center mt-10" size="large" />;

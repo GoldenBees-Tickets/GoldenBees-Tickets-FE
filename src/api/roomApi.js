@@ -23,7 +23,10 @@ export const roomApi = createApi({
         body: { name },
         useHttpClient: true,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: "Room", id }],
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Room", id },
+        { type: "RoomSeats", id }
+      ],
     }),
 
     // Xóa phòng
@@ -35,6 +38,7 @@ export const roomApi = createApi({
       invalidatesTags: (result, error, id) => [
         { type: "Room", id },
         { type: "Room", id: "LISTROOM" },
+        { type: "RoomSeats", id }
       ],
     }),
     getRoomsByCinemaId: builder.query({
@@ -71,7 +75,7 @@ export const roomApi = createApi({
         url: `/${room_id}?showtime_id=${showtime_id}`,
         useHttpClient: true,
       }),
-      providesTags: (result, error, id) => [{ type: "Room", id }],
+      providesTags: (result, error, {room_id}) => [{ type: "Room", id: room_id }],
     }),
 
     getSeatsByRoomId: builder.query({
@@ -79,6 +83,7 @@ export const roomApi = createApi({
         url: `/seats/${room_id}`,
         useHttpClient: true,
       }),
+      providesTags: (result, error, room_id) => [{ type: "RoomSeats", id: room_id }],
     }),
   }),
 });

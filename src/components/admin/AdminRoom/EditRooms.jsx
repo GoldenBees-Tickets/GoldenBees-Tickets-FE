@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useGetSeatsByRoomIdQuery } from "@/api/roomApi";
 import { useState, useMemo, useEffect } from "react";
 import { useGetListSeatTypesQuery } from "@/api/seatTypeApi";
@@ -8,6 +8,7 @@ import MovieScreen from "../../MovieScreen";
 
 export default function EditRoom() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const {
     data: listSeats,
   } = useGetSeatsByRoomIdQuery(id, { skip: !id });
@@ -164,9 +165,9 @@ export default function EditRoom() {
         toast.info("Không có thay đổi để cập nhật.");
         return;
       }
-      const response = await updateSeatData(modifiedSeats);
-
+      const response = await updateSeatData(modifiedSeats);      
       toast.success(response.data.message || "Update successfully");
+      navigate(`/admin/rooms`);
       setModifiedSeats([]);
     } catch (error) {
       toast.error(error.message);
