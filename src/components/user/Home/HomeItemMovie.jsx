@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-
+import { formatDecimal } from "@/utils/format";
 export default function HomeItemMovie({ title, year, imageSrc, id, genres = [], rating }) {
   
   return (
@@ -19,7 +19,7 @@ export default function HomeItemMovie({ title, year, imageSrc, id, genres = [], 
           {/* Rating badge - smaller on mobile */}
           <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-20">
             <div className="bg-yellow-400 text-[10px] sm:text-xs font-bold text-gray-900 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
-              {rating}
+              {formatDecimal(rating)}
             </div>
           </div>
           

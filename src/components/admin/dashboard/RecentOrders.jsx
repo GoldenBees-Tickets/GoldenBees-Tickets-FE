@@ -2,7 +2,7 @@ import React from "react";
 import { Card, Space, Button, Table, Tag } from "antd";
 import { FaTicketAlt } from "react-icons/fa";
 import { motion } from "framer-motion";
-
+import { Link } from "react-router-dom";
 export default function RecentOrders({ recentOrders, formatCurrency }) {
   const recentOrderColumns = [
     {
@@ -52,9 +52,11 @@ export default function RecentOrders({ recentOrders, formatCurrency }) {
           </Space>
         }
         extra={
-          <Button type="primary" ghost>
+          <Link to="/admin/orders">
+            <Button type="primary" ghost>
             Xem tất cả
           </Button>
+          </Link>
         }
         style={{
           borderRadius: "12px",

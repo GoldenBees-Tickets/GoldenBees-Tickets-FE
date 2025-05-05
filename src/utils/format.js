@@ -79,3 +79,7 @@ export const formatTime = (time, format = 'HH:mm') => {
   return validTime.format(format);  // Trả về thời gian đã định dạng.
 };
 
+export const formatDecimal = (num) => {
+  return Math.round(num * 10) / 10;
+}
+

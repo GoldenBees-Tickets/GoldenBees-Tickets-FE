@@ -367,19 +367,6 @@ export default function FilterMovie() {
       </div>
 
       <div className="mt-8">
-        <div className="flex items-center justify-between mb-5 px-1">
-          <span className="text-sm text-gray-600 font-medium">Các suất chiếu có sẵn</span>
-          <div className="flex items-center gap-5">
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-              <span className="text-xs text-gray-600">Còn chỗ</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-gray-300 rounded-full mr-2"></div>
-              <span className="text-xs text-gray-600">Sắp đầy</span>
-            </div>
-          </div>
-        </div>
         
         {isLoading ? (
           <div className="flex items-center justify-center py-20">

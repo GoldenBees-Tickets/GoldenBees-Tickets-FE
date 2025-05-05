@@ -4,7 +4,6 @@ import { useGetCombosQuery } from "@/api/comboApi";
 import { formatImage } from "@/utils/formatImage";
 // Component hiển thị FoodItem
 function FoodItem({ item, onQuantityChange }) {
-  console.log(item);
   return (
     <div className="flex flex-col p-3 border rounded-lg shadow-sm hover:shadow-md transition mb-3 bg-white">
       <div className="flex items-center justify-between">
